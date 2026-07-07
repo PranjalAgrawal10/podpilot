@@ -1,0 +1,68 @@
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: podpilot-mysql
+    environment:
+      MYSQL_DATABASE: podpilot
+      MYSQL_USER: podpilot
+      MYSQL_PASSWORD: podpilot_secret
+      MYSQL_ROOT_PASSWORD: podpilot_root_secret
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-ppodpilot_root_secret"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      - podpilot-network
+
+  api:
+    build:
+      context: .
+      dockerfile: src/PodPilot.Api/Dockerfile
+    container_name: podpilot-api
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__DefaultConnection: "Server=mysql;Port=3306;Database=podpilot;User=podpilot;Password=podpilot_secret;"
+      Jwt__Secret: "PodPilot_Docker_Super_Secret_Key_For_JWT_Token_Generation_2026!"
+      Cors__AllowedOrigins__0: "http://localhost:3000"
+      Cors__AllowedOrigins__1: "http://localhost:5173"
+      Cors__AllowedOrigins__2: "http://localhost"
+      Swagger__Enabled: "true"
+    ports:
+      - "5000:8080"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - podpilot-network
+
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    container_name: podpilot-web
+    ports:
+      - "3000:80"
+    depends_on:
+      - api
+    networks:
+      - podpilot-network
+
+volumes:
+  mysql_data:
+
+networks:
+  podpilot-network:
+    driver: bridge

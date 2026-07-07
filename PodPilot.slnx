@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/PodPilot.Api/PodPilot.Api.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/PodPilot.Api.Tests/PodPilot.Api.Tests.csproj" />
+    <Project Path="tests/PodPilot.Application.Tests/PodPilot.Application.Tests.csproj" />
+  </Folder>
+</Solution>

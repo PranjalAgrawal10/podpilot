@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AspNetCore.HealthChecks.MySql" Version="9.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.9" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.9" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.9">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.OpenApi" Version="2.7.5" />
+    <PackageReference Include="Serilog.AspNetCore" Version="10.0.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="10.2.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\PodPilot.Application\PodPilot.Application.csproj" />
+    <ProjectReference Include="..\PodPilot.Infrastructure\PodPilot.Infrastructure.csproj" />
+    <ProjectReference Include="..\PodPilot.Contracts\PodPilot.Contracts.csproj" />
+  </ItemGroup>
+
+  <Target Name="CopyReferencedXmlDocs" AfterTargets="Build">
+    <Copy SourceFiles="..\PodPilot.Application\bin\$(Configuration)\$(TargetFramework)\PodPilot.Application.xml" DestinationFolder="$(OutputPath)" SkipUnchangedFiles="true" Condition="Exists('..\PodPilot.Application\bin\$(Configuration)\$(TargetFramework)\PodPilot.Application.xml')" />
+    <Copy SourceFiles="..\PodPilot.Contracts\bin\$(Configuration)\$(TargetFramework)\PodPilot.Contracts.xml" DestinationFolder="$(OutputPath)" SkipUnchangedFiles="true" Condition="Exists('..\PodPilot.Contracts\bin\$(Configuration)\$(TargetFramework)\PodPilot.Contracts.xml')" />
+  </Target>
+
+</Project>
