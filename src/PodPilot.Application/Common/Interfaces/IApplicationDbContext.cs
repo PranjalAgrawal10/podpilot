@@ -24,6 +24,21 @@ public interface IApplicationDbContext
     IQueryable<OrganizationMember> OrganizationMembers { get; }
 
     /// <summary>
+    /// Gets the invitations set.
+    /// </summary>
+    IQueryable<Invitation> Invitations { get; }
+
+    /// <summary>
+    /// Gets the permissions set.
+    /// </summary>
+    IQueryable<Permission> Permissions { get; }
+
+    /// <summary>
+    /// Gets the roles set.
+    /// </summary>
+    IQueryable<Role> Roles { get; }
+
+    /// <summary>
     /// Gets the audit logs set.
     /// </summary>
     IQueryable<AuditLog> AuditLogs { get; }
@@ -31,34 +46,30 @@ public interface IApplicationDbContext
     /// <summary>
     /// Adds an audit log entry.
     /// </summary>
-    /// <param name="auditLog">The audit log to add.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
     Task AddAuditLogAsync(AuditLog auditLog, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Adds a refresh token.
     /// </summary>
-    /// <param name="refreshToken">The refresh token to add.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
     Task AddRefreshTokenAsync(RefreshToken refreshToken, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Adds an organization.
     /// </summary>
-    /// <param name="organization">The organization to add.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
     Task AddOrganizationAsync(Organization organization, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Adds an organization member.
     /// </summary>
-    /// <param name="member">The member to add.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
     Task AddOrganizationMemberAsync(OrganizationMember member, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Adds an invitation.
+    /// </summary>
+    Task AddInvitationAsync(Invitation invitation, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Persists pending changes.
     /// </summary>
-    /// <param name="cancellationToken">The cancellation token.</param>
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

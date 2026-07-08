@@ -1,5 +1,6 @@
 import axios, { type AxiosError, type InternalAxiosRequestConfig } from 'axios';
 import { tokenStorage } from '../utils/tokenStorage';
+import { organizationStorage } from '../utils/organizationStorage';
 import type { ApiResponse, AuthResponse } from '../types';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api/v1';
@@ -69,6 +70,12 @@ apiClient.interceptors.response.use(
         if (authData) {
           tokenStorage.setAccessToken(authData.accessToken);
           tokenStorage.setRefreshToken(authData.refreshToken);
+          if (authData.user.currentOrganizationId) {
+            organizationStorage.setCurrentOrganizationId(authData.user.currentOrganizationId);
+          }
+          if (authData.user.currentOrganizationRole) {
+            organizationStorage.setCurrentOrganizationRole(authData.user.currentOrganizationRole);
+          }
           onTokenRefreshed(authData.accessToken);
 
           if (originalRequest.headers) {

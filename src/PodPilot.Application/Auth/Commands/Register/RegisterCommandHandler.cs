@@ -15,8 +15,7 @@ public sealed class RegisterCommandHandler : IRequestHandler<RegisterCommand, Au
 {
     private readonly IIdentityService identityService;
     private readonly IApplicationDbContext dbContext;
-    private readonly IJwtTokenService jwtTokenService;
-    private readonly IRefreshTokenService refreshTokenService;
+    private readonly IAuthTokenIssuer authTokenIssuer;
     private readonly IAuditService auditService;
     private readonly IHttpContextService httpContextService;
     private readonly IDateTimeService dateTimeService;
@@ -27,16 +26,14 @@ public sealed class RegisterCommandHandler : IRequestHandler<RegisterCommand, Au
     public RegisterCommandHandler(
         IIdentityService identityService,
         IApplicationDbContext dbContext,
-        IJwtTokenService jwtTokenService,
-        IRefreshTokenService refreshTokenService,
+        IAuthTokenIssuer authTokenIssuer,
         IAuditService auditService,
         IHttpContextService httpContextService,
         IDateTimeService dateTimeService)
     {
         this.identityService = identityService;
         this.dbContext = dbContext;
-        this.jwtTokenService = jwtTokenService;
-        this.refreshTokenService = refreshTokenService;
+        this.authTokenIssuer = authTokenIssuer;
         this.auditService = auditService;
         this.httpContextService = httpContextService;
         this.dateTimeService = dateTimeService;
@@ -65,12 +62,16 @@ public sealed class RegisterCommandHandler : IRequestHandler<RegisterCommand, Au
 
         await identityService.AssignRoleAsync(user.Id, ApplicationConstants.AdminRole, cancellationToken);
 
+        var now = dateTimeService.UtcNow;
         var slug = ApplicationConstants.CreateSlug(request.OrganizationName);
         var organization = new Organization
         {
             Name = request.OrganizationName.Trim(),
             Slug = slug,
-            CreatedAt = dateTimeService.UtcNow,
+            OwnerUserId = user.Id,
+            IsDefault = true,
+            IsActive = true,
+            CreatedAt = now,
             CreatedBy = user.Id.ToString(),
         };
 
@@ -80,20 +81,16 @@ public sealed class RegisterCommandHandler : IRequestHandler<RegisterCommand, Au
         {
             OrganizationId = organization.Id,
             UserId = user.Id,
-            Role = UserRole.Admin,
-            CreatedAt = dateTimeService.UtcNow,
+            Role = OrganizationRole.Owner,
+            JoinedAt = now,
+            Status = MemberStatus.Active,
+            IsActive = true,
+            CreatedAt = now,
             CreatedBy = user.Id.ToString(),
         };
 
         await dbContext.AddOrganizationMemberAsync(membership, cancellationToken);
         await dbContext.SaveChangesAsync(cancellationToken);
-
-        var roles = await identityService.GetUserRolesAsync(user.Id, cancellationToken);
-        var (accessToken, expiresIn) = jwtTokenService.GenerateAccessToken(user, roles);
-        var (_, refreshToken) = await refreshTokenService.GenerateRefreshTokenAsync(
-            user.Id,
-            httpContextService.IpAddress,
-            cancellationToken);
 
         await auditService.LogAsync(
             AuditAction.Register,
@@ -105,19 +102,6 @@ public sealed class RegisterCommandHandler : IRequestHandler<RegisterCommand, Au
             httpContextService.CorrelationId,
             cancellationToken);
 
-        return new AuthResponse
-        {
-            AccessToken = accessToken,
-            RefreshToken = refreshToken,
-            ExpiresIn = expiresIn,
-            User = new UserSummary
-            {
-                Id = user.Id,
-                Email = user.Email,
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                Roles = roles,
-            },
-        };
+        return await authTokenIssuer.IssueTokensAsync(user.Id, organization.Id, cancellationToken);
     }
 }

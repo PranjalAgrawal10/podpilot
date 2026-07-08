@@ -30,7 +30,17 @@ public class OrganizationMember : Common.AuditableEntity
     /// <summary>
     /// Gets or sets the member's role within the organization.
     /// </summary>
-    public UserRole Role { get; set; } = UserRole.Member;
+    public OrganizationRole Role { get; set; } = OrganizationRole.Viewer;
+
+    /// <summary>
+    /// Gets or sets when the user joined the organization.
+    /// </summary>
+    public DateTime JoinedAt { get; set; }
+
+    /// <summary>
+    /// Gets or sets the membership status.
+    /// </summary>
+    public MemberStatus Status { get; set; } = MemberStatus.Active;
 
     /// <summary>
     /// Gets or sets a value indicating whether the membership is active.

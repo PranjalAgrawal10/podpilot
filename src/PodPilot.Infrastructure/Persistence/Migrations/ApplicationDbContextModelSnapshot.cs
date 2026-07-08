@@ -164,6 +164,61 @@ namespace PodPilot.Infrastructure.Persistence.Migrations
                     b.ToTable("AuditLogs", (string)null);
                 });
 
+            modelBuilder.Entity("PodPilot.Domain.Entities.Invitation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime?>("AcceptedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("CreatedBy")
+                        .HasMaxLength(128)
+                        .HasColumnType("varchar(128)");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(256)");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<int>("Role")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("varchar(128)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(128)
+                        .HasColumnType("varchar(128)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Token")
+                        .IsUnique();
+
+                    b.HasIndex("OrganizationId", "Email", "Status");
+
+                    b.ToTable("Invitations", (string)null);
+                });
+
             modelBuilder.Entity("PodPilot.Domain.Entities.Organization", b =>
                 {
                     b.Property<Guid>("Id")
@@ -184,10 +239,22 @@ namespace PodPilot.Infrastructure.Persistence.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("tinyint(1)");
 
+                    b.Property<bool>("IsDefault")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("tinyint(1)")
+                        .HasDefaultValue(false);
+
+                    b.Property<string>("Logo")
+                        .HasMaxLength(2048)
+                        .HasColumnType("varchar(2048)");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("varchar(200)");
+
+                    b.Property<Guid>("OwnerUserId")
+                        .HasColumnType("char(36)");
 
                     b.Property<string>("Slug")
                         .IsRequired()
@@ -225,10 +292,16 @@ namespace PodPilot.Infrastructure.Persistence.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("tinyint(1)");
 
+                    b.Property<DateTime>("JoinedAt")
+                        .HasColumnType("datetime(6)");
+
                     b.Property<Guid>("OrganizationId")
                         .HasColumnType("char(36)");
 
                     b.Property<int>("Role")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Status")
                         .HasColumnType("int");
 
                     b.Property<DateTime?>("UpdatedAt")
@@ -249,6 +322,35 @@ namespace PodPilot.Infrastructure.Persistence.Migrations
                         .IsUnique();
 
                     b.ToTable("OrganizationMembers", (string)null);
+                });
+
+            modelBuilder.Entity("PodPilot.Domain.Entities.Permission", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("Permissions", (string)null);
                 });
 
             modelBuilder.Entity("PodPilot.Domain.Entities.RefreshToken", b =>
@@ -290,6 +392,48 @@ namespace PodPilot.Infrastructure.Persistence.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("RefreshTokens", (string)null);
+                });
+
+            modelBuilder.Entity("PodPilot.Domain.Entities.Role", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<int>("OrganizationRole")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("OrgRoles", (string)null);
+                });
+
+            modelBuilder.Entity("PodPilot.Domain.Entities.RolePermission", b =>
+                {
+                    b.Property<Guid>("RoleId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid>("PermissionId")
+                        .HasColumnType("char(36)");
+
+                    b.HasKey("RoleId", "PermissionId");
+
+                    b.HasIndex("PermissionId");
+
+                    b.ToTable("RolePermissions", (string)null);
                 });
 
             modelBuilder.Entity("PodPilot.Infrastructure.Identity.ApplicationRole", b =>
@@ -454,6 +598,17 @@ namespace PodPilot.Infrastructure.Persistence.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("PodPilot.Domain.Entities.Invitation", b =>
+                {
+                    b.HasOne("PodPilot.Domain.Entities.Organization", "Organization")
+                        .WithMany("Invitations")
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Organization");
+                });
+
             modelBuilder.Entity("PodPilot.Domain.Entities.OrganizationMember", b =>
                 {
                     b.HasOne("PodPilot.Domain.Entities.Organization", "Organization")
@@ -480,9 +635,40 @@ namespace PodPilot.Infrastructure.Persistence.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("PodPilot.Domain.Entities.RolePermission", b =>
+                {
+                    b.HasOne("PodPilot.Domain.Entities.Permission", "Permission")
+                        .WithMany("RolePermissions")
+                        .HasForeignKey("PermissionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("PodPilot.Domain.Entities.Role", "Role")
+                        .WithMany("RolePermissions")
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Permission");
+
+                    b.Navigation("Role");
+                });
+
             modelBuilder.Entity("PodPilot.Domain.Entities.Organization", b =>
                 {
+                    b.Navigation("Invitations");
+
                     b.Navigation("Members");
+                });
+
+            modelBuilder.Entity("PodPilot.Domain.Entities.Permission", b =>
+                {
+                    b.Navigation("RolePermissions");
+                });
+
+            modelBuilder.Entity("PodPilot.Domain.Entities.Role", b =>
+                {
+                    b.Navigation("RolePermissions");
                 });
 #pragma warning restore 612, 618
         }

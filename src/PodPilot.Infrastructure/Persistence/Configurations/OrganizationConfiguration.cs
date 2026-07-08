@@ -30,6 +30,15 @@ public class OrganizationConfiguration : IEntityTypeConfiguration<Organization>
         builder.Property(o => o.Description)
             .HasMaxLength(1000);
 
+        builder.Property(o => o.Logo)
+            .HasMaxLength(2048);
+
+        builder.Property(o => o.OwnerUserId)
+            .IsRequired();
+
+        builder.Property(o => o.IsDefault)
+            .HasDefaultValue(false);
+
         builder.Property(o => o.CreatedBy)
             .HasMaxLength(128);
 

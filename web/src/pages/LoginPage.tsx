@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { Button, Card, CardBody, Form, FormGroup, Input, Label } from 'reactstrap';
 import { toast } from 'react-toastify';
@@ -9,6 +9,8 @@ import type { LoginRequest } from '../types';
 export const LoginPage = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const returnUrl = searchParams.get('returnUrl');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { register, handleSubmit, formState: { errors } } = useForm<LoginRequest>();
 
@@ -20,7 +22,7 @@ export const LoginPage = () => {
     try {
       await login(data);
       toast.success('Welcome back!');
-      navigate('/dashboard');
+      navigate(returnUrl && returnUrl.startsWith('/') ? returnUrl : '/dashboard');
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Login failed';
       toast.error(message);

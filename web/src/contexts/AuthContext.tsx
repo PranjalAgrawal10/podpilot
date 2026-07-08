@@ -9,7 +9,8 @@ import {
 } from 'react';
 import { authService, userService } from '../services/authService';
 import { tokenStorage } from '../utils/tokenStorage';
-import type { LoginRequest, RegisterRequest, UserResponse } from '../types';
+import { organizationStorage } from '../utils/organizationStorage';
+import type { AuthResponse, LoginRequest, RegisterRequest, UserResponse } from '../types';
 
 interface AuthContextValue {
   user: UserResponse | null;
@@ -19,9 +20,22 @@ interface AuthContextValue {
   register: (data: RegisterRequest) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
+  applyAuthResponse: (auth: AuthResponse) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
+
+const persistAuthSession = (auth: AuthResponse): void => {
+  tokenStorage.setAccessToken(auth.accessToken);
+  tokenStorage.setRefreshToken(auth.refreshToken);
+
+  if (auth.user.currentOrganizationId) {
+    organizationStorage.setCurrentOrganizationId(auth.user.currentOrganizationId);
+  }
+  if (auth.user.currentOrganizationRole) {
+    organizationStorage.setCurrentOrganizationRole(auth.user.currentOrganizationRole);
+  }
+};
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<UserResponse | null>(null);
@@ -38,6 +52,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUser(currentUser);
   }, []);
 
+  const applyAuthResponse = useCallback(async (auth: AuthResponse) => {
+    persistAuthSession(auth);
+    await refreshUser();
+  }, [refreshUser]);
+
   useEffect(() => {
     const init = async () => {
       try {
@@ -46,6 +65,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
       } catch {
         tokenStorage.clear();
+        organizationStorage.clear();
         setUser(null);
       } finally {
         setIsLoading(false);
@@ -57,17 +77,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const login = useCallback(async (data: LoginRequest) => {
     const auth = await authService.login(data);
-    tokenStorage.setAccessToken(auth.accessToken);
-    tokenStorage.setRefreshToken(auth.refreshToken);
-    await refreshUser();
-  }, [refreshUser]);
+    await applyAuthResponse(auth);
+  }, [applyAuthResponse]);
 
   const register = useCallback(async (data: RegisterRequest) => {
     const auth = await authService.register(data);
-    tokenStorage.setAccessToken(auth.accessToken);
-    tokenStorage.setRefreshToken(auth.refreshToken);
-    await refreshUser();
-  }, [refreshUser]);
+    await applyAuthResponse(auth);
+  }, [applyAuthResponse]);
 
   const logout = useCallback(async () => {
     const refreshToken = tokenStorage.getRefreshToken();
@@ -79,6 +95,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     }
     tokenStorage.clear();
+    organizationStorage.clear();
     setUser(null);
   }, []);
 
@@ -91,8 +108,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       register,
       logout,
       refreshUser,
+      applyAuthResponse,
     }),
-    [user, isLoading, login, register, logout, refreshUser],
+    [user, isLoading, login, register, logout, refreshUser, applyAuthResponse],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

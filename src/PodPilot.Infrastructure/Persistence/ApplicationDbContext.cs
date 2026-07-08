@@ -31,6 +31,15 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     public DbSet<OrganizationMember> OrganizationMembers => Set<OrganizationMember>();
 
     /// <inheritdoc />
+    public DbSet<Invitation> Invitations => Set<Invitation>();
+
+    /// <inheritdoc />
+    public DbSet<Permission> Permissions => Set<Permission>();
+
+    /// <inheritdoc />
+    public DbSet<Role> OrgRoles => Set<Role>();
+
+    /// <inheritdoc />
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
 
     IQueryable<RefreshToken> IApplicationDbContext.RefreshTokens => RefreshTokens;
@@ -38,6 +47,12 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     IQueryable<Organization> IApplicationDbContext.Organizations => Organizations;
 
     IQueryable<OrganizationMember> IApplicationDbContext.OrganizationMembers => OrganizationMembers;
+
+    IQueryable<Invitation> IApplicationDbContext.Invitations => Invitations;
+
+    IQueryable<Permission> IApplicationDbContext.Permissions => Permissions;
+
+    IQueryable<Role> IApplicationDbContext.Roles => OrgRoles;
 
     IQueryable<AuditLog> IApplicationDbContext.AuditLogs => AuditLogs;
 
@@ -56,6 +71,10 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     /// <inheritdoc />
     public Task AddOrganizationMemberAsync(OrganizationMember member, CancellationToken cancellationToken = default) =>
         OrganizationMembers.AddAsync(member, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public Task AddInvitationAsync(Invitation invitation, CancellationToken cancellationToken = default) =>
+        Invitations.AddAsync(invitation, cancellationToken).AsTask();
 
     /// <inheritdoc />
     protected override void OnModelCreating(ModelBuilder builder)

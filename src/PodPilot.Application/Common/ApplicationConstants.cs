@@ -1,5 +1,4 @@
 using System.Text.RegularExpressions;
-using PodPilot.Domain.Entities;
 using PodPilot.Domain.Enums;
 
 namespace PodPilot.Application.Common;
@@ -10,17 +9,32 @@ namespace PodPilot.Application.Common;
 public static class ApplicationConstants
 {
     /// <summary>
-    /// The Admin role name.
+    /// The ASP.NET Identity Admin role name.
     /// </summary>
     public const string AdminRole = "Admin";
 
     /// <summary>
-    /// The Member role name.
+    /// The ASP.NET Identity Member role name.
     /// </summary>
     public const string MemberRole = "Member";
 
     /// <summary>
-    /// All application roles.
+    /// JWT claim for current organization identifier.
+    /// </summary>
+    public const string OrganizationIdClaim = "organization_id";
+
+    /// <summary>
+    /// JWT claim for current organization role.
+    /// </summary>
+    public const string OrganizationRoleClaim = "organization_role";
+
+    /// <summary>
+    /// Default invitation validity in days.
+    /// </summary>
+    public const int InvitationExpirationDays = 7;
+
+    /// <summary>
+    /// All ASP.NET Identity roles.
     /// </summary>
     public static readonly string[] AllRoles = [AdminRole, MemberRole];
 
@@ -39,14 +53,19 @@ public static class ApplicationConstants
     }
 
     /// <summary>
-    /// Maps a <see cref="UserRole"/> enum to its string representation.
+    /// Maps an <see cref="OrganizationRole"/> to its string representation.
     /// </summary>
     /// <param name="role">The role enum value.</param>
     /// <returns>The role name.</returns>
-    public static string ToRoleName(UserRole role) =>
-        role switch
-        {
-            UserRole.Admin => AdminRole,
-            _ => MemberRole,
-        };
+    public static string ToRoleName(OrganizationRole role) => role.ToString();
+
+    /// <summary>
+    /// Parses a role name into an <see cref="OrganizationRole"/>.
+    /// </summary>
+    /// <param name="roleName">The role name.</param>
+    /// <returns>The parsed role.</returns>
+    public static OrganizationRole ParseRoleName(string roleName) =>
+        Enum.TryParse<OrganizationRole>(roleName, ignoreCase: true, out var role)
+            ? role
+            : OrganizationRole.Viewer;
 }

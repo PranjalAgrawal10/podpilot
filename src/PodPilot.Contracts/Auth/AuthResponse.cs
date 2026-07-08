@@ -60,4 +60,14 @@ public sealed class UserSummary
     /// Gets or sets the user's roles.
     /// </summary>
     public IReadOnlyList<string> Roles { get; set; } = [];
+
+    /// <summary>
+    /// Gets or sets the current organization identifier from the token.
+    /// </summary>
+    public Guid? CurrentOrganizationId { get; set; }
+
+    /// <summary>
+    /// Gets or sets the current organization role from the token.
+    /// </summary>
+    public string? CurrentOrganizationRole { get; set; }
 }

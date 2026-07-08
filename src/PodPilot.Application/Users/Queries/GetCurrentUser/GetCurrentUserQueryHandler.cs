@@ -4,6 +4,7 @@ using PodPilot.Application.Common;
 using PodPilot.Application.Common.Exceptions;
 using PodPilot.Application.Common.Interfaces;
 using PodPilot.Contracts.Users;
+using PodPilot.Domain.Enums;
 
 namespace PodPilot.Application.Users.Queries.GetCurrentUser;
 
@@ -48,15 +49,20 @@ public sealed class GetCurrentUserQueryHandler : IRequestHandler<GetCurrentUserQ
         var roles = await identityService.GetUserRolesAsync(userId, cancellationToken);
 
         var organizations = await dbContext.OrganizationMembers
-            .Where(m => m.UserId == userId && m.IsActive)
-            .Include(m => m.Organization)
-            .Select(m => new OrganizationSummary
-            {
-                Id = m.Organization.Id,
-                Name = m.Organization.Name,
-                Slug = m.Organization.Slug,
-                Role = ApplicationConstants.ToRoleName(m.Role),
-            })
+            .Where(m => m.UserId == userId
+                        && m.IsActive
+                        && m.Status == MemberStatus.Active)
+            .Join(
+                dbContext.Organizations.Where(o => o.IsActive),
+                member => member.OrganizationId,
+                organization => organization.Id,
+                (member, organization) => new OrganizationSummary
+                {
+                    Id = organization.Id,
+                    Name = organization.Name,
+                    Slug = organization.Slug,
+                    Role = ApplicationConstants.ToRoleName(member.Role),
+                })
             .ToListAsync(cancellationToken);
 
         return new UserResponse

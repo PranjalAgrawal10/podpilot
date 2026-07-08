@@ -69,6 +69,9 @@ public sealed class GlobalExceptionHandlerMiddleware
             UnauthorizedException unauthorizedEx => (
                 HttpStatusCode.Unauthorized,
                 ApiResponse<object>.Fail(unauthorizedEx.Message, correlationId)),
+            ForbiddenException forbiddenEx => (
+                HttpStatusCode.Forbidden,
+                ApiResponse<object>.Fail(forbiddenEx.Message, correlationId)),
             _ => (
                 HttpStatusCode.InternalServerError,
                 ApiResponse<object>.Fail(

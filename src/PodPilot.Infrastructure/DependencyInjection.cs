@@ -96,6 +96,8 @@ public static class DependencyInjection
         services.AddScoped<IDateTimeService, DateTimeService>();
         services.AddScoped<IHttpContextService, HttpContextService>();
         services.AddScoped<IAuditService, AuditService>();
+        services.AddScoped<IOrganizationAuthorizationService, OrganizationAuthorizationService>();
+        services.AddScoped<IAuthTokenIssuer, AuthTokenIssuer>();
 
         return services;
     }

@@ -1,6 +1,8 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
+using PodPilot.Application.Common;
 using PodPilot.Application.Common.Interfaces;
+using PodPilot.Domain.Enums;
 
 namespace PodPilot.Infrastructure.Services;
 
@@ -40,6 +42,32 @@ public sealed class CurrentUserService : ICurrentUserService
             .FindAll(ClaimTypes.Role)
             .Select(c => c.Value)
             .ToList() ?? [];
+
+    /// <inheritdoc />
+    public Guid? OrganizationId
+    {
+        get
+        {
+            var organizationId = httpContextAccessor.HttpContext?.User?
+                .FindFirstValue(ApplicationConstants.OrganizationIdClaim);
+
+            return Guid.TryParse(organizationId, out var id) ? id : null;
+        }
+    }
+
+    /// <inheritdoc />
+    public OrganizationRole? OrganizationRole
+    {
+        get
+        {
+            var role = httpContextAccessor.HttpContext?.User?
+                .FindFirstValue(ApplicationConstants.OrganizationRoleClaim);
+
+            return string.IsNullOrWhiteSpace(role)
+                ? null
+                : ApplicationConstants.ParseRoleName(role);
+        }
+    }
 
     /// <inheritdoc />
     public bool IsAuthenticated =>

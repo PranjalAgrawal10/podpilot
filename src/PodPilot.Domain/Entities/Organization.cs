@@ -21,6 +21,21 @@ public class Organization : Common.AuditableEntity
     public string? Description { get; set; }
 
     /// <summary>
+    /// Gets or sets the organization logo URL.
+    /// </summary>
+    public string? Logo { get; set; }
+
+    /// <summary>
+    /// Gets or sets the owner user identifier.
+    /// </summary>
+    public Guid OwnerUserId { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether this is the user's default organization.
+    /// </summary>
+    public bool IsDefault { get; set; }
+
+    /// <summary>
     /// Gets or sets a value indicating whether the organization is active.
     /// </summary>
     public bool IsActive { get; set; } = true;
@@ -29,4 +44,9 @@ public class Organization : Common.AuditableEntity
     /// Gets the members of this organization.
     /// </summary>
     public ICollection<OrganizationMember> Members { get; set; } = [];
+
+    /// <summary>
+    /// Gets the invitations for this organization.
+    /// </summary>
+    public ICollection<Invitation> Invitations { get; set; } = [];
 }

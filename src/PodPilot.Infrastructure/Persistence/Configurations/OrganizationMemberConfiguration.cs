@@ -20,6 +20,15 @@ public class OrganizationMemberConfiguration : IEntityTypeConfiguration<Organiza
         builder.HasIndex(m => new { m.OrganizationId, m.UserId })
             .IsUnique();
 
+        builder.Property(m => m.Role)
+            .IsRequired();
+
+        builder.Property(m => m.JoinedAt)
+            .IsRequired();
+
+        builder.Property(m => m.Status)
+            .IsRequired();
+
         builder.Property(m => m.CreatedBy)
             .HasMaxLength(128);
 

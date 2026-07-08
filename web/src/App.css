@@ -215,3 +215,72 @@ body {
 [data-theme='dark'] .navbar {
   background-color: var(--bg-secondary) !important;
 }
+
+.avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--accent-color);
+  color: #fff;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.role-badge {
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.permission-badge {
+  font-size: 0.7rem;
+  margin: 0.125rem;
+}
+
+.org-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow);
+  border-radius: 0.75rem;
+  height: 100%;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.org-card-current {
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 1px var(--accent-color);
+}
+
+.org-switcher-toggle {
+  border: 1px solid var(--border-color) !important;
+  background: var(--bg-secondary) !important;
+  color: var(--text-primary) !important;
+  font-size: 0.875rem;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.org-switcher-item strong {
+  font-size: 0.875rem;
+}
+
+.user-menu-toggle {
+  display: flex;
+  align-items: center;
+  text-decoration: none !important;
+  padding: 0.25rem 0.5rem !important;
+  border: none;
+  background: transparent;
+}
+
+.member-table {
+  background: var(--bg-secondary);
+  border-radius: 0.75rem;
+  overflow: hidden;
+}
+
+[data-theme='dark'] .org-switcher-toggle {
+  background: var(--bg-primary) !important;
+}

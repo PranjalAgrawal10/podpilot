@@ -13,8 +13,7 @@ namespace PodPilot.Application.Auth.Commands.Login;
 public sealed class LoginCommandHandler : IRequestHandler<LoginCommand, AuthResponse>
 {
     private readonly IIdentityService identityService;
-    private readonly IJwtTokenService jwtTokenService;
-    private readonly IRefreshTokenService refreshTokenService;
+    private readonly IAuthTokenIssuer authTokenIssuer;
     private readonly IAuditService auditService;
     private readonly IHttpContextService httpContextService;
 
@@ -23,14 +22,12 @@ public sealed class LoginCommandHandler : IRequestHandler<LoginCommand, AuthResp
     /// </summary>
     public LoginCommandHandler(
         IIdentityService identityService,
-        IJwtTokenService jwtTokenService,
-        IRefreshTokenService refreshTokenService,
+        IAuthTokenIssuer authTokenIssuer,
         IAuditService auditService,
         IHttpContextService httpContextService)
     {
         this.identityService = identityService;
-        this.jwtTokenService = jwtTokenService;
-        this.refreshTokenService = refreshTokenService;
+        this.authTokenIssuer = authTokenIssuer;
         this.auditService = auditService;
         this.httpContextService = httpContextService;
     }
@@ -48,13 +45,6 @@ public sealed class LoginCommandHandler : IRequestHandler<LoginCommand, AuthResp
             throw new UnauthorizedException("Invalid email or password.");
         }
 
-        var roles = await identityService.GetUserRolesAsync(user.Id, cancellationToken);
-        var (accessToken, expiresIn) = jwtTokenService.GenerateAccessToken(user, roles);
-        var (_, refreshToken) = await refreshTokenService.GenerateRefreshTokenAsync(
-            user.Id,
-            httpContextService.IpAddress,
-            cancellationToken);
-
         await auditService.LogAsync(
             AuditAction.Login,
             nameof(User),
@@ -65,19 +55,6 @@ public sealed class LoginCommandHandler : IRequestHandler<LoginCommand, AuthResp
             httpContextService.CorrelationId,
             cancellationToken);
 
-        return new AuthResponse
-        {
-            AccessToken = accessToken,
-            RefreshToken = refreshToken,
-            ExpiresIn = expiresIn,
-            User = new UserSummary
-            {
-                Id = user.Id,
-                Email = user.Email,
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                Roles = roles,
-            },
-        };
+        return await authTokenIssuer.IssueTokensAsync(user.Id, organizationId: null, cancellationToken);
     }
 }

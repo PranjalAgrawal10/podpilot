@@ -1,14 +1,13 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using System.Security.Cryptography;
 using System.Text;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using PodPilot.Application.Common;
 using PodPilot.Application.Common.Interfaces;
 using PodPilot.Domain.Entities;
+using PodPilot.Domain.Enums;
 using PodPilot.Infrastructure.Configuration;
-using PodPilot.Infrastructure.Persistence;
 
 namespace PodPilot.Infrastructure.Services;
 
@@ -29,7 +28,11 @@ public sealed class JwtTokenService : IJwtTokenService
     }
 
     /// <inheritdoc />
-    public (string Token, int ExpiresIn) GenerateAccessToken(User user, IEnumerable<string> roles)
+    public (string Token, int ExpiresIn) GenerateAccessToken(
+        User user,
+        IEnumerable<string> roles,
+        Guid? organizationId = null,
+        OrganizationRole? organizationRole = null)
     {
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Secret));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -47,6 +50,18 @@ public sealed class JwtTokenService : IJwtTokenService
         };
 
         claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
+
+        if (organizationId.HasValue)
+        {
+            claims.Add(new Claim(ApplicationConstants.OrganizationIdClaim, organizationId.Value.ToString()));
+        }
+
+        if (organizationRole.HasValue)
+        {
+            claims.Add(new Claim(
+                ApplicationConstants.OrganizationRoleClaim,
+                ApplicationConstants.ToRoleName(organizationRole.Value)));
+        }
 
         var token = new JwtSecurityToken(
             issuer: jwtSettings.Issuer,

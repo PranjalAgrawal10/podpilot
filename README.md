@@ -1,6 +1,63 @@
 # PodPilot
 
-**PodPilot** is an AI Infrastructure Autopilot that automatically manages GPU pods, AI models, and inference providers. This repository contains **Part 1** — the production-grade foundation for authentication, organizations, logging, health checks, and the React frontend shell.
+**PodPilot** is an AI Infrastructure Autopilot that automatically manages GPU pods, AI models, and inference providers. This repository contains **Part 1** (authentication foundation) and **Part 2** (multi-tenant organization management).
+
+---
+
+## Part 2 — Multi-Tenant Organizations
+
+Part 2 transforms PodPilot into a **multi-tenant SaaS**. Every user belongs to one or more organizations, and all future resources (Pods, Models, Providers, Sessions) will be scoped to an organization.
+
+### Multi-Tenant Design
+
+```mermaid
+flowchart LR
+    User --> Member
+    Member --> Organization
+    Organization --> Invitation
+    Member --> Role
+    Role --> Permission
+```
+
+- **Organization** — tenant boundary with slug, owner, and default-org flag
+- **OrganizationMember** — links users to organizations with a role and status
+- **Invitation** — email-based onboarding with expiring tokens
+- **Permission** — granular capabilities (e.g. `Organization.Read`, `Pod.Create`)
+- **Role** — Owner, Admin, Developer, Viewer with seeded permission mappings
+
+### Current Organization Context
+
+Users may belong to multiple organizations. The **active organization** is persisted in JWT claims:
+
+| Claim | Description |
+|-------|-------------|
+| `organization_id` | Currently selected organization |
+| `organization_role` | User's role in that organization |
+
+Switching organizations calls `POST /organizations/switch`, which re-issues JWT + refresh tokens with updated claims.
+
+### Permission System
+
+Permissions are defined in `PermissionNames` and mapped to roles via `RolePermissionMatrix`:
+
+| Role | Capabilities |
+|------|-------------|
+| **Owner** | Full control — delete org, transfer ownership, manage all resources |
+| **Admin** | Manage members, invitations, and settings (cannot delete org) |
+| **Developer** | Create/manage pods, providers, models (cannot manage users) |
+| **Viewer** | Read-only access to organization resources |
+
+Authorization is enforced server-side in CQRS handlers via `IOrganizationAuthorizationService`. The React frontend mirrors the same matrix for UI gating.
+
+### Security Rules
+
+- Only **Owner** can delete an organization
+- Default organization cannot be deleted
+- Only **Admin/Owner** can send invitations
+- Only **Owner** can assign the Owner role (ownership transfer)
+- **Developer** cannot manage users
+- **Viewer** is read-only
+- Cannot remove or demote the last Owner
 
 ---
 
@@ -79,13 +136,13 @@ sequenceDiagram
 
     Client->>API: POST /auth/register
     API->>Identity: Create user + hash password
-    API->>DB: Create organization + membership
+    API->>DB: Create organization + Owner membership
     API->>DB: Store refresh token
-    API-->>Client: JWT + Refresh Token
+    API-->>Client: JWT (with organization_id) + Refresh Token
 
-    Client->>API: POST /auth/refresh
-    API->>DB: Rotate refresh token
-    API-->>Client: New JWT + Refresh Token
+    Client->>API: POST /organizations/switch
+    API->>DB: Validate membership
+    API-->>Client: New JWT with updated organization_id
 ```
 
 ---
@@ -131,7 +188,7 @@ PodPilot/
 - [.NET 10 SDK](https://dotnet.microsoft.com/download)
 - [Node.js 20.19+](https://nodejs.org/) (or 22.x)
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) (for containerized deployment)
-- MySQL 8.4 (if running locally without Docker)
+- MySQL 8.x running locally on port 3306
 
 ---
 
@@ -149,27 +206,31 @@ docker compose up --build
 | **API** | http://localhost:5000 |
 | **Swagger** | http://localhost:5000/swagger |
 | **Health** | http://localhost:5000/api/v1/health |
-| **MySQL (Docker)** | localhost:3307 |
+| **MySQL** | localhost:3306 (local instance) |
 
 Database migrations run automatically on API startup.
 
 ### Docker Services
 
-- **mysql** — MySQL 8.4 with persistent volume
-- **api** — .NET 10 ASP.NET Core API
+- **api** — .NET 10 ASP.NET Core API (connects to host MySQL via `host.docker.internal`)
 - **web** — React app served via nginx with API proxy
 
 ---
 
 ## Local Development
 
-### 1. Start MySQL
+### 1. Ensure Local MySQL Is Running
 
-```bash
-docker compose up mysql -d
+Use your local MySQL instance on port **3306**. Create the database and user if needed:
+
+```sql
+CREATE DATABASE IF NOT EXISTS podpilot;
+CREATE USER IF NOT EXISTS 'podpilot'@'localhost' IDENTIFIED BY 'podpilot_secret';
+GRANT ALL PRIVILEGES ON podpilot.* TO 'podpilot'@'localhost';
+FLUSH PRIVILEGES;
 ```
 
-Or use your own MySQL instance and update the connection string in `src/PodPilot.Api/appsettings.Development.json`.
+Update the connection string in `src/PodPilot.Api/appsettings.Development.json` if your credentials differ.
 
 ### 2. Run the API
 
@@ -205,6 +266,23 @@ All endpoints are versioned under `/api/v1/`:
 | `GET` | `/users/me` | Yes | Current user profile |
 | `GET` | `/health` | No | API + database health |
 
+### Organizations (Part 2)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/organizations` | List user's organizations |
+| `GET` | `/organizations/{id}` | Get organization details |
+| `POST` | `/organizations` | Create organization |
+| `PUT` | `/organizations/{id}` | Update organization |
+| `DELETE` | `/organizations/{id}` | Delete organization (Owner only) |
+| `POST` | `/organizations/switch` | Switch current organization (re-issues tokens) |
+| `GET` | `/organizations/{id}/members` | List members |
+| `POST` | `/organizations/{id}/members` | Add existing user as member |
+| `DELETE` | `/organizations/{id}/members/{memberId}` | Remove member |
+| `PUT` | `/organizations/{id}/members/{memberId}/role` | Update member role |
+| `POST` | `/organizations/{id}/invite` | Invite user by email |
+| `POST` | `/organizations/accept` | Accept invitation by token |
+
 ### Example: Register
 
 ```bash
@@ -229,13 +307,19 @@ curl -X POST http://localhost:5000/api/v1/auth/register \
 | `RefreshTokens` | JWT refresh tokens with rotation support |
 | `Organizations` | Multi-tenant organization records |
 | `OrganizationMembers` | User-organization memberships with roles |
+| `Invitations` | Pending organization invitations |
+| `Permissions` | Seeded permission definitions |
+| `OrgRoles` | Seeded organization role catalog |
+| `RolePermissions` | Role-to-permission mappings |
 | `AuditLogs` | Immutable audit trail |
 | `Roles` / `UserRoles` | ASP.NET Identity role management |
 
-### Roles
+### Organization Roles
 
-- **Admin** — Organization administrator (assigned on registration)
-- **Member** — Standard organization member
+- **Owner** — Full control, can delete org and transfer ownership
+- **Admin** — Manage members, invitations, and settings
+- **Developer** — Manage workloads, read-only on user management
+- **Viewer** — Read-only access
 
 ---
 
@@ -245,12 +329,25 @@ curl -X POST http://localhost:5000/api/v1/auth/register \
 # Run all tests
 dotnet test
 
-# Application unit tests (validators)
+# Application unit tests (validators + permissions)
 dotnet test tests/PodPilot.Application.Tests
 
-# API integration tests (auth + health)
+# API integration tests (auth + organizations)
 dotnet test tests/PodPilot.Api.Tests
 ```
+
+## Frontend (Part 2)
+
+| Page | Route | Description |
+|------|-------|-------------|
+| Organizations | `/organizations` | List and manage organizations |
+| Create Organization | `/organizations/create` | Create new organization |
+| Settings | `/organizations/:id/settings` | Edit/delete organization |
+| Members | `/members` | Member table, invite, role management |
+| Accept Invitation | `/invitations/accept?token=` | Accept email invitation |
+| Profile | `/profile` | User profile and memberships |
+
+Key components: `OrganizationSwitcher`, `OrganizationCard`, `MemberTable`, `InvitationModal`, `RoleBadge`, `Avatar`.
 
 ---
 
@@ -275,7 +372,31 @@ dotnet test tests/PodPilot.Api.Tests
 ### Connection String
 
 ```
-Server=localhost;Port=3307;Database=podpilot;User=podpilot;Password=podpilot_secret;
+Server=localhost;Port=3306;Database=podpilot;User=podpilot;Password=podpilot_secret;
+```
+
+---
+
+### JWT Settings (`appsettings.json`)
+
+```json
+{
+  "Jwt": {
+    "Issuer": "PodPilot",
+    "Audience": "PodPilot",
+    "Secret": "your-256-bit-secret-key-here",
+    "AccessTokenExpirationMinutes": 15,
+    "RefreshTokenExpirationDays": 7
+  }
+}
+```
+
+> **Important:** Change the JWT secret in production. Docker Compose uses environment variable overrides.
+
+### Connection String
+
+```
+Server=localhost;Port=3306;Database=podpilot;User=podpilot;Password=podpilot_secret;
 ```
 
 ---
@@ -301,16 +422,16 @@ Serilog is configured with:
 
 ---
 
-## What's Next (Part 2+)
+## What's Next (Part 3+)
 
-This foundation intentionally excludes:
+Part 2 intentionally excludes:
 
 - RunPod integration
 - Ollama model management
 - AI Gateway / inference providers
 - GPU pod orchestration
 
-These will be built on top of this authentication, organization, and infrastructure layer.
+These will be built on top of the multi-tenant organization layer.
 
 ---
 
