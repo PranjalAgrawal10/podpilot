@@ -381,3 +381,31 @@ body {
   border-top: 1px solid var(--border-color);
   padding-top: 1rem;
 }
+
+.gateway-endpoint-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.gateway-endpoint-value {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.gateway-endpoints-table code {
+  word-break: break-all;
+}
+
+.gateway-curl-example {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  font-size: 0.85rem;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}

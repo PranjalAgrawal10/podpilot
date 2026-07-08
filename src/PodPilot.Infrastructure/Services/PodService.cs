@@ -196,7 +196,9 @@ public sealed class PodService : IPodService
         var info = await podProviderFactory.GetProvider(provider.ProviderType)
             .SyncPodStatusAsync(apiKey, pod.ProviderPodId, cancellationToken);
 
-        ApplyProviderInfo(pod, info, DateTime.UtcNow);
+        var syncedAt = DateTime.UtcNow;
+        ApplyProviderScalars(pod, info, syncedAt);
+        await ReplacePodEndpointsAsync(pod, info, cancellationToken);
         return info;
     }
 
@@ -215,6 +217,44 @@ public sealed class PodService : IPodService
 
     /// <inheritdoc />
     public void ApplyProviderInfo(GpuPod pod, PodInfo info, DateTime syncedAt)
+    {
+        ApplyProviderScalars(pod, info, syncedAt);
+
+        foreach (var endpoint in info.Endpoints)
+        {
+            pod.Endpoints.Add(CreatePodEndpoint(pod.Id, endpoint));
+        }
+    }
+
+    private async Task ReplacePodEndpointsAsync(
+        GpuPod pod,
+        PodInfo info,
+        CancellationToken cancellationToken)
+    {
+        await dbContext.RemovePodEndpointsAsync(pod.Id, cancellationToken);
+
+        foreach (var endpoint in pod.Endpoints.ToList())
+        {
+            pod.Endpoints.Remove(endpoint);
+        }
+
+        foreach (var endpoint in info.Endpoints)
+        {
+            await dbContext.AddPodEndpointAsync(CreatePodEndpoint(pod.Id, endpoint), cancellationToken);
+        }
+    }
+
+    private static PodEndpoint CreatePodEndpoint(Guid podId, PodEndpointInfo endpoint) =>
+        new()
+        {
+            GpuPodId = podId,
+            Port = endpoint.Port,
+            Protocol = endpoint.Protocol,
+            PublicPort = endpoint.PublicPort,
+            Url = endpoint.Url,
+        };
+
+    private static void ApplyProviderScalars(GpuPod pod, PodInfo info, DateTime syncedAt)
     {
         pod.ProviderPodId = info.ProviderPodId;
         pod.Status = info.Status;
@@ -253,18 +293,6 @@ public sealed class PodService : IPodService
         if (info.TemplateId is not null)
         {
             pod.TemplateId = info.TemplateId;
-        }
-
-        pod.Endpoints.Clear();
-        foreach (var endpoint in info.Endpoints)
-        {
-            pod.Endpoints.Add(new PodEndpoint
-            {
-                Port = endpoint.Port,
-                Protocol = endpoint.Protocol,
-                PublicPort = endpoint.PublicPort,
-                Url = endpoint.Url,
-            });
         }
     }
 

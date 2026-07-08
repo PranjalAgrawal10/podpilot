@@ -119,6 +119,21 @@ public interface IApplicationDbContext
     IQueryable<PodWakeRequest> PodWakeRequests { get; }
 
     /// <summary>
+    /// Gets the gateway API keys set.
+    /// </summary>
+    IQueryable<GatewayApiKey> GatewayApiKeys { get; }
+
+    /// <summary>
+    /// Gets the gateway routes set.
+    /// </summary>
+    IQueryable<GatewayRoute> GatewayRoutes { get; }
+
+    /// <summary>
+    /// Gets the gateway requests set.
+    /// </summary>
+    IQueryable<GatewayRequest> GatewayRequests { get; }
+
+    /// <summary>
     /// Adds an audit log entry.
     /// </summary>
     Task AddAuditLogAsync(AuditLog auditLog, CancellationToken cancellationToken = default);
@@ -217,6 +232,36 @@ public interface IApplicationDbContext
     /// Adds a pod lifecycle lock.
     /// </summary>
     Task AddPodLifecycleLockAsync(PodLifecycleLock lifecycleLock, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Adds a gateway API key.
+    /// </summary>
+    Task AddGatewayApiKeyAsync(GatewayApiKey apiKey, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Adds a gateway route.
+    /// </summary>
+    Task AddGatewayRouteAsync(GatewayRoute route, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Adds a gateway request.
+    /// </summary>
+    Task AddGatewayRequestAsync(GatewayRequest request, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Removes a gateway route.
+    /// </summary>
+    Task RemoveGatewayRouteAsync(Guid routeId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Removes all endpoints for a GPU pod.
+    /// </summary>
+    Task RemovePodEndpointsAsync(Guid podId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Adds a pod endpoint.
+    /// </summary>
+    Task AddPodEndpointAsync(PodEndpoint endpoint, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Removes a pod lifecycle lock.

@@ -124,9 +124,44 @@ public static class ApplicationConstants
     public const int MaxWakeHealthCheckAttempts = 30;
 
     /// <summary>
+    /// Gateway API key prefix length.
+    /// </summary>
+    public const int GatewayApiKeyPrefixLength = 12;
+
+    /// <summary>
+    /// Gateway API key total length.
+    /// </summary>
+    public const int GatewayApiKeyLength = 48;
+
+    /// <summary>
+    /// Default gateway requests per minute.
+    /// </summary>
+    public const int DefaultGatewayRateLimitPerMinute = 60;
+
+    /// <summary>
+    /// Default gateway requests per day.
+    /// </summary>
+    public const int DefaultGatewayRateLimitPerDay = 10000;
+
+    /// <summary>
+    /// Maximum Ollama health check attempts during gateway requests.
+    /// </summary>
+    public const int MaxOllamaHealthCheckAttempts = 60;
+
+    /// <summary>
     /// Delay between wake health check attempts.
     /// </summary>
     public static readonly TimeSpan WakeHealthCheckInterval = TimeSpan.FromSeconds(5);
+
+    /// <summary>
+    /// Delay between Ollama health check attempts.
+    /// </summary>
+    public static readonly TimeSpan OllamaHealthCheckInterval = TimeSpan.FromSeconds(2);
+
+    /// <summary>
+    /// Default gateway forward timeout.
+    /// </summary>
+    public static readonly TimeSpan GatewayForwardTimeout = TimeSpan.FromMinutes(10);
 
     /// <summary>
     /// All ASP.NET Identity roles.

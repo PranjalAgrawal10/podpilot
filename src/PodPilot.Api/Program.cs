@@ -96,6 +96,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 app.MapHub<PodPilot.Infrastructure.Hubs.PodStatusHub>("/hubs/pods");
+app.MapHub<PodPilot.Infrastructure.Hubs.GatewayHub>("/hubs/gateway");
 
 try
 {

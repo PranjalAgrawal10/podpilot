@@ -23,6 +23,7 @@ import { AddProviderPage } from './pages/AddProviderPage';
 import { EditProviderPage } from './pages/EditProviderPage';
 import { ProviderDetailsPage } from './pages/ProviderDetailsPage';
 import { AcceptInvitationPage } from './pages/AcceptInvitationPage';
+import { GatewayPage } from './pages/GatewayPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'react-toastify/dist/ReactToastify.css';
@@ -62,6 +63,7 @@ function App() {
                     <Route path="/pods" element={<PodsPage />} />
                     <Route path="/pods/create" element={<CreatePodPage />} />
                     <Route path="/pods/:id" element={<PodDetailsPage />} />
+                    <Route path="/gateway" element={<GatewayPage />} />
                     <Route path="/providers/add" element={<AddProviderPage />} />
                     <Route path="/providers/:id" element={<ProviderDetailsPage />} />
                     <Route path="/providers/:id/edit" element={<EditProviderPage />} />

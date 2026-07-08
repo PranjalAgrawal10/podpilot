@@ -648,16 +648,95 @@ Serilog is configured with:
 
 ---
 
-## What's Next (Part 6+)
+## Part 6 — AI Gateway
 
-Part 5 intentionally excludes:
+Part 6 adds an OpenAI/Anthropic-compatible AI Gateway that proxies inference requests to Ollama on GPU pods.
 
-- Ollama model management
-- AI Gateway / inference providers
-- Request queue and model routing
-- OpenAI / Anthropic compatibility layers
+### Architecture
 
-These will be built on top of the organization, provider, pod, and lifecycle layers.
+```
+AI IDE (OpenAI / Anthropic client)
+        ↓ API key auth
+   AiGatewayController (/v1/*)
+        ↓
+      IAiGateway
+   ┌────┴────┬──────────────┬────────────────┐
+   │         │              │                │
+IGatewayRouter  IPodLifecycleService  IInferenceClient  IStreamingProxy
+   │         │              │                │
+   └────┬────┴──────────────┴────────────────┘
+        ↓
+   Ollama on GPU Pod
+```
+
+### Request Flow
+
+1. Authenticate API key (`Authorization: Bearer sk-...` or `x-api-key`)
+2. Resolve organization from key
+3. Route request to pod via `IGatewayRouter` (model → route → pod)
+4. Wake pod if stopped (`IPodLifecycleService`, source: `gateway`)
+5. Poll Ollama health (`/api/tags`, `/api/version`)
+6. Stream request/response via `IStreamingProxy` (transparent proxy)
+7. Record `GatewayRequest`, `GatewayLatency`, and pod activity
+
+### Supported Endpoints
+
+| Endpoint | Compatibility |
+|----------|---------------|
+| `POST /v1/chat/completions` | OpenAI |
+| `POST /v1/responses` | OpenAI |
+| `GET /v1/models` | OpenAI / Anthropic |
+| `POST /v1/messages` | Anthropic |
+
+Management APIs (JWT): `/api/v1/gateway/*`
+
+### API Keys
+
+- Personal and organization-scoped keys
+- SHA-256 hashed storage with prefix lookup
+- Rotation and revocation
+- Optional expiration
+- Per-key and per-organization rate limits
+
+### Streaming
+
+- Server-sent events and chunked responses pass through unchanged
+- Response headers applied before body streaming
+- Cancellation and timeout supported
+
+### Real-Time Dashboard
+
+- SignalR hub: `/hubs/gateway`
+- Events: `GatewayRequestStarted`, `GatewayRequestFinished`, `GatewayPodWake`, `GatewayError`
+- Web UI: `/gateway`
+
+### Example
+
+```bash
+# Create key (JWT)
+curl -X POST http://localhost:5000/api/v1/gateway/api-keys \
+  -H "Authorization: Bearer $JWT" \
+  -H "Content-Type: application/json" \
+  -d '{"name":"cursor","isPersonal":true}'
+
+# Chat completion (API key)
+curl http://localhost:5000/v1/chat/completions \
+  -H "Authorization: Bearer sk-..." \
+  -H "Content-Type: application/json" \
+  -d '{"model":"llama3:latest","messages":[{"role":"user","content":"Hello"}]}'
+```
+
+---
+
+## What's Next (Part 7+)
+
+Part 6 intentionally excludes:
+
+- Ollama model management UI
+- Billing
+- Multi-provider routing
+- Analytics
+- Marketplace
 
 ---
 

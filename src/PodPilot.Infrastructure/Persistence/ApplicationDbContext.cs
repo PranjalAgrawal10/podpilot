@@ -87,6 +87,15 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     /// <inheritdoc />
     public DbSet<PodWakeRequest> PodWakeRequests => Set<PodWakeRequest>();
 
+    /// <inheritdoc />
+    public DbSet<GatewayApiKey> GatewayApiKeys => Set<GatewayApiKey>();
+
+    /// <inheritdoc />
+    public DbSet<GatewayRoute> GatewayRoutes => Set<GatewayRoute>();
+
+    /// <inheritdoc />
+    public DbSet<GatewayRequest> GatewayRequests => Set<GatewayRequest>();
+
     IQueryable<RefreshToken> IApplicationDbContext.RefreshTokens => RefreshTokens;
 
     IQueryable<Organization> IApplicationDbContext.Organizations => Organizations;
@@ -130,6 +139,12 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     IQueryable<PodLifecycleLock> IApplicationDbContext.PodLifecycleLocks => PodLifecycleLocks;
 
     IQueryable<PodWakeRequest> IApplicationDbContext.PodWakeRequests => PodWakeRequests;
+
+    IQueryable<GatewayApiKey> IApplicationDbContext.GatewayApiKeys => GatewayApiKeys;
+
+    IQueryable<GatewayRoute> IApplicationDbContext.GatewayRoutes => GatewayRoutes;
+
+    IQueryable<GatewayRequest> IApplicationDbContext.GatewayRequests => GatewayRequests;
 
     /// <inheritdoc />
     public Task AddAuditLogAsync(AuditLog auditLog, CancellationToken cancellationToken = default) =>
@@ -236,6 +251,47 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     /// <inheritdoc />
     public Task AddPodLifecycleLockAsync(PodLifecycleLock lifecycleLock, CancellationToken cancellationToken = default) =>
         PodLifecycleLocks.AddAsync(lifecycleLock, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public Task AddGatewayApiKeyAsync(GatewayApiKey apiKey, CancellationToken cancellationToken = default) =>
+        GatewayApiKeys.AddAsync(apiKey, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public Task AddGatewayRouteAsync(GatewayRoute route, CancellationToken cancellationToken = default) =>
+        GatewayRoutes.AddAsync(route, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public Task AddGatewayRequestAsync(GatewayRequest request, CancellationToken cancellationToken = default) =>
+        GatewayRequests.AddAsync(request, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public async Task RemoveGatewayRouteAsync(Guid routeId, CancellationToken cancellationToken = default)
+    {
+        var route = await GatewayRoutes.FirstOrDefaultAsync(r => r.Id == routeId, cancellationToken);
+        if (route is not null)
+        {
+            GatewayRoutes.Remove(route);
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task RemovePodEndpointsAsync(Guid podId, CancellationToken cancellationToken = default)
+    {
+        foreach (var entry in ChangeTracker.Entries<PodEndpoint>()
+            .Where(e => e.Entity.GpuPodId == podId)
+            .ToList())
+        {
+            entry.State = EntityState.Detached;
+        }
+
+        await PodEndpoints
+            .Where(e => e.GpuPodId == podId)
+            .ExecuteDeleteAsync(cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public Task AddPodEndpointAsync(PodEndpoint endpoint, CancellationToken cancellationToken = default) =>
+        PodEndpoints.AddAsync(endpoint, cancellationToken).AsTask();
 
     /// <inheritdoc />
     public Task RemovePodLifecycleLockAsync(PodLifecycleLock lifecycleLock, CancellationToken cancellationToken = default)

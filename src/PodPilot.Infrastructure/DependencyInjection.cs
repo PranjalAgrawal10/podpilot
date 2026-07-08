@@ -1,4 +1,5 @@
 using System.Text;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
@@ -12,6 +13,7 @@ using PodPilot.Application.Common.Interfaces;
 using PodPilot.Infrastructure.BackgroundServices;
 using PodPilot.Infrastructure.Compute;
 using PodPilot.Infrastructure.Configuration;
+using PodPilot.Infrastructure.Gateway;
 using PodPilot.Infrastructure.Hubs;
 using PodPilot.Infrastructure.Identity;
 using PodPilot.Infrastructure.Persistence;
@@ -101,7 +103,10 @@ public static class DependencyInjection
                         return Task.CompletedTask;
                     },
                 };
-            });
+            })
+            .AddScheme<AuthenticationSchemeOptions, GatewayApiKeyAuthenticationHandler>(
+                GatewayAuthConstants.SchemeName,
+                _ => { });
 
         services.AddAuthorizationBuilder()
             .AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"))
@@ -111,6 +116,8 @@ public static class DependencyInjection
         services.AddDataProtection();
         services.AddHttpClient(nameof(RunPodProvider));
         services.AddHttpClient(nameof(RunPodPodProvider));
+        services.AddHttpClient(nameof(OllamaInferenceClient));
+        services.AddHttpClient(nameof(StreamingProxy));
 
         services.AddSingleton<IComputeProvider, RunPodProvider>();
         services.AddSingleton<IComputeProviderFactory, ComputeProviderFactory>();
@@ -132,6 +139,14 @@ public static class DependencyInjection
         services.AddScoped<IAuditService, AuditService>();
         services.AddScoped<IOrganizationAuthorizationService, OrganizationAuthorizationService>();
         services.AddScoped<IAuthTokenIssuer, AuthTokenIssuer>();
+
+        services.AddScoped<IAiGateway, AiGateway>();
+        services.AddScoped<IGatewayRouter, GatewayRouter>();
+        services.AddScoped<IStreamingProxy, StreamingProxy>();
+        services.AddScoped<IInferenceClient, OllamaInferenceClient>();
+        services.AddScoped<IGatewayApiKeyService, GatewayApiKeyService>();
+        services.AddScoped<IGatewayNotificationService, GatewayNotificationService>();
+        services.AddSingleton<IGatewayRateLimitService, GatewayRateLimitService>();
 
         return services;
     }

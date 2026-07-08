@@ -44,6 +44,12 @@ public static class PermissionNames
     /// <summary>Delete models.</summary>
     public const string ModelDelete = "Model.Delete";
 
+    /// <summary>Read gateway configuration and metrics.</summary>
+    public const string GatewayRead = "Gateway.Read";
+
+    /// <summary>Manage gateway API keys and routes.</summary>
+    public const string GatewayManage = "Gateway.Manage";
+
     /// <summary>View dashboards.</summary>
     public const string DashboardView = "Dashboard.View";
 
@@ -78,6 +84,8 @@ public static class PermissionNames
         ProviderDelete,
         ModelPull,
         ModelDelete,
+        GatewayRead,
+        GatewayManage,
         DashboardView,
         BillingView,
         MemberRead,

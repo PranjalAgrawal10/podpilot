@@ -457,6 +457,8 @@ export const PERMISSIONS = {
   ProviderDelete: 'Provider.Delete',
   ModelPull: 'Model.Pull',
   ModelDelete: 'Model.Delete',
+  GatewayRead: 'Gateway.Read',
+  GatewayManage: 'Gateway.Manage',
   DashboardView: 'Dashboard.View',
   BillingView: 'Billing.View',
   MemberRead: 'Member.Read',
@@ -466,3 +468,45 @@ export const PERMISSIONS = {
 } as const;
 
 export type Permission = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];
+
+export interface GatewayApiKey {
+  id: string;
+  name: string;
+  keyPrefix: string;
+  keyType: string;
+  isRevoked: boolean;
+  expiresAt?: string | null;
+  rateLimitPerMinute: number;
+  rateLimitPerDay: number;
+  plaintextKey?: string | null;
+  createdAt: string;
+}
+
+export interface GatewayRoute {
+  id: string;
+  gpuPodId: string;
+  podName: string;
+  modelName: string;
+  isDefault: boolean;
+}
+
+export interface GatewayStats {
+  activeRequests: number;
+  streamingRequests: number;
+  waitingPods: number;
+  averageLatencyMs: number;
+  recentErrors: number;
+}
+
+export interface GatewayRequestSummary {
+  id: string;
+  gpuPodId: string;
+  path: string;
+  model?: string | null;
+  status: string;
+  wakeTriggered: boolean;
+  isStreaming: boolean;
+  totalLatencyMs?: number | null;
+  startedAt: string;
+  completedAt?: string | null;
+}

@@ -225,6 +225,238 @@ namespace PodPilot.Infrastructure.Persistence.Migrations
                     b.ToTable("ComputeProviders", (string)null);
                 });
 
+            modelBuilder.Entity("PodPilot.Domain.Entities.GatewayApiKey", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime?>("ExpiresAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<bool>("IsRevoked")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("KeyHash")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("varchar(128)");
+
+                    b.Property<string>("KeyPrefix")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("varchar(32)");
+
+                    b.Property<string>("KeyType")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("varchar(32)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<int>("RateLimitPerDay")
+                        .HasColumnType("int");
+
+                    b.Property<int>("RateLimitPerMinute")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("RevokedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("longtext");
+
+                    b.Property<Guid?>("UserId")
+                        .HasColumnType("char(36)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("KeyHash")
+                        .IsUnique();
+
+                    b.HasIndex("OrganizationId", "KeyPrefix");
+
+                    b.ToTable("GatewayApiKeys", (string)null);
+                });
+
+            modelBuilder.Entity("PodPilot.Domain.Entities.GatewayError", b =>
+                {
+                    b.Property<Guid>("GatewayRequestId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("ErrorCode")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<string>("ErrorFormat")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("varchar(32)");
+
+                    b.Property<string>("InternalDetails")
+                        .HasMaxLength(4000)
+                        .HasColumnType("varchar(4000)");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("varchar(1000)");
+
+                    b.Property<DateTime>("OccurredAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("GatewayRequestId");
+
+                    b.ToTable("GatewayErrors", (string)null);
+                });
+
+            modelBuilder.Entity("PodPilot.Domain.Entities.GatewayLatency", b =>
+                {
+                    b.Property<Guid>("GatewayRequestId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<int?>("ForwardLatencyMs")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("HealthCheckLatencyMs")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TotalLatencyMs")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("WakeLatencyMs")
+                        .HasColumnType("int");
+
+                    b.HasKey("GatewayRequestId");
+
+                    b.ToTable("GatewayLatencies", (string)null);
+                });
+
+            modelBuilder.Entity("PodPilot.Domain.Entities.GatewayRequest", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid?>("ApiKeyId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("CorrelationId")
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<Guid>("GpuPodId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("HttpMethod")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("varchar(16)");
+
+                    b.Property<bool>("IsStreaming")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("Model")
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("Path")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<DateTime>("StartedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("varchar(32)");
+
+                    b.Property<string>("UpstreamBaseUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<bool>("WakeTriggered")
+                        .HasColumnType("tinyint(1)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ApiKeyId");
+
+                    b.HasIndex("GpuPodId");
+
+                    b.HasIndex("OrganizationId", "StartedAt");
+
+                    b.ToTable("GatewayRequests", (string)null);
+                });
+
+            modelBuilder.Entity("PodPilot.Domain.Entities.GatewayRoute", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("longtext");
+
+                    b.Property<Guid>("GpuPodId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<bool>("IsDefault")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("ModelName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("longtext");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GpuPodId");
+
+                    b.HasIndex("OrganizationId", "IsDefault");
+
+                    b.HasIndex("OrganizationId", "ModelName")
+                        .IsUnique();
+
+                    b.ToTable("GatewayRoutes", (string)null);
+                });
+
             modelBuilder.Entity("PodPilot.Domain.Entities.GpuPod", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1263,6 +1495,72 @@ namespace PodPilot.Infrastructure.Persistence.Migrations
                     b.Navigation("Organization");
                 });
 
+            modelBuilder.Entity("PodPilot.Domain.Entities.GatewayApiKey", b =>
+                {
+                    b.HasOne("PodPilot.Domain.Entities.Organization", "Organization")
+                        .WithMany()
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Organization");
+                });
+
+            modelBuilder.Entity("PodPilot.Domain.Entities.GatewayError", b =>
+                {
+                    b.HasOne("PodPilot.Domain.Entities.GatewayRequest", "Request")
+                        .WithOne("Error")
+                        .HasForeignKey("PodPilot.Domain.Entities.GatewayError", "GatewayRequestId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Request");
+                });
+
+            modelBuilder.Entity("PodPilot.Domain.Entities.GatewayLatency", b =>
+                {
+                    b.HasOne("PodPilot.Domain.Entities.GatewayRequest", "Request")
+                        .WithOne("Latency")
+                        .HasForeignKey("PodPilot.Domain.Entities.GatewayLatency", "GatewayRequestId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Request");
+                });
+
+            modelBuilder.Entity("PodPilot.Domain.Entities.GatewayRequest", b =>
+                {
+                    b.HasOne("PodPilot.Domain.Entities.GatewayApiKey", null)
+                        .WithMany()
+                        .HasForeignKey("ApiKeyId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("PodPilot.Domain.Entities.GpuPod", null)
+                        .WithMany()
+                        .HasForeignKey("GpuPodId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("PodPilot.Domain.Entities.GatewayRoute", b =>
+                {
+                    b.HasOne("PodPilot.Domain.Entities.GpuPod", "Pod")
+                        .WithMany()
+                        .HasForeignKey("GpuPodId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("PodPilot.Domain.Entities.Organization", "Organization")
+                        .WithMany()
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Organization");
+
+                    b.Navigation("Pod");
+                });
+
             modelBuilder.Entity("PodPilot.Domain.Entities.GpuPod", b =>
                 {
                     b.HasOne("PodPilot.Domain.Entities.Organization", "Organization")
@@ -1492,6 +1790,13 @@ namespace PodPilot.Infrastructure.Persistence.Migrations
                     b.Navigation("HealthHistory");
 
                     b.Navigation("Regions");
+                });
+
+            modelBuilder.Entity("PodPilot.Domain.Entities.GatewayRequest", b =>
+                {
+                    b.Navigation("Error");
+
+                    b.Navigation("Latency");
                 });
 
             modelBuilder.Entity("PodPilot.Domain.Entities.GpuPod", b =>
