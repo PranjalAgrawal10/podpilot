@@ -2,6 +2,12 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PodPilot.Application.Common.Exceptions;
+using PodPilot.Application.Lifecycle.Commands.ShutdownPod;
+using PodPilot.Application.Lifecycle.Commands.UpdatePodIdlePolicy;
+using PodPilot.Application.Lifecycle.Commands.WakePod;
+using PodPilot.Application.Lifecycle.Queries.GetPodActivity;
+using PodPilot.Application.Lifecycle.Queries.GetPodLifecycle;
+using PodPilot.Application.Lifecycle.Queries.GetPodLifecycleEvents;
 using PodPilot.Application.Pods.Commands.CreatePod;
 using PodPilot.Application.Pods.Commands.DeletePod;
 using PodPilot.Application.Pods.Commands.RestartPod;
@@ -12,6 +18,7 @@ using PodPilot.Application.Pods.Commands.UpdatePod;
 using PodPilot.Application.Pods.Queries.GetPod;
 using PodPilot.Application.Pods.Queries.ListPods;
 using PodPilot.Contracts.Common;
+using PodPilot.Contracts.Lifecycle;
 using PodPilot.Contracts.Pods;
 using PodPilot.Domain.Enums;
 
@@ -186,6 +193,88 @@ public sealed class PodsController : ControllerBase
     {
         var result = await mediator.Send(new SyncPodCommand { PodId = podId }, cancellationToken);
         return Ok(ApiResponse<PodResponse>.Ok(result, GetCorrelationId()));
+    }
+
+    /// <summary>
+    /// Gets activity history for a pod.
+    /// </summary>
+    [HttpGet("{podId:guid}/activity")]
+    [ProducesResponseType(typeof(ApiResponse<IReadOnlyList<PodActivityResponse>>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetPodActivity(Guid podId, CancellationToken cancellationToken)
+    {
+        var result = await mediator.Send(new GetPodActivityQuery { PodId = podId }, cancellationToken);
+        return Ok(ApiResponse<IReadOnlyList<PodActivityResponse>>.Ok(result, GetCorrelationId()));
+    }
+
+    /// <summary>
+    /// Gets lifecycle summary for a pod.
+    /// </summary>
+    [HttpGet("{podId:guid}/lifecycle")]
+    [ProducesResponseType(typeof(ApiResponse<PodLifecycleSummaryResponse>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetPodLifecycle(Guid podId, CancellationToken cancellationToken)
+    {
+        var result = await mediator.Send(new GetPodLifecycleQuery { PodId = podId }, cancellationToken);
+        return Ok(ApiResponse<PodLifecycleSummaryResponse>.Ok(result, GetCorrelationId()));
+    }
+
+    /// <summary>
+    /// Gets lifecycle events for a pod.
+    /// </summary>
+    [HttpGet("{podId:guid}/lifecycle/events")]
+    [ProducesResponseType(typeof(ApiResponse<IReadOnlyList<PodLifecycleEventResponse>>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetPodLifecycleEvents(Guid podId, CancellationToken cancellationToken)
+    {
+        var result = await mediator.Send(new GetPodLifecycleEventsQuery { PodId = podId }, cancellationToken);
+        return Ok(ApiResponse<IReadOnlyList<PodLifecycleEventResponse>>.Ok(result, GetCorrelationId()));
+    }
+
+    /// <summary>
+    /// Wakes a stopped pod via the lifecycle engine.
+    /// </summary>
+    [HttpPost("{podId:guid}/wake")]
+    [ProducesResponseType(typeof(ApiResponse<PodWakeResponse>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> WakePod(Guid podId, CancellationToken cancellationToken)
+    {
+        var result = await mediator.Send(new WakePodCommand { PodId = podId }, cancellationToken);
+        return Ok(ApiResponse<PodWakeResponse>.Ok(result, GetCorrelationId()));
+    }
+
+    /// <summary>
+    /// Shuts down a running pod via the lifecycle engine.
+    /// </summary>
+    [HttpPost("{podId:guid}/shutdown")]
+    [ProducesResponseType(typeof(ApiResponse<PodShutdownResponse>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> ShutdownPod(Guid podId, CancellationToken cancellationToken)
+    {
+        var result = await mediator.Send(
+            new ShutdownPodCommand { PodId = podId, Reason = "Manual shutdown requested." },
+            cancellationToken);
+        return Ok(ApiResponse<PodShutdownResponse>.Ok(result, GetCorrelationId()));
+    }
+
+    /// <summary>
+    /// Updates idle policy settings for a pod.
+    /// </summary>
+    [HttpPut("{podId:guid}/idle-policy")]
+    [ProducesResponseType(typeof(ApiResponse<PodIdlePolicyResponse>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> UpdatePodIdlePolicy(
+        Guid podId,
+        [FromBody] UpdatePodIdlePolicyRequest request,
+        CancellationToken cancellationToken)
+    {
+        var result = await mediator.Send(
+            new UpdatePodIdlePolicyCommand
+            {
+                PodId = podId,
+                IdleTimeoutMinutes = request.IdleTimeoutMinutes,
+                GracePeriodMinutes = request.GracePeriodMinutes,
+                AutoShutdownEnabled = request.AutoShutdownEnabled,
+                AutoWakeEnabled = request.AutoWakeEnabled,
+                MinimumRunningTimeMinutes = request.MinimumRunningTimeMinutes,
+            },
+            cancellationToken);
+
+        return Ok(ApiResponse<PodIdlePolicyResponse>.Ok(result, GetCorrelationId()));
     }
 
     private string? GetCorrelationId() =>

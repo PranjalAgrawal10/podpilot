@@ -108,6 +108,11 @@ public class GpuPod : Common.AuditableEntity
     public DateTime? LastSyncedAt { get; set; }
 
     /// <summary>
+    /// Gets or sets when the pod last recorded activity.
+    /// </summary>
+    public DateTime? LastActivityAt { get; set; }
+
+    /// <summary>
     /// Gets the owning organization.
     /// </summary>
     public Organization Organization { get; set; } = null!;
@@ -131,4 +136,19 @@ public class GpuPod : Common.AuditableEntity
     /// Gets status history entries.
     /// </summary>
     public ICollection<PodStatusHistory> StatusHistory { get; set; } = [];
+
+    /// <summary>
+    /// Gets the idle lifecycle policy.
+    /// </summary>
+    public PodIdlePolicy? IdlePolicy { get; set; }
+
+    /// <summary>
+    /// Gets recorded activities.
+    /// </summary>
+    public ICollection<PodActivity> Activities { get; set; } = [];
+
+    /// <summary>
+    /// Gets lifecycle events.
+    /// </summary>
+    public ICollection<PodLifecycleEvent> LifecycleEvents { get; set; } = [];
 }

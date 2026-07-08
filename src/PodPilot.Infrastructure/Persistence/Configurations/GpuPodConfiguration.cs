@@ -27,6 +27,7 @@ public sealed class GpuPodConfiguration : IEntityTypeConfiguration<GpuPod>
         builder.Property(p => p.Endpoint).HasMaxLength(500);
         builder.Property(p => p.HourlyCost).HasPrecision(18, 4);
         builder.Property(p => p.Status).HasConversion<string>().HasMaxLength(32);
+        builder.Property(p => p.LastActivityAt);
 
         builder.HasIndex(p => new { p.OrganizationId, p.Name });
         builder.HasIndex(p => p.ProviderId);

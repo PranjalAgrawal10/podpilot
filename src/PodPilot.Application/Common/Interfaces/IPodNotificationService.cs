@@ -13,4 +13,14 @@ public interface IPodNotificationService
         Guid podId,
         string status,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Notifies clients of a lifecycle engine event.
+    /// </summary>
+    Task NotifyLifecycleEventAsync(
+        Guid organizationId,
+        Guid podId,
+        string eventName,
+        object? payload = null,
+        CancellationToken cancellationToken = default);
 }

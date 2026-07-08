@@ -32,4 +32,18 @@ public sealed class PodNotificationService : IPodNotificationService
                 "PodStatusChanged",
                 new { podId, status, updatedAt = DateTime.UtcNow },
                 cancellationToken);
+
+    /// <inheritdoc />
+    public Task NotifyLifecycleEventAsync(
+        Guid organizationId,
+        Guid podId,
+        string eventName,
+        object? payload = null,
+        CancellationToken cancellationToken = default) =>
+        hubContext.Clients
+            .Group(PodStatusHub.GetOrganizationGroupName(organizationId))
+            .SendAsync(
+                eventName,
+                new { podId, payload, updatedAt = DateTime.UtcNow },
+                cancellationToken);
 }

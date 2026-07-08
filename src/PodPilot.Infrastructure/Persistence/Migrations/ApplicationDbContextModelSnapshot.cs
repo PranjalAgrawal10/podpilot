@@ -268,6 +268,9 @@ namespace PodPilot.Infrastructure.Persistence.Migrations
                     b.Property<bool>("IsPublic")
                         .HasColumnType("tinyint(1)");
 
+                    b.Property<DateTime?>("LastActivityAt")
+                        .HasColumnType("datetime(6)");
+
                     b.Property<DateTime?>("LastStartedAt")
                         .HasColumnType("datetime(6)");
 
@@ -519,6 +522,42 @@ namespace PodPilot.Infrastructure.Persistence.Migrations
                     b.ToTable("Permissions", (string)null);
                 });
 
+            modelBuilder.Entity("PodPilot.Domain.Entities.PodActivity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("ActivityType")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("varchar(32)");
+
+                    b.Property<string>("Metadata")
+                        .HasMaxLength(2000)
+                        .HasColumnType("varchar(2000)");
+
+                    b.Property<Guid>("PodId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<DateTime>("Timestamp")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<Guid?>("UserId")
+                        .HasColumnType("char(36)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PodId", "Timestamp");
+
+                    b.ToTable("PodActivities", (string)null);
+                });
+
             modelBuilder.Entity("PodPilot.Domain.Entities.PodConfiguration", b =>
                 {
                     b.Property<Guid>("Id")
@@ -606,6 +645,126 @@ namespace PodPilot.Infrastructure.Persistence.Migrations
                     b.ToTable("PodEndpoints", (string)null);
                 });
 
+            modelBuilder.Entity("PodPilot.Domain.Entities.PodIdlePolicy", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<bool>("AutoShutdownEnabled")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("AutoWakeEnabled")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("GracePeriodMinutes")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("IdleDetectedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("IdleTimeoutMinutes")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MinimumRunningTimeMinutes")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("PodId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("longtext");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PodId")
+                        .IsUnique();
+
+                    b.ToTable("PodIdlePolicies", (string)null);
+                });
+
+            modelBuilder.Entity("PodPilot.Domain.Entities.PodLifecycleEvent", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("EventType")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("varchar(32)");
+
+                    b.Property<string>("Message")
+                        .HasMaxLength(1000)
+                        .HasColumnType("varchar(1000)");
+
+                    b.Property<string>("Metadata")
+                        .HasMaxLength(2000)
+                        .HasColumnType("varchar(2000)");
+
+                    b.Property<Guid>("PodId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<DateTime>("Timestamp")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<Guid?>("UserId")
+                        .HasColumnType("char(36)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PodId", "Timestamp");
+
+                    b.ToTable("PodLifecycleEvents", (string)null);
+                });
+
+            modelBuilder.Entity("PodPilot.Domain.Entities.PodLifecycleLock", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime>("AcquiredAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Operation")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("varchar(32)");
+
+                    b.Property<string>("OwnerId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<Guid>("PodId")
+                        .HasColumnType("char(36)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PodId", "Operation")
+                        .IsUnique();
+
+                    b.ToTable("PodLifecycleLocks", (string)null);
+                });
+
             modelBuilder.Entity("PodPilot.Domain.Entities.PodStatusHistory", b =>
                 {
                     b.Property<Guid>("Id")
@@ -632,6 +791,53 @@ namespace PodPilot.Infrastructure.Persistence.Migrations
                     b.HasIndex("GpuPodId", "RecordedAt");
 
                     b.ToTable("PodStatusHistory", (string)null);
+                });
+
+            modelBuilder.Entity("PodPilot.Domain.Entities.PodWakeRequest", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("ErrorMessage")
+                        .HasMaxLength(1000)
+                        .HasColumnType("varchar(1000)");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid>("PodId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime?>("ProcessingStartedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime>("RequestedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("varchar(32)");
+
+                    b.Property<Guid?>("UserId")
+                        .HasColumnType("char(36)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RequestedAt");
+
+                    b.HasIndex("PodId", "Status");
+
+                    b.ToTable("PodWakeRequests", (string)null);
                 });
 
             modelBuilder.Entity("PodPilot.Domain.Entities.ProviderCredential", b =>
@@ -1104,6 +1310,17 @@ namespace PodPilot.Infrastructure.Persistence.Migrations
                     b.Navigation("Organization");
                 });
 
+            modelBuilder.Entity("PodPilot.Domain.Entities.PodActivity", b =>
+                {
+                    b.HasOne("PodPilot.Domain.Entities.GpuPod", "Pod")
+                        .WithMany("Activities")
+                        .HasForeignKey("PodId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Pod");
+                });
+
             modelBuilder.Entity("PodPilot.Domain.Entities.PodConfiguration", b =>
                 {
                     b.HasOne("PodPilot.Domain.Entities.GpuPod", "GpuPod")
@@ -1126,6 +1343,39 @@ namespace PodPilot.Infrastructure.Persistence.Migrations
                     b.Navigation("GpuPod");
                 });
 
+            modelBuilder.Entity("PodPilot.Domain.Entities.PodIdlePolicy", b =>
+                {
+                    b.HasOne("PodPilot.Domain.Entities.GpuPod", "Pod")
+                        .WithOne("IdlePolicy")
+                        .HasForeignKey("PodPilot.Domain.Entities.PodIdlePolicy", "PodId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Pod");
+                });
+
+            modelBuilder.Entity("PodPilot.Domain.Entities.PodLifecycleEvent", b =>
+                {
+                    b.HasOne("PodPilot.Domain.Entities.GpuPod", "Pod")
+                        .WithMany("LifecycleEvents")
+                        .HasForeignKey("PodId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Pod");
+                });
+
+            modelBuilder.Entity("PodPilot.Domain.Entities.PodLifecycleLock", b =>
+                {
+                    b.HasOne("PodPilot.Domain.Entities.GpuPod", "Pod")
+                        .WithMany()
+                        .HasForeignKey("PodId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Pod");
+                });
+
             modelBuilder.Entity("PodPilot.Domain.Entities.PodStatusHistory", b =>
                 {
                     b.HasOne("PodPilot.Domain.Entities.GpuPod", "GpuPod")
@@ -1135,6 +1385,17 @@ namespace PodPilot.Infrastructure.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("GpuPod");
+                });
+
+            modelBuilder.Entity("PodPilot.Domain.Entities.PodWakeRequest", b =>
+                {
+                    b.HasOne("PodPilot.Domain.Entities.GpuPod", "Pod")
+                        .WithMany()
+                        .HasForeignKey("PodId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Pod");
                 });
 
             modelBuilder.Entity("PodPilot.Domain.Entities.ProviderCredential", b =>
@@ -1235,9 +1496,15 @@ namespace PodPilot.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("PodPilot.Domain.Entities.GpuPod", b =>
                 {
+                    b.Navigation("Activities");
+
                     b.Navigation("Configuration");
 
                     b.Navigation("Endpoints");
+
+                    b.Navigation("IdlePolicy");
+
+                    b.Navigation("LifecycleEvents");
 
                     b.Navigation("StatusHistory");
                 });

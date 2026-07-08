@@ -72,6 +72,21 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     /// <inheritdoc />
     public DbSet<PodStatusHistory> PodStatusHistoryEntries => Set<PodStatusHistory>();
 
+    /// <inheritdoc />
+    public DbSet<PodActivity> PodActivities => Set<PodActivity>();
+
+    /// <inheritdoc />
+    public DbSet<PodLifecycleEvent> PodLifecycleEvents => Set<PodLifecycleEvent>();
+
+    /// <inheritdoc />
+    public DbSet<PodIdlePolicy> PodIdlePolicies => Set<PodIdlePolicy>();
+
+    /// <inheritdoc />
+    public DbSet<PodLifecycleLock> PodLifecycleLocks => Set<PodLifecycleLock>();
+
+    /// <inheritdoc />
+    public DbSet<PodWakeRequest> PodWakeRequests => Set<PodWakeRequest>();
+
     IQueryable<RefreshToken> IApplicationDbContext.RefreshTokens => RefreshTokens;
 
     IQueryable<Organization> IApplicationDbContext.Organizations => Organizations;
@@ -105,6 +120,16 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     IQueryable<PodEndpoint> IApplicationDbContext.PodEndpoints => PodEndpoints;
 
     IQueryable<PodStatusHistory> IApplicationDbContext.PodStatusHistory => PodStatusHistoryEntries;
+
+    IQueryable<PodActivity> IApplicationDbContext.PodActivities => PodActivities;
+
+    IQueryable<PodLifecycleEvent> IApplicationDbContext.PodLifecycleEvents => PodLifecycleEvents;
+
+    IQueryable<PodIdlePolicy> IApplicationDbContext.PodIdlePolicies => PodIdlePolicies;
+
+    IQueryable<PodLifecycleLock> IApplicationDbContext.PodLifecycleLocks => PodLifecycleLocks;
+
+    IQueryable<PodWakeRequest> IApplicationDbContext.PodWakeRequests => PodWakeRequests;
 
     /// <inheritdoc />
     public Task AddAuditLogAsync(AuditLog auditLog, CancellationToken cancellationToken = default) =>
@@ -191,6 +216,33 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     /// <inheritdoc />
     public Task AddPodStatusHistoryAsync(PodStatusHistory history, CancellationToken cancellationToken = default) =>
         PodStatusHistoryEntries.AddAsync(history, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public Task AddPodActivityAsync(PodActivity activity, CancellationToken cancellationToken = default) =>
+        PodActivities.AddAsync(activity, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public Task AddPodLifecycleEventAsync(PodLifecycleEvent lifecycleEvent, CancellationToken cancellationToken = default) =>
+        PodLifecycleEvents.AddAsync(lifecycleEvent, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public Task AddPodIdlePolicyAsync(PodIdlePolicy policy, CancellationToken cancellationToken = default) =>
+        PodIdlePolicies.AddAsync(policy, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public Task AddPodWakeRequestAsync(PodWakeRequest request, CancellationToken cancellationToken = default) =>
+        PodWakeRequests.AddAsync(request, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public Task AddPodLifecycleLockAsync(PodLifecycleLock lifecycleLock, CancellationToken cancellationToken = default) =>
+        PodLifecycleLocks.AddAsync(lifecycleLock, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public Task RemovePodLifecycleLockAsync(PodLifecycleLock lifecycleLock, CancellationToken cancellationToken = default)
+    {
+        PodLifecycleLocks.Remove(lifecycleLock);
+        return Task.CompletedTask;
+    }
 
     /// <inheritdoc />
     public async Task RemoveGpuPodAsync(Guid podId, CancellationToken cancellationToken = default)

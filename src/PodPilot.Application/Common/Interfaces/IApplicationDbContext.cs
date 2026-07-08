@@ -94,6 +94,31 @@ public interface IApplicationDbContext
     IQueryable<PodStatusHistory> PodStatusHistory { get; }
 
     /// <summary>
+    /// Gets the pod activities set.
+    /// </summary>
+    IQueryable<PodActivity> PodActivities { get; }
+
+    /// <summary>
+    /// Gets the pod lifecycle events set.
+    /// </summary>
+    IQueryable<PodLifecycleEvent> PodLifecycleEvents { get; }
+
+    /// <summary>
+    /// Gets the pod idle policies set.
+    /// </summary>
+    IQueryable<PodIdlePolicy> PodIdlePolicies { get; }
+
+    /// <summary>
+    /// Gets the pod lifecycle locks set.
+    /// </summary>
+    IQueryable<PodLifecycleLock> PodLifecycleLocks { get; }
+
+    /// <summary>
+    /// Gets the pod wake requests set.
+    /// </summary>
+    IQueryable<PodWakeRequest> PodWakeRequests { get; }
+
+    /// <summary>
     /// Adds an audit log entry.
     /// </summary>
     Task AddAuditLogAsync(AuditLog auditLog, CancellationToken cancellationToken = default);
@@ -167,6 +192,36 @@ public interface IApplicationDbContext
     /// Adds a pod status history entry.
     /// </summary>
     Task AddPodStatusHistoryAsync(PodStatusHistory history, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Adds a pod activity entry.
+    /// </summary>
+    Task AddPodActivityAsync(PodActivity activity, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Adds a pod lifecycle event.
+    /// </summary>
+    Task AddPodLifecycleEventAsync(PodLifecycleEvent lifecycleEvent, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Adds a pod idle policy.
+    /// </summary>
+    Task AddPodIdlePolicyAsync(PodIdlePolicy policy, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Adds a pod wake request.
+    /// </summary>
+    Task AddPodWakeRequestAsync(PodWakeRequest request, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Adds a pod lifecycle lock.
+    /// </summary>
+    Task AddPodLifecycleLockAsync(PodLifecycleLock lifecycleLock, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Removes a pod lifecycle lock.
+    /// </summary>
+    Task RemovePodLifecycleLockAsync(PodLifecycleLock lifecycleLock, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Removes a GPU pod.

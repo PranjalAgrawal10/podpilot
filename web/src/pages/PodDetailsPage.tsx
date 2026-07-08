@@ -10,6 +10,7 @@ import { GpuBadge } from '../components/pods/GpuBadge';
 import { CostBadge } from '../components/pods/CostBadge';
 import { RegionBadge } from '../components/pods/RegionBadge';
 import { ActionMenu } from '../components/pods/ActionMenu';
+import { PodLifecyclePanel } from '../components/pods/PodLifecyclePanel';
 import { useOrganization } from '../contexts/OrganizationContext';
 import { usePodStatusHub } from '../hooks/usePodStatusHub';
 import { PERMISSIONS } from '../types';
@@ -163,7 +164,8 @@ export const PodDetailsPage = () => {
         </Col>
 
         <Col md={4}>
-          <Card>
+          <PodLifecyclePanel podId={pod.id} canUpdate={canUpdate} onUpdated={invalidate} />
+          <Card className="mt-4">
             <CardHeader>Status History</CardHeader>
             <CardBody className="p-0">
               {pod.statusHistory.length === 0 ? (

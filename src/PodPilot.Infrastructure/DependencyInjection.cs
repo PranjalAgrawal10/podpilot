@@ -119,6 +119,7 @@ public static class DependencyInjection
         services.AddScoped<IEncryptionService, EncryptionService>();
         services.AddScoped<IProviderService, ProviderService>();
         services.AddScoped<IPodService, PodService>();
+        services.AddScoped<IPodLifecycleService, PodLifecycleService>();
         services.AddScoped<IPodNotificationService, PodNotificationService>();
 
         services.AddScoped<IApplicationDbContext>(provider => provider.GetRequiredService<ApplicationDbContext>());
@@ -149,6 +150,8 @@ public static class DependencyInjection
         {
             services.AddHostedService<ProviderHealthWorker>();
             services.AddHostedService<PodStatusSyncWorker>();
+            services.AddHostedService<IdleDetectionWorker>();
+            services.AddHostedService<PodWakeWorker>();
         }
 
         return services;

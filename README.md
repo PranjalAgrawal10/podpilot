@@ -1,6 +1,6 @@
 # PodPilot
 
-**PodPilot** is an AI Infrastructure Autopilot that automatically manages GPU pods, AI models, and inference providers. This repository contains **Part 1** (authentication foundation), **Part 2** (multi-tenant organization management), **Part 3** (provider management abstraction), and **Part 4** (GPU pod management).
+**PodPilot** is an AI Infrastructure Autopilot that automatically manages GPU pods, AI models, and inference providers. This repository contains **Part 1** (authentication foundation), **Part 2** (multi-tenant organization management), **Part 3** (provider management abstraction), **Part 4** (GPU pod management), and **Part 5** (automatic GPU lifecycle management).
 
 ---
 
@@ -170,6 +170,62 @@ flowchart LR
 | `Pod.Create` | ✓ | ✓ | ✓ | |
 | `Pod.Update` | ✓ | ✓ | ✓ | |
 | `Pod.Delete` | ✓ | ✓ | ✓ | |
+
+---
+
+## Part 5 — Automatic GPU Lifecycle Management
+
+Part 5 adds an intelligent **auto wake / auto shutdown engine** that tracks pod activity, detects idle GPUs, shuts down unused pods, and wakes stopped pods on demand.
+
+### Lifecycle Engine
+
+```mermaid
+flowchart TB
+    subgraph Workers
+        Idle[IdleDetectionWorker - 1 min]
+        Wake[PodWakeWorker - 5 sec]
+        Sync[PodStatusSyncWorker - 60 sec]
+    end
+
+    subgraph Service
+        PLS[IPodLifecycleService / PodLifecycleService]
+    end
+
+    subgraph Storage
+        Activity[PodActivities]
+        Events[PodLifecycleEvents]
+        Policy[PodIdlePolicies]
+        Locks[PodLifecycleLocks]
+        Queue[PodWakeRequests]
+    end
+
+    Idle --> PLS
+    Wake --> PLS
+    PLS --> Activity
+    PLS --> Events
+    PLS --> Policy
+    PLS --> Locks
+    PLS --> Queue
+```
+
+- **`IPodLifecycleService`** — wake, shutdown, activity tracking, idle evaluation, distributed locking
+- **`IdleDetectionWorker`** — scans running pods every minute; queues shutdown when idle timeout + grace period elapse
+- **`PodWakeWorker`** — processes queued wake requests; polls provider until pod is healthy
+- **Database-backed locks** — `PodLifecycleLocks` prevent duplicate concurrent wake/shutdown operations
+
+### Default Idle Policy
+
+| Setting | Default |
+|---------|---------|
+| Idle timeout | 30 minutes |
+| Grace period | 5 minutes |
+| Minimum runtime | 10 minutes |
+| Auto shutdown | Enabled |
+| Auto wake | Enabled |
+
+### SignalR Lifecycle Events
+
+In addition to `PodStatusChanged`, the hub broadcasts: `PodStarted`, `PodStopped`, `PodSleeping`, `PodWaking`, `IdleDetected`, `WakeCompleted`, `ShutdownCompleted`, `PolicyUpdated`.
 
 ---
 
@@ -425,6 +481,12 @@ All endpoints are versioned under `/api/v1/`:
 | `POST` | `/pods/{id}/stop` | Stop pod |
 | `POST` | `/pods/{id}/restart` | Restart pod |
 | `POST` | `/pods/{id}/sync` | Sync status with provider |
+| `GET` | `/pods/{id}/activity` | List pod activity history |
+| `GET` | `/pods/{id}/lifecycle` | Lifecycle summary (running/idle time, next shutdown) |
+| `GET` | `/pods/{id}/lifecycle/events` | Lifecycle event history |
+| `POST` | `/pods/{id}/wake` | Queue wake for stopped pod |
+| `POST` | `/pods/{id}/shutdown` | Shut down running pod |
+| `PUT` | `/pods/{id}/idle-policy` | Update auto wake/shutdown policy |
 
 ### Example: Register
 
@@ -463,6 +525,11 @@ curl -X POST http://localhost:5000/api/v1/auth/register \
 | `PodConfigurations` | Deployment configuration per pod |
 | `PodEndpoints` | Exposed network endpoints |
 | `PodStatusHistory` | Pod status change history |
+| `PodActivities` | Activity records for idle detection |
+| `PodLifecycleEvents` | Lifecycle engine audit events |
+| `PodIdlePolicies` | Per-pod auto wake/shutdown settings |
+| `PodLifecycleLocks` | Distributed operation locks |
+| `PodWakeRequests` | Queued wake requests |
 | `AuditLogs` | Immutable audit trail |
 | `Roles` / `UserRoles` | ASP.NET Identity role management |
 
@@ -484,11 +551,11 @@ dotnet test
 # Application unit tests (validators + permissions)
 dotnet test tests/PodPilot.Application.Tests
 
-# API integration tests (auth + organizations + providers + pods)
+# API integration tests (auth + organizations + providers + pods + lifecycle)
 dotnet test tests/PodPilot.Api.Tests
 ```
 
-## Frontend (Part 2 + Part 3 + Part 4)
+## Frontend (Part 2 + Part 3 + Part 4 + Part 5)
 
 | Page | Route | Description |
 |------|-------|-------------|
@@ -581,16 +648,16 @@ Serilog is configured with:
 
 ---
 
-## What's Next (Part 5+)
+## What's Next (Part 6+)
 
-Part 4 intentionally excludes:
+Part 5 intentionally excludes:
 
-- Pod auto start / shutdown orchestration engines
 - Ollama model management
 - AI Gateway / inference providers
 - Request queue and model routing
+- OpenAI / Anthropic compatibility layers
 
-These will be built on top of the organization, provider, and pod layers.
+These will be built on top of the organization, provider, pod, and lifecycle layers.
 
 ---
 

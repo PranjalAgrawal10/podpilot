@@ -27,6 +27,7 @@ internal static class PodLifecycleHandler
         IApplicationDbContext dbContext,
         IPodService podService,
         IPodNotificationService podNotificationService,
+        IPodLifecycleService podLifecycleService,
         IAuditService auditService,
         IHttpContextService httpContextService,
         IDateTimeService dateTimeService,
@@ -146,6 +147,13 @@ internal static class PodLifecycleHandler
             httpContextService.IpAddress,
             httpContextService.CorrelationId,
             cancellationToken);
+
+        await podLifecycleService.RecordActivityAsync(
+            pod.Id,
+            transitionalStatus == PodStatus.Stopping ? PodActivityType.Stopped : PodActivityType.Started,
+            "api",
+            userId,
+            cancellationToken: cancellationToken);
 
         return PodMapper.ToResponse(pod, includeHistory: true);
     }

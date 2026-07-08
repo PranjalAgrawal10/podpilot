@@ -20,6 +20,7 @@ public sealed class CreatePodCommandHandler : IRequestHandler<CreatePodCommand, 
     private readonly IApplicationDbContext dbContext;
     private readonly IPodService podService;
     private readonly IPodNotificationService podNotificationService;
+    private readonly IPodLifecycleService podLifecycleService;
     private readonly IAuditService auditService;
     private readonly IHttpContextService httpContextService;
     private readonly IDateTimeService dateTimeService;
@@ -33,6 +34,7 @@ public sealed class CreatePodCommandHandler : IRequestHandler<CreatePodCommand, 
         IApplicationDbContext dbContext,
         IPodService podService,
         IPodNotificationService podNotificationService,
+        IPodLifecycleService podLifecycleService,
         IAuditService auditService,
         IHttpContextService httpContextService,
         IDateTimeService dateTimeService)
@@ -42,6 +44,7 @@ public sealed class CreatePodCommandHandler : IRequestHandler<CreatePodCommand, 
         this.dbContext = dbContext;
         this.podService = podService;
         this.podNotificationService = podNotificationService;
+        this.podLifecycleService = podLifecycleService;
         this.auditService = auditService;
         this.httpContextService = httpContextService;
         this.dateTimeService = dateTimeService;
@@ -171,6 +174,10 @@ public sealed class CreatePodCommandHandler : IRequestHandler<CreatePodCommand, 
         }
 
         await PersistPodAsync(pod, now, statusMessage, cancellationToken);
+
+        await podLifecycleService.GetOrCreateIdlePolicyAsync(pod.Id, cancellationToken);
+        pod.LastActivityAt = now;
+        await dbContext.SaveChangesAsync(cancellationToken);
 
         await podNotificationService.NotifyPodStatusChangedAsync(
             organizationId,

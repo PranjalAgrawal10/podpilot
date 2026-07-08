@@ -15,6 +15,7 @@ public sealed class RestartPodCommandHandler : IRequestHandler<RestartPodCommand
     private readonly IApplicationDbContext dbContext;
     private readonly IPodService podService;
     private readonly IPodNotificationService podNotificationService;
+    private readonly IPodLifecycleService podLifecycleService;
     private readonly IAuditService auditService;
     private readonly IHttpContextService httpContextService;
     private readonly IDateTimeService dateTimeService;
@@ -28,6 +29,7 @@ public sealed class RestartPodCommandHandler : IRequestHandler<RestartPodCommand
         IApplicationDbContext dbContext,
         IPodService podService,
         IPodNotificationService podNotificationService,
+        IPodLifecycleService podLifecycleService,
         IAuditService auditService,
         IHttpContextService httpContextService,
         IDateTimeService dateTimeService)
@@ -37,6 +39,7 @@ public sealed class RestartPodCommandHandler : IRequestHandler<RestartPodCommand
         this.dbContext = dbContext;
         this.podService = podService;
         this.podNotificationService = podNotificationService;
+        this.podLifecycleService = podLifecycleService;
         this.auditService = auditService;
         this.httpContextService = httpContextService;
         this.dateTimeService = dateTimeService;
@@ -55,6 +58,7 @@ public sealed class RestartPodCommandHandler : IRequestHandler<RestartPodCommand
             dbContext,
             podService,
             podNotificationService,
+            podLifecycleService,
             auditService,
             httpContextService,
             dateTimeService,

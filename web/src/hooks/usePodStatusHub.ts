@@ -24,9 +24,25 @@ export const usePodStatusHub = (organizationId?: string | null) => {
       .configureLogging(LogLevel.Warning)
       .build();
 
-    connection.on('PodStatusChanged', () => {
-      queryClient.invalidateQueries({ queryKey: ['pods', organizationId] });
-      queryClient.invalidateQueries({ queryKey: ['pod'] });
+    const lifecycleEvents = [
+      'PodStatusChanged',
+      'PodStarted',
+      'PodStopped',
+      'PodSleeping',
+      'PodWaking',
+      'IdleDetected',
+      'WakeCompleted',
+      'ShutdownCompleted',
+      'PolicyUpdated',
+    ];
+
+    lifecycleEvents.forEach((eventName) => {
+      connection.on(eventName, () => {
+        queryClient.invalidateQueries({ queryKey: ['pods', organizationId] });
+        queryClient.invalidateQueries({ queryKey: ['pod'] });
+        queryClient.invalidateQueries({ queryKey: ['pod-lifecycle'] });
+        queryClient.invalidateQueries({ queryKey: ['pod-activity'] });
+      });
     });
 
     connection.start().catch(() => {

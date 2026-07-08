@@ -14,4 +14,13 @@ public sealed class NoOpPodNotificationService : IPodNotificationService
         string status,
         CancellationToken cancellationToken = default) =>
         Task.CompletedTask;
+
+    /// <inheritdoc />
+    public Task NotifyLifecycleEventAsync(
+        Guid organizationId,
+        Guid podId,
+        string eventName,
+        object? payload = null,
+        CancellationToken cancellationToken = default) =>
+        Task.CompletedTask;
 }

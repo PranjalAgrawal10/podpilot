@@ -99,6 +99,36 @@ public static class ApplicationConstants
     public const int PodMaxVolumeDiskGb = 2000;
 
     /// <summary>
+    /// Default idle timeout in minutes before a pod is considered idle.
+    /// </summary>
+    public const int DefaultIdleTimeoutMinutes = 30;
+
+    /// <summary>
+    /// Default grace period in minutes after idle detection before shutdown.
+    /// </summary>
+    public const int DefaultGracePeriodMinutes = 5;
+
+    /// <summary>
+    /// Default minimum running time in minutes before auto shutdown.
+    /// </summary>
+    public const int DefaultMinimumRunningTimeMinutes = 10;
+
+    /// <summary>
+    /// Default lifecycle lock duration in seconds.
+    /// </summary>
+    public const int LifecycleLockDurationSeconds = 120;
+
+    /// <summary>
+    /// Maximum wake wait attempts while polling provider health.
+    /// </summary>
+    public const int MaxWakeHealthCheckAttempts = 30;
+
+    /// <summary>
+    /// Delay between wake health check attempts.
+    /// </summary>
+    public static readonly TimeSpan WakeHealthCheckInterval = TimeSpan.FromSeconds(5);
+
+    /// <summary>
     /// All ASP.NET Identity roles.
     /// </summary>
     public static readonly string[] AllRoles = [AdminRole, MemberRole];

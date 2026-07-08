@@ -198,6 +198,70 @@ export interface Pod {
   configuration?: PodConfiguration | null;
 }
 
+export interface PodActivity {
+  id: string;
+  activityType: string;
+  timestamp: string;
+  source: string;
+  userId?: string | null;
+  metadata?: string | null;
+}
+
+export interface PodLifecycleEvent {
+  id: string;
+  eventType: string;
+  timestamp: string;
+  source: string;
+  userId?: string | null;
+  message?: string | null;
+  metadata?: string | null;
+}
+
+export interface PodIdlePolicy {
+  podId: string;
+  idleTimeoutMinutes: number;
+  gracePeriodMinutes: number;
+  autoShutdownEnabled: boolean;
+  autoWakeEnabled: boolean;
+  minimumRunningTimeMinutes: number;
+  idleDetectedAt?: string | null;
+}
+
+export interface PodLifecycleSummary {
+  podId: string;
+  status: string;
+  runningTimeMinutes: number;
+  idleTimeMinutes: number;
+  lastActivityAt?: string | null;
+  nextShutdownAt?: string | null;
+  autoWakeEnabled: boolean;
+  autoShutdownEnabled: boolean;
+  isIdle: boolean;
+  policy: PodIdlePolicy;
+}
+
+export interface UpdatePodIdlePolicyRequest {
+  idleTimeoutMinutes: number;
+  gracePeriodMinutes: number;
+  autoShutdownEnabled: boolean;
+  autoWakeEnabled: boolean;
+  minimumRunningTimeMinutes: number;
+}
+
+export interface PodWakeResult {
+  success: boolean;
+  queued: boolean;
+  wakeRequestId?: string | null;
+  status?: string | null;
+  errorMessage?: string | null;
+}
+
+export interface PodShutdownResult {
+  success: boolean;
+  status?: string | null;
+  errorMessage?: string | null;
+}
+
 export interface CreatePodRequest {
   providerId: string;
   name: string;
