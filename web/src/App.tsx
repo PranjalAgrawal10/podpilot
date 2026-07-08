@@ -24,6 +24,10 @@ import { EditProviderPage } from './pages/EditProviderPage';
 import { ProviderDetailsPage } from './pages/ProviderDetailsPage';
 import { AcceptInvitationPage } from './pages/AcceptInvitationPage';
 import { GatewayPage } from './pages/GatewayPage';
+import { ModelsPage } from './pages/ModelsPage';
+import { PullModelPage } from './pages/PullModelPage';
+import { ModelDetailsPage } from './pages/ModelDetailsPage';
+import { ModelDownloadsPage } from './pages/ModelDownloadsPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'react-toastify/dist/ReactToastify.css';
@@ -64,6 +68,10 @@ function App() {
                     <Route path="/pods/create" element={<CreatePodPage />} />
                     <Route path="/pods/:id" element={<PodDetailsPage />} />
                     <Route path="/gateway" element={<GatewayPage />} />
+                    <Route path="/models" element={<ModelsPage />} />
+                    <Route path="/models/pull" element={<PullModelPage />} />
+                    <Route path="/models/downloads" element={<ModelDownloadsPage />} />
+                    <Route path="/models/:id" element={<ModelDetailsPage />} />
                     <Route path="/providers/add" element={<AddProviderPage />} />
                     <Route path="/providers/:id" element={<ProviderDetailsPage />} />
                     <Route path="/providers/:id/edit" element={<EditProviderPage />} />

@@ -37,7 +37,7 @@ export const CreatePodPage = () => {
       volumeMountPath: '/workspace',
       gpuCount: 1,
       enablePublicIp: true,
-      ports: ['8888/http'],
+      ports: ['8888/http', '11434/http'],
       environmentVariables: {},
     },
   });
@@ -88,7 +88,7 @@ export const CreatePodPage = () => {
     try {
       const pod = await podService.create({
         ...data,
-        ports: data.ports ?? ['8888/http'],
+        ports: data.ports ?? ['8888/http', '11434/http'],
         environmentVariables: data.environmentVariables ?? {},
       });
       toast.success('Pod created');

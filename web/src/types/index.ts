@@ -455,8 +455,10 @@ export const PERMISSIONS = {
   ProviderCreate: 'Provider.Create',
   ProviderUpdate: 'Provider.Update',
   ProviderDelete: 'Provider.Delete',
+  ModelRead: 'Model.Read',
   ModelPull: 'Model.Pull',
   ModelDelete: 'Model.Delete',
+  ModelManage: 'Model.Manage',
   GatewayRead: 'Gateway.Read',
   GatewayManage: 'Gateway.Manage',
   DashboardView: 'Dashboard.View',
@@ -509,4 +511,65 @@ export interface GatewayRequestSummary {
   totalLatencyMs?: number | null;
   startedAt: string;
   completedAt?: string | null;
+}
+
+export interface AiModel {
+  id: string;
+  organizationId: string;
+  podId: string;
+  podName: string;
+  name: string;
+  tag: string;
+  fullName: string;
+  family?: string | null;
+  size: number;
+  quantization?: string | null;
+  contextLength?: number | null;
+  parameters?: string | null;
+  license?: string | null;
+  isDefault: boolean;
+  status: string;
+  lastUsed?: string | null;
+  createdAt: string;
+  updatedAt?: string | null;
+}
+
+export interface AiModelDetail extends AiModel {
+  healthHistory: ModelHealthRecord[];
+  downloads: ModelDownload[];
+}
+
+export interface ModelDownload {
+  id: string;
+  modelId: string;
+  modelName: string;
+  podId: string;
+  progress: number;
+  status: string;
+  downloadSpeed?: number | null;
+  startedAt: string;
+  completedAt?: string | null;
+  errorMessage?: string | null;
+}
+
+export interface ModelHealthRecord {
+  id: string;
+  modelId: string;
+  modelName: string;
+  podId: string;
+  status: string;
+  responseTime?: number | null;
+  lastChecked: string;
+  errorMessage?: string | null;
+}
+
+export interface ModelDashboard {
+  installedModels: number;
+  downloadingModels: number;
+  defaultModel?: string | null;
+  storageUsedBytes: number;
+  ollamaVersion?: string | null;
+  ollamaDetected: boolean;
+  healthyModels: number;
+  unhealthyModels: number;
 }
