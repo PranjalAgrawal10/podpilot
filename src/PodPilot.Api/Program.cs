@@ -25,6 +25,7 @@ builder.Host.UseSerilog((context, services, configuration) =>
 
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddScheduler(builder.Configuration, builder.Environment);
 builder.Services.AddInfrastructureHostedServices(builder.Environment);
 
 builder.Services.AddControllers();
