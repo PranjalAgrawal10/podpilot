@@ -1,0 +1,46 @@
+---
+description: C# CQRS, handlers, controllers, and Application layer conventions
+globs: src/**/*.cs,tests/**/*.cs
+alwaysApply: false
+---
+
+# .NET Backend Standards
+
+## CQRS layout
+Mirror existing modules (`Providers/`, `Pods/`, `Organizations/`):
+```
+Feature/
+  Commands/CreateX/  → Command, Handler, Validator
+  Queries/ListX/     → Query, Handler
+  FeatureAccess.cs   → org context + permission + entity lookup
+  FeatureMapper.cs   → entity → Contract DTO
+```
+
+## Handler pattern (required)
+1. `RequireOrganizationContext` → `(userId, organizationId)`
+2. `EnsurePermissionAsync` with `PermissionNames.*`
+3. Org-scoped DB query (never trust client-supplied org id)
+4. Domain work via application services (`IProviderService`, `IPodService`)
+5. `SaveChangesAsync` + `IAuditService` on mutations
+6. Return **Contracts** DTO via static mapper
+
+## Controllers
+- Route: `api/v1/{resource}`; delegate to MediatR only — no business logic
+- Wrap responses in `ApiResponse<T>.Ok(result, correlationId)`
+- Parse enums in controller; pass typed enums to commands
+- `CreatedAtAction` for POST; `NoContent` for DELETE
+
+## Validation
+- One `AbstractValidator<T>` per command; use `ApplicationConstants` for max lengths
+- Throw `ValidationException` with `ValidationFailure` list for business rule violations
+- Use `NotFoundException`, `ForbiddenException`, `UnauthorizedException` from Application
+
+## Entities & EF
+- Extend `AuditableEntity` for tenant-owned records; `BaseEntity` for child rows
+- Configure via `IEntityTypeConfiguration<T>` in Infrastructure
+- Expose data to handlers through `IApplicationDbContext` only
+
+## Examples to follow
+- `CreateProviderCommandHandler.cs` — create + validate + audit flow
+- `ProviderAccess.cs` — shared auth/lookup helpers
+- `ProvidersController.cs` — thin API surface

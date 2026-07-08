@@ -1,0 +1,40 @@
+---
+description: Unit and integration test standards for PodPilot
+globs: tests/**/*.cs
+alwaysApply: false
+---
+
+# Testing Standards
+
+## Framework
+- xUnit + FluentValidation.TestHelper for validators
+- `WebApplicationFactory<Program>` for API integration tests
+- Use `Testing` environment + InMemory DB via `DatabaseProvider=InMemory`
+
+## Unit tests (Application.Tests)
+- Test validators: valid command passes; each rule has a failing case
+- Test `RolePermissionMatrix` with `[Theory]` + `[InlineData]`
+- Test encryption/security helpers with deterministic inputs
+- Name tests: `Should_{Expected}_When_{Condition}`
+
+## Integration tests (Api.Tests)
+- Register mock `IComputeProvider` / `IPodProvider` in `ConfigureTestServices`
+- Use `NoOpPodNotificationService` when SignalR is not under test
+- Flow: register → authenticate → act → assert status + response body
+- Assert secrets never appear in response JSON (`DoesNotContain("ApiKey")`)
+
+## What to test
+- Behavior and HTTP contracts — not implementation details
+- Permission gates return 403 for unauthorized roles
+- End-to-end: create → operate → delete for each major resource
+
+## What to avoid
+- Tests that only assert `NotNull` without checking values
+- Hitting real RunPod/external APIs in CI — always mock providers
+- Shared mutable state between tests; use unique InMemory DB names per factory
+
+## Run commands
+```bash
+dotnet test tests/PodPilot.Application.Tests
+dotnet test tests/PodPilot.Api.Tests
+```

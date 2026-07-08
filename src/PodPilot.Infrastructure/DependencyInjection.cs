@@ -1,17 +1,22 @@
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using MySql.EntityFrameworkCore.Extensions;
 using PodPilot.Application.Common.Interfaces;
+using PodPilot.Infrastructure.BackgroundServices;
+using PodPilot.Infrastructure.Compute;
 using PodPilot.Infrastructure.Configuration;
+using PodPilot.Infrastructure.Hubs;
 using PodPilot.Infrastructure.Identity;
 using PodPilot.Infrastructure.Persistence;
+using PodPilot.Infrastructure.RunPod;
 using PodPilot.Infrastructure.Services;
-
 namespace PodPilot.Infrastructure;
 
 /// <summary>
@@ -81,6 +86,21 @@ public static class DependencyInjection
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Secret)),
                     ClockSkew = TimeSpan.Zero,
                 };
+
+                options.Events = new JwtBearerEvents
+                {
+                    OnMessageReceived = context =>
+                    {
+                        var accessToken = context.Request.Query["access_token"];
+                        var path = context.HttpContext.Request.Path;
+                        if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs"))
+                        {
+                            context.Token = accessToken;
+                        }
+
+                        return Task.CompletedTask;
+                    },
+                };
             });
 
         services.AddAuthorizationBuilder()
@@ -88,6 +108,19 @@ public static class DependencyInjection
             .AddPolicy("MemberOrAdmin", policy => policy.RequireRole("Admin", "Member"));
 
         services.AddHttpContextAccessor();
+        services.AddDataProtection();
+        services.AddHttpClient(nameof(RunPodProvider));
+        services.AddHttpClient(nameof(RunPodPodProvider));
+
+        services.AddSingleton<IComputeProvider, RunPodProvider>();
+        services.AddSingleton<IComputeProviderFactory, ComputeProviderFactory>();
+        services.AddSingleton<IPodProvider, RunPodPodProvider>();
+        services.AddSingleton<IPodProviderFactory, PodProviderFactory>();
+        services.AddScoped<IEncryptionService, EncryptionService>();
+        services.AddScoped<IProviderService, ProviderService>();
+        services.AddScoped<IPodService, PodService>();
+        services.AddScoped<IPodNotificationService, PodNotificationService>();
+
         services.AddScoped<IApplicationDbContext>(provider => provider.GetRequiredService<ApplicationDbContext>());
         services.AddScoped<IIdentityService, IdentityService>();
         services.AddScoped<IJwtTokenService, JwtTokenService>();
@@ -98,6 +131,25 @@ public static class DependencyInjection
         services.AddScoped<IAuditService, AuditService>();
         services.AddScoped<IOrganizationAuthorizationService, OrganizationAuthorizationService>();
         services.AddScoped<IAuthTokenIssuer, AuthTokenIssuer>();
+
+        return services;
+    }
+
+    /// <summary>
+    /// Registers background services for non-testing environments.
+    /// </summary>
+    /// <param name="services">The service collection.</param>
+    /// <param name="environment">The host environment.</param>
+    /// <returns>The service collection.</returns>
+    public static IServiceCollection AddInfrastructureHostedServices(
+        this IServiceCollection services,
+        IHostEnvironment environment)
+    {
+        if (!environment.IsEnvironment("Testing"))
+        {
+            services.AddHostedService<ProviderHealthWorker>();
+            services.AddHostedService<PodStatusSyncWorker>();
+        }
 
         return services;
     }

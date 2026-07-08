@@ -44,6 +44,56 @@ public interface IApplicationDbContext
     IQueryable<AuditLog> AuditLogs { get; }
 
     /// <summary>
+    /// Gets the compute providers set.
+    /// </summary>
+    IQueryable<ComputeProvider> ComputeProviders { get; }
+
+    /// <summary>
+    /// Gets the provider credentials set.
+    /// </summary>
+    IQueryable<ProviderCredential> ProviderCredentials { get; }
+
+    /// <summary>
+    /// Gets the provider regions set.
+    /// </summary>
+    IQueryable<ProviderRegion> ProviderRegions { get; }
+
+    /// <summary>
+    /// Gets the provider GPUs set.
+    /// </summary>
+    IQueryable<ProviderGpu> ProviderGpus { get; }
+
+    /// <summary>
+    /// Gets the provider health snapshots set.
+    /// </summary>
+    IQueryable<ProviderHealth> ProviderHealthSnapshots { get; }
+
+    /// <summary>
+    /// Gets the provider health history set.
+    /// </summary>
+    IQueryable<ProviderHealthHistory> ProviderHealthHistory { get; }
+
+    /// <summary>
+    /// Gets the GPU pods set.
+    /// </summary>
+    IQueryable<GpuPod> GpuPods { get; }
+
+    /// <summary>
+    /// Gets the pod configurations set.
+    /// </summary>
+    IQueryable<PodConfiguration> PodConfigurations { get; }
+
+    /// <summary>
+    /// Gets the pod endpoints set.
+    /// </summary>
+    IQueryable<PodEndpoint> PodEndpoints { get; }
+
+    /// <summary>
+    /// Gets the pod status history set.
+    /// </summary>
+    IQueryable<PodStatusHistory> PodStatusHistory { get; }
+
+    /// <summary>
     /// Adds an audit log entry.
     /// </summary>
     Task AddAuditLogAsync(AuditLog auditLog, CancellationToken cancellationToken = default);
@@ -67,6 +117,61 @@ public interface IApplicationDbContext
     /// Adds an invitation.
     /// </summary>
     Task AddInvitationAsync(Invitation invitation, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Adds a compute provider.
+    /// </summary>
+    Task AddComputeProviderAsync(ComputeProvider provider, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Adds a provider credential.
+    /// </summary>
+    Task AddProviderCredentialAsync(ProviderCredential credential, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Adds a provider health snapshot.
+    /// </summary>
+    Task AddProviderHealthAsync(ProviderHealth health, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Adds a provider health history entry.
+    /// </summary>
+    Task AddProviderHealthHistoryAsync(ProviderHealthHistory history, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Adds a provider region.
+    /// </summary>
+    Task AddProviderRegionAsync(ProviderRegion region, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Adds a provider GPU.
+    /// </summary>
+    Task AddProviderGpuAsync(ProviderGpu gpu, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Removes cached regions and GPUs for a provider.
+    /// </summary>
+    Task ClearProviderCatalogAsync(Guid computeProviderId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Removes a compute provider.
+    /// </summary>
+    Task RemoveComputeProviderAsync(Guid providerId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Adds a GPU pod.
+    /// </summary>
+    Task AddGpuPodAsync(GpuPod pod, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Adds a pod status history entry.
+    /// </summary>
+    Task AddPodStatusHistoryAsync(PodStatusHistory history, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Removes a GPU pod.
+    /// </summary>
+    Task RemoveGpuPodAsync(Guid podId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Persists pending changes.

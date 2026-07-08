@@ -14,14 +14,26 @@ public static class PermissionNames
     /// <summary>Delete an organization.</summary>
     public const string OrganizationDelete = "Organization.Delete";
 
+    /// <summary>Read pods.</summary>
+    public const string PodRead = "Pod.Read";
+
     /// <summary>Create pods.</summary>
     public const string PodCreate = "Pod.Create";
+
+    /// <summary>Update and operate pods.</summary>
+    public const string PodUpdate = "Pod.Update";
 
     /// <summary>Delete pods.</summary>
     public const string PodDelete = "Pod.Delete";
 
+    /// <summary>Read providers.</summary>
+    public const string ProviderRead = "Provider.Read";
+
     /// <summary>Create providers.</summary>
     public const string ProviderCreate = "Provider.Create";
+
+    /// <summary>Update providers.</summary>
+    public const string ProviderUpdate = "Provider.Update";
 
     /// <summary>Delete providers.</summary>
     public const string ProviderDelete = "Provider.Delete";
@@ -56,9 +68,13 @@ public static class PermissionNames
         OrganizationRead,
         OrganizationUpdate,
         OrganizationDelete,
+        PodRead,
         PodCreate,
+        PodUpdate,
         PodDelete,
+        ProviderRead,
         ProviderCreate,
+        ProviderUpdate,
         ProviderDelete,
         ModelPull,
         ModelDelete,

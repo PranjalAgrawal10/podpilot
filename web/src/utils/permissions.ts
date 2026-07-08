@@ -7,9 +7,13 @@ const ROLE_PERMISSIONS: Record<OrganizationRole, readonly Permission[]> = {
   Admin: [
     PERMISSIONS.OrganizationRead,
     PERMISSIONS.OrganizationUpdate,
+    PERMISSIONS.PodRead,
     PERMISSIONS.PodCreate,
+    PERMISSIONS.PodUpdate,
     PERMISSIONS.PodDelete,
+    PERMISSIONS.ProviderRead,
     PERMISSIONS.ProviderCreate,
+    PERMISSIONS.ProviderUpdate,
     PERMISSIONS.ProviderDelete,
     PERMISSIONS.ModelPull,
     PERMISSIONS.ModelDelete,
@@ -22,9 +26,13 @@ const ROLE_PERMISSIONS: Record<OrganizationRole, readonly Permission[]> = {
   ],
   Developer: [
     PERMISSIONS.OrganizationRead,
+    PERMISSIONS.PodRead,
     PERMISSIONS.PodCreate,
+    PERMISSIONS.PodUpdate,
     PERMISSIONS.PodDelete,
+    PERMISSIONS.ProviderRead,
     PERMISSIONS.ProviderCreate,
+    PERMISSIONS.ProviderUpdate,
     PERMISSIONS.ProviderDelete,
     PERMISSIONS.ModelPull,
     PERMISSIONS.ModelDelete,
@@ -33,9 +41,11 @@ const ROLE_PERMISSIONS: Record<OrganizationRole, readonly Permission[]> = {
   ],
   Viewer: [
     PERMISSIONS.OrganizationRead,
+    PERMISSIONS.PodRead,
     PERMISSIONS.DashboardView,
     PERMISSIONS.BillingView,
     PERMISSIONS.MemberRead,
+    PERMISSIONS.ProviderRead,
   ],
 };
 

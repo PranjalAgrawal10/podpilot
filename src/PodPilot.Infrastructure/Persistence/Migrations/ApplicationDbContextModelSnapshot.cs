@@ -164,6 +164,172 @@ namespace PodPilot.Infrastructure.Persistence.Migrations
                     b.ToTable("AuditLogs", (string)null);
                 });
 
+            modelBuilder.Entity("PodPilot.Domain.Entities.ComputeProvider", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("CreatedBy")
+                        .HasMaxLength(128)
+                        .HasColumnType("varchar(128)");
+
+                    b.Property<string>("DefaultRegion")
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(1000)
+                        .HasColumnType("varchar(1000)");
+
+                    b.Property<string>("DisplayName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<bool>("IsEnabled")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("IsValidated")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<DateTime?>("LastValidatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<int>("ProviderType")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(128)
+                        .HasColumnType("varchar(128)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrganizationId", "Name")
+                        .IsUnique();
+
+                    b.ToTable("ComputeProviders", (string)null);
+                });
+
+            modelBuilder.Entity("PodPilot.Domain.Entities.GpuPod", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<int>("ContainerDisk")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(1000)
+                        .HasColumnType("varchar(1000)");
+
+                    b.Property<string>("Endpoint")
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<string>("GpuId")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<int>("GpuType")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("HourlyCost")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
+
+                    b.Property<string>("ImageName")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<bool>("IsPublic")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<DateTime?>("LastStartedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime?>("LastStoppedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime?>("LastSyncedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(191)
+                        .HasColumnType("varchar(191)");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid>("ProviderId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("ProviderPodId")
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<string>("PublicIp")
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<string>("Region")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("varchar(32)");
+
+                    b.Property<string>("TemplateId")
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("VolumeDisk")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProviderId");
+
+                    b.HasIndex("Status");
+
+                    b.HasIndex("OrganizationId", "Name");
+
+                    b.ToTable("GpuPods", (string)null);
+                });
+
             modelBuilder.Entity("PodPilot.Domain.Entities.Invitation", b =>
                 {
                     b.Property<Guid>("Id")
@@ -351,6 +517,288 @@ namespace PodPilot.Infrastructure.Persistence.Migrations
                         .IsUnique();
 
                     b.ToTable("Permissions", (string)null);
+                });
+
+            modelBuilder.Entity("PodPilot.Domain.Entities.PodConfiguration", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<int>("ContainerDiskGb")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("EnablePublicIp")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("EnvironmentVariablesJson")
+                        .HasMaxLength(8000)
+                        .HasColumnType("varchar(8000)");
+
+                    b.Property<int>("GpuCount")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("GpuPodId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("ImageName")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<string>("PortsJson")
+                        .HasMaxLength(2000)
+                        .HasColumnType("varchar(2000)");
+
+                    b.Property<string>("TemplateId")
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<string>("TemplateName")
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<int>("VolumeDiskGb")
+                        .HasColumnType("int");
+
+                    b.Property<string>("VolumeMountPath")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GpuPodId")
+                        .IsUnique();
+
+                    b.ToTable("PodConfigurations", (string)null);
+                });
+
+            modelBuilder.Entity("PodPilot.Domain.Entities.PodEndpoint", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid>("GpuPodId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<int>("Port")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Protocol")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("varchar(16)");
+
+                    b.Property<int?>("PublicPort")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Url")
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GpuPodId", "Port", "Protocol")
+                        .IsUnique();
+
+                    b.ToTable("PodEndpoints", (string)null);
+                });
+
+            modelBuilder.Entity("PodPilot.Domain.Entities.PodStatusHistory", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid>("GpuPodId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("Message")
+                        .HasMaxLength(1000)
+                        .HasColumnType("varchar(1000)");
+
+                    b.Property<DateTime>("RecordedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("varchar(32)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GpuPodId", "RecordedAt");
+
+                    b.ToTable("PodStatusHistory", (string)null);
+                });
+
+            modelBuilder.Entity("PodPilot.Domain.Entities.ProviderCredential", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid>("ComputeProviderId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("CreatedBy")
+                        .HasMaxLength(128)
+                        .HasColumnType("varchar(128)");
+
+                    b.Property<string>("EncryptedApiKey")
+                        .IsRequired()
+                        .HasMaxLength(4096)
+                        .HasColumnType("varchar(4096)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(128)
+                        .HasColumnType("varchar(128)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ComputeProviderId")
+                        .IsUnique();
+
+                    b.ToTable("ProviderCredentials", (string)null);
+                });
+
+            modelBuilder.Entity("PodPilot.Domain.Entities.ProviderGpu", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid>("ComputeProviderId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("GpuId")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<int>("GpuType")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsAvailable")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<int?>("MemoryGb")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<DateTime>("SyncedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ComputeProviderId", "GpuId")
+                        .IsUnique();
+
+                    b.ToTable("ProviderGpus", (string)null);
+                });
+
+            modelBuilder.Entity("PodPilot.Domain.Entities.ProviderHealth", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid>("ComputeProviderId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("ErrorMessage")
+                        .HasMaxLength(2000)
+                        .HasColumnType("varchar(2000)");
+
+                    b.Property<DateTime?>("LastCheckedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("ResponseTimeMs")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ComputeProviderId")
+                        .IsUnique();
+
+                    b.ToTable("ProviderHealth", (string)null);
+                });
+
+            modelBuilder.Entity("PodPilot.Domain.Entities.ProviderHealthHistory", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime>("CheckedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<Guid>("ComputeProviderId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("ErrorMessage")
+                        .HasMaxLength(2000)
+                        .HasColumnType("varchar(2000)");
+
+                    b.Property<int?>("ResponseTimeMs")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ComputeProviderId", "CheckedAt");
+
+                    b.ToTable("ProviderHealthHistory", (string)null);
+                });
+
+            modelBuilder.Entity("PodPilot.Domain.Entities.ProviderRegion", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid>("ComputeProviderId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<bool>("IsAvailable")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<string>("RegionId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<DateTime>("SyncedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ComputeProviderId", "RegionId")
+                        .IsUnique();
+
+                    b.ToTable("ProviderRegions", (string)null);
                 });
 
             modelBuilder.Entity("PodPilot.Domain.Entities.RefreshToken", b =>
@@ -598,6 +1046,36 @@ namespace PodPilot.Infrastructure.Persistence.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("PodPilot.Domain.Entities.ComputeProvider", b =>
+                {
+                    b.HasOne("PodPilot.Domain.Entities.Organization", "Organization")
+                        .WithMany("ComputeProviders")
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Organization");
+                });
+
+            modelBuilder.Entity("PodPilot.Domain.Entities.GpuPod", b =>
+                {
+                    b.HasOne("PodPilot.Domain.Entities.Organization", "Organization")
+                        .WithMany()
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("PodPilot.Domain.Entities.ComputeProvider", "Provider")
+                        .WithMany()
+                        .HasForeignKey("ProviderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Organization");
+
+                    b.Navigation("Provider");
+                });
+
             modelBuilder.Entity("PodPilot.Domain.Entities.Invitation", b =>
                 {
                     b.HasOne("PodPilot.Domain.Entities.Organization", "Organization")
@@ -624,6 +1102,94 @@ namespace PodPilot.Infrastructure.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("Organization");
+                });
+
+            modelBuilder.Entity("PodPilot.Domain.Entities.PodConfiguration", b =>
+                {
+                    b.HasOne("PodPilot.Domain.Entities.GpuPod", "GpuPod")
+                        .WithOne("Configuration")
+                        .HasForeignKey("PodPilot.Domain.Entities.PodConfiguration", "GpuPodId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("GpuPod");
+                });
+
+            modelBuilder.Entity("PodPilot.Domain.Entities.PodEndpoint", b =>
+                {
+                    b.HasOne("PodPilot.Domain.Entities.GpuPod", "GpuPod")
+                        .WithMany("Endpoints")
+                        .HasForeignKey("GpuPodId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("GpuPod");
+                });
+
+            modelBuilder.Entity("PodPilot.Domain.Entities.PodStatusHistory", b =>
+                {
+                    b.HasOne("PodPilot.Domain.Entities.GpuPod", "GpuPod")
+                        .WithMany("StatusHistory")
+                        .HasForeignKey("GpuPodId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("GpuPod");
+                });
+
+            modelBuilder.Entity("PodPilot.Domain.Entities.ProviderCredential", b =>
+                {
+                    b.HasOne("PodPilot.Domain.Entities.ComputeProvider", "ComputeProvider")
+                        .WithOne("Credential")
+                        .HasForeignKey("PodPilot.Domain.Entities.ProviderCredential", "ComputeProviderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ComputeProvider");
+                });
+
+            modelBuilder.Entity("PodPilot.Domain.Entities.ProviderGpu", b =>
+                {
+                    b.HasOne("PodPilot.Domain.Entities.ComputeProvider", "ComputeProvider")
+                        .WithMany("Gpus")
+                        .HasForeignKey("ComputeProviderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ComputeProvider");
+                });
+
+            modelBuilder.Entity("PodPilot.Domain.Entities.ProviderHealth", b =>
+                {
+                    b.HasOne("PodPilot.Domain.Entities.ComputeProvider", "ComputeProvider")
+                        .WithOne("Health")
+                        .HasForeignKey("PodPilot.Domain.Entities.ProviderHealth", "ComputeProviderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ComputeProvider");
+                });
+
+            modelBuilder.Entity("PodPilot.Domain.Entities.ProviderHealthHistory", b =>
+                {
+                    b.HasOne("PodPilot.Domain.Entities.ComputeProvider", "ComputeProvider")
+                        .WithMany("HealthHistory")
+                        .HasForeignKey("ComputeProviderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ComputeProvider");
+                });
+
+            modelBuilder.Entity("PodPilot.Domain.Entities.ProviderRegion", b =>
+                {
+                    b.HasOne("PodPilot.Domain.Entities.ComputeProvider", "ComputeProvider")
+                        .WithMany("Regions")
+                        .HasForeignKey("ComputeProviderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ComputeProvider");
                 });
 
             modelBuilder.Entity("PodPilot.Domain.Entities.RefreshToken", b =>
@@ -654,8 +1220,32 @@ namespace PodPilot.Infrastructure.Persistence.Migrations
                     b.Navigation("Role");
                 });
 
+            modelBuilder.Entity("PodPilot.Domain.Entities.ComputeProvider", b =>
+                {
+                    b.Navigation("Credential");
+
+                    b.Navigation("Gpus");
+
+                    b.Navigation("Health");
+
+                    b.Navigation("HealthHistory");
+
+                    b.Navigation("Regions");
+                });
+
+            modelBuilder.Entity("PodPilot.Domain.Entities.GpuPod", b =>
+                {
+                    b.Navigation("Configuration");
+
+                    b.Navigation("Endpoints");
+
+                    b.Navigation("StatusHistory");
+                });
+
             modelBuilder.Entity("PodPilot.Domain.Entities.Organization", b =>
                 {
+                    b.Navigation("ComputeProviders");
+
                     b.Navigation("Invitations");
 
                     b.Navigation("Members");

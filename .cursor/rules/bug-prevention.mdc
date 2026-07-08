@@ -1,0 +1,37 @@
+---
+description: Defensive coding patterns to prevent common PodPilot bugs
+alwaysApply: true
+---
+
+# Bug Prevention Checklist
+
+Apply these before finishing any change:
+
+## Multi-tenancy
+- Every query filters by `organizationId` from JWT — never from request body
+- Use `*Access.Get*Async(db, id, organizationId)` helpers for entity lookup
+- Return `NotFoundException` (not 403) when resource is outside org scope
+
+## Async & EF
+- Use `async`/`await` end-to-end; pass `CancellationToken` to all handlers
+- Avoid multiple `SaveChangesAsync` on the same entity graph unless state is clear
+- Include required navigations (`Provider.Credential`, `Endpoints`) before operations that need them
+
+## API contracts
+- Request DTOs in `PodPilot.Contracts`; map to commands in controllers
+- Never leak `EncryptedApiKey`, raw tokens, or provider API responses
+- Return consistent `ApiResponse<T>` shape for all endpoints
+
+## Frontend
+- Sync `PERMISSIONS` and `ROLE_PERMISSIONS` when adding backend permissions
+- Invalidate React Query caches after mutations; include org id in query keys
+- Handle 401/403 from API with user-visible messages
+
+## Before marking done
+- Run `dotnet build` (warnings are errors)
+- Run `dotnet test`
+- Run `npm run build` when touching `web/`
+- Apply EF migrations for schema changes
+
+## When correcting the AI repeatedly
+Add the fix as a rule in `.cursor/rules/` so it persists for the team.

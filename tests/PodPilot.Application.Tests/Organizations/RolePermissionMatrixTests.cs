@@ -13,6 +13,15 @@ public class RolePermissionMatrixTests
     [InlineData(OrganizationRole.Developer, PermissionNames.PodCreate, true)]
     [InlineData(OrganizationRole.Viewer, PermissionNames.OrganizationRead, true)]
     [InlineData(OrganizationRole.Viewer, PermissionNames.OrganizationUpdate, false)]
+    [InlineData(OrganizationRole.Viewer, PermissionNames.PodRead, true)]
+    [InlineData(OrganizationRole.Viewer, PermissionNames.PodCreate, false)]
+    [InlineData(OrganizationRole.Viewer, PermissionNames.PodUpdate, false)]
+    [InlineData(OrganizationRole.Developer, PermissionNames.PodUpdate, true)]
+    [InlineData(OrganizationRole.Viewer, PermissionNames.ProviderRead, true)]
+    [InlineData(OrganizationRole.Viewer, PermissionNames.ProviderCreate, false)]
+    [InlineData(OrganizationRole.Viewer, PermissionNames.ProviderUpdate, false)]
+    [InlineData(OrganizationRole.Developer, PermissionNames.ProviderUpdate, true)]
+    [InlineData(OrganizationRole.Admin, PermissionNames.ProviderRead, true)]
     public void HasPermission_ReturnsExpectedResult(
         OrganizationRole role,
         string permission,

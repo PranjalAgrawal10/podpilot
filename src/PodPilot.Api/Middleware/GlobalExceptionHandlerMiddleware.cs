@@ -75,7 +75,7 @@ public sealed class GlobalExceptionHandlerMiddleware
             _ => (
                 HttpStatusCode.InternalServerError,
                 ApiResponse<object>.Fail(
-                    environment.IsDevelopment()
+                    environment.IsDevelopment() || environment.IsEnvironment("Testing")
                         ? exception.Message
                         : "An unexpected error occurred.",
                     correlationId)),

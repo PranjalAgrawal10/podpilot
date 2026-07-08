@@ -24,6 +24,8 @@ export const Sidebar = () => {
   const navItems = [
     { to: '/dashboard', label: 'Dashboard', icon: '📊' },
     { to: '/organizations', label: 'Organizations', icon: '🏢' },
+    { to: '/pods', label: 'Pods', icon: '🖥️' },
+    { to: '/providers', label: 'Providers', icon: '🔌' },
     { to: '/members', label: 'Members', icon: '👥' },
     { to: '/profile', label: 'Profile', icon: '👤' },
     { to: settingsPath, label: 'Settings', icon: '⚙️' },

@@ -284,3 +284,100 @@ body {
 [data-theme='dark'] .org-switcher-toggle {
   background: var(--bg-primary) !important;
 }
+
+.provider-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow);
+  border-radius: 0.75rem;
+  height: 100%;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.provider-card:hover {
+  border-color: var(--accent-color);
+}
+
+.provider-icon {
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.provider-type-badge {
+  font-size: 0.75rem;
+}
+
+.health-badge {
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.connection-status-alert {
+  font-size: 0.9rem;
+}
+
+.connection-account-info {
+  font-size: 0.85rem;
+}
+
+.provider-form-card {
+  max-width: 800px;
+}
+
+.provider-section-card,
+.provider-detail-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 0.75rem;
+}
+
+.provider-details-list dt {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.15rem;
+}
+
+.provider-details-list dd {
+  margin-bottom: 0.75rem;
+}
+
+.provider-region-list {
+  list-style: none;
+  padding: 0;
+}
+
+.provider-region-list li {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.provider-region-list li:last-child {
+  border-bottom: none;
+}
+
+.gpu-table,
+.template-table {
+  background: transparent;
+}
+
+.gpu-type-badge {
+  font-size: 0.7rem;
+}
+
+.template-row-selectable {
+  cursor: pointer;
+}
+
+.template-row-selectable:hover {
+  background-color: rgba(78, 115, 223, 0.05);
+}
+
+.template-image-name {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.validation-results {
+  border-top: 1px solid var(--border-color);
+  padding-top: 1rem;
+}

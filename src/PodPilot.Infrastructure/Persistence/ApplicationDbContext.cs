@@ -42,6 +42,36 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     /// <inheritdoc />
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
 
+    /// <inheritdoc />
+    public DbSet<ComputeProvider> ComputeProviders => Set<ComputeProvider>();
+
+    /// <inheritdoc />
+    public DbSet<ProviderCredential> ProviderCredentials => Set<ProviderCredential>();
+
+    /// <inheritdoc />
+    public DbSet<ProviderRegion> ProviderRegions => Set<ProviderRegion>();
+
+    /// <inheritdoc />
+    public DbSet<ProviderGpu> ProviderGpus => Set<ProviderGpu>();
+
+    /// <inheritdoc />
+    public DbSet<ProviderHealth> ProviderHealthSnapshots => Set<ProviderHealth>();
+
+    /// <inheritdoc />
+    public DbSet<ProviderHealthHistory> ProviderHealthHistoryEntries => Set<ProviderHealthHistory>();
+
+    /// <inheritdoc />
+    public DbSet<GpuPod> GpuPods => Set<GpuPod>();
+
+    /// <inheritdoc />
+    public DbSet<PodConfiguration> PodConfigurations => Set<PodConfiguration>();
+
+    /// <inheritdoc />
+    public DbSet<PodEndpoint> PodEndpoints => Set<PodEndpoint>();
+
+    /// <inheritdoc />
+    public DbSet<PodStatusHistory> PodStatusHistoryEntries => Set<PodStatusHistory>();
+
     IQueryable<RefreshToken> IApplicationDbContext.RefreshTokens => RefreshTokens;
 
     IQueryable<Organization> IApplicationDbContext.Organizations => Organizations;
@@ -55,6 +85,26 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     IQueryable<Role> IApplicationDbContext.Roles => OrgRoles;
 
     IQueryable<AuditLog> IApplicationDbContext.AuditLogs => AuditLogs;
+
+    IQueryable<ComputeProvider> IApplicationDbContext.ComputeProviders => ComputeProviders;
+
+    IQueryable<ProviderCredential> IApplicationDbContext.ProviderCredentials => ProviderCredentials;
+
+    IQueryable<ProviderRegion> IApplicationDbContext.ProviderRegions => ProviderRegions;
+
+    IQueryable<ProviderGpu> IApplicationDbContext.ProviderGpus => ProviderGpus;
+
+    IQueryable<ProviderHealth> IApplicationDbContext.ProviderHealthSnapshots => ProviderHealthSnapshots;
+
+    IQueryable<ProviderHealthHistory> IApplicationDbContext.ProviderHealthHistory => ProviderHealthHistoryEntries;
+
+    IQueryable<GpuPod> IApplicationDbContext.GpuPods => GpuPods;
+
+    IQueryable<PodConfiguration> IApplicationDbContext.PodConfigurations => PodConfigurations;
+
+    IQueryable<PodEndpoint> IApplicationDbContext.PodEndpoints => PodEndpoints;
+
+    IQueryable<PodStatusHistory> IApplicationDbContext.PodStatusHistory => PodStatusHistoryEntries;
 
     /// <inheritdoc />
     public Task AddAuditLogAsync(AuditLog auditLog, CancellationToken cancellationToken = default) =>
@@ -75,6 +125,82 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     /// <inheritdoc />
     public Task AddInvitationAsync(Invitation invitation, CancellationToken cancellationToken = default) =>
         Invitations.AddAsync(invitation, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public Task AddComputeProviderAsync(ComputeProvider provider, CancellationToken cancellationToken = default) =>
+        ComputeProviders.AddAsync(provider, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public Task AddProviderCredentialAsync(ProviderCredential credential, CancellationToken cancellationToken = default) =>
+        ProviderCredentials.AddAsync(credential, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public Task AddProviderHealthAsync(ProviderHealth health, CancellationToken cancellationToken = default) =>
+        ProviderHealthSnapshots.AddAsync(health, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public Task AddProviderHealthHistoryAsync(ProviderHealthHistory history, CancellationToken cancellationToken = default) =>
+        ProviderHealthHistoryEntries.AddAsync(history, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public Task AddProviderRegionAsync(ProviderRegion region, CancellationToken cancellationToken = default) =>
+        ProviderRegions.AddAsync(region, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public Task AddProviderGpuAsync(ProviderGpu gpu, CancellationToken cancellationToken = default) =>
+        ProviderGpus.AddAsync(gpu, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public async Task ClearProviderCatalogAsync(Guid computeProviderId, CancellationToken cancellationToken = default)
+    {
+        var regions = await ProviderRegions
+            .Where(r => r.ComputeProviderId == computeProviderId)
+            .ToListAsync(cancellationToken);
+
+        if (regions.Count > 0)
+        {
+            ProviderRegions.RemoveRange(regions);
+        }
+
+        var gpus = await ProviderGpus
+            .Where(g => g.ComputeProviderId == computeProviderId)
+            .ToListAsync(cancellationToken);
+
+        if (gpus.Count > 0)
+        {
+            ProviderGpus.RemoveRange(gpus);
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task RemoveComputeProviderAsync(Guid providerId, CancellationToken cancellationToken = default)
+    {
+        var provider = await ComputeProviders
+            .FirstOrDefaultAsync(p => p.Id == providerId, cancellationToken);
+
+        if (provider is not null)
+        {
+            ComputeProviders.Remove(provider);
+        }
+    }
+
+    /// <inheritdoc />
+    public Task AddGpuPodAsync(GpuPod pod, CancellationToken cancellationToken = default) =>
+        GpuPods.AddAsync(pod, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public Task AddPodStatusHistoryAsync(PodStatusHistory history, CancellationToken cancellationToken = default) =>
+        PodStatusHistoryEntries.AddAsync(history, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public async Task RemoveGpuPodAsync(Guid podId, CancellationToken cancellationToken = default)
+    {
+        var pod = await GpuPods.FirstOrDefaultAsync(p => p.Id == podId, cancellationToken);
+        if (pod is not null)
+        {
+            GpuPods.Remove(pod);
+        }
+    }
 
     /// <inheritdoc />
     protected override void OnModelCreating(ModelBuilder builder)

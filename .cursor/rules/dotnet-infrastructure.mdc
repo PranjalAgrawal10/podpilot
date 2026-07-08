@@ -1,0 +1,40 @@
+---
+description: Infrastructure providers, EF, workers, and external API integration
+globs: src/PodPilot.Infrastructure/**/*.cs
+alwaysApply: false
+---
+
+# Infrastructure Standards
+
+## External integrations
+- Implement `IComputeProvider` / `IPodProvider` in `Infrastructure/RunPod/` (or future provider folders)
+- Return strongly typed `Application.Models.*` DTOs — never expose raw JSON to Application
+- Use `IHttpClientFactory` with named clients (`nameof(RunPodProvider)`)
+- Map provider-specific status strings to domain enums in Infrastructure only
+
+## Services
+- `*Service` classes orchestrate provider factory + encryption + persistence
+- Register provider implementations as singletons; orchestration services as scoped
+- Decrypt API keys only inside Infrastructure, immediately before provider calls
+
+## EF Core
+- Register configurations via `ApplyConfigurationsFromAssembly`
+- Use cascade delete from `Organization` → tenant-owned children
+- Add `DbSet` + `IApplicationDbContext` queryables and named `Add*Async` / `Remove*Async` helpers
+- Name migrations `Part{N}{Feature}` (e.g. `Part4Pods`)
+
+## Background workers
+- Extend `BackgroundService`; use `IServiceScopeFactory` per iteration
+- Skip registration in `Testing` environment (match `ProviderHealthWorker` pattern)
+- Per-item try/catch so one failure does not stop the batch
+- Log structured events: sync completed, sync failed, health check
+
+## SignalR
+- Hubs in Infrastructure; broadcast via `IPodNotificationService`
+- Group clients by organization: `org-{organizationId}`
+- Support JWT via `access_token` query param for WebSocket connections
+
+## Bug prevention
+- Use `ApplyProviderStatus` for lifecycle ops; use full `ApplyProviderInfo` only on create/sync
+- Persist pod + configuration in one save to avoid duplicate EF tracking
+- Include `Provider.Credential` when handlers need decrypted keys

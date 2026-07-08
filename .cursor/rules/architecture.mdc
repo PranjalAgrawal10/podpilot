@@ -1,0 +1,41 @@
+---
+description: PodPilot architecture, layer boundaries, and scalability invariants
+alwaysApply: true
+---
+
+# PodPilot Architecture
+
+## Stack
+- **Backend:** .NET 10, Clean Architecture, CQRS (MediatR), FluentValidation, EF Core + MySQL
+- **Frontend:** React 19, TypeScript, Vite, React Query, reactstrap, react-hook-form
+- **Auth:** JWT + org-scoped RBAC (`organization_id`, `organization_role` claims)
+
+## Layer boundaries (strict)
+| Layer | May depend on | Must NOT depend on |
+|-------|---------------|-------------------|
+| Domain | Nothing | Application, Infrastructure, Api, Contracts |
+| Application | Domain, Contracts | Infrastructure, Api, provider SDKs |
+| Infrastructure | Application, Domain | Api |
+| Api | Application, Contracts | Infrastructure types directly |
+| Contracts | Nothing framework-specific | Application handlers |
+
+## Provider abstractions
+- `IComputeProvider` / `IPodProvider` live in **Application** interfaces only
+- RunPod and future providers implement in **Infrastructure** only
+- Handlers call `IProviderService` / `IPodService` — never `RunPodProvider` or HTTP clients
+
+## Scalability rules
+- Organization-scope every tenant resource via JWT `organization_id`; enforce in handlers, not controllers
+- Use CQRS: thin controllers → MediatR commands/queries → validators → handlers
+- Keep handlers idempotent where possible; use single `SaveChangesAsync` per logical transaction when feasible
+- Add new providers by implementing interfaces + factory registration — do not modify existing business handlers
+
+## Security
+- Encrypt API keys at rest; never return secrets in API responses
+- Enforce permissions via `IOrganizationAuthorizationService` in handlers
+- Log audit events for create/update/delete mutations
+
+## Quality bar
+- `TreatWarningsAsErrors` is on — code must compile with zero warnings
+- No TODOs, placeholders, or stub implementations in committed code
+- All public APIs async; no blocking calls in request paths

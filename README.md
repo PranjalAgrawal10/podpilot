@@ -1,6 +1,6 @@
 # PodPilot
 
-**PodPilot** is an AI Infrastructure Autopilot that automatically manages GPU pods, AI models, and inference providers. This repository contains **Part 1** (authentication foundation) and **Part 2** (multi-tenant organization management).
+**PodPilot** is an AI Infrastructure Autopilot that automatically manages GPU pods, AI models, and inference providers. This repository contains **Part 1** (authentication foundation), **Part 2** (multi-tenant organization management), **Part 3** (provider management abstraction), and **Part 4** (GPU pod management).
 
 ---
 
@@ -61,6 +61,118 @@ Authorization is enforced server-side in CQRS handlers via `IOrganizationAuthori
 
 ---
 
+## Part 3 — Provider Management
+
+Part 3 introduces a **compute provider abstraction layer**. Organizations can connect external GPU infrastructure providers, validate credentials, inspect available regions/GPUs/templates, and monitor connection health — without coupling business logic to any single vendor API.
+
+### Provider Abstraction
+
+```mermaid
+flowchart LR
+    subgraph Application
+        PS[IProviderService]
+        ICP[IComputeProvider]
+    end
+
+    subgraph Infrastructure
+        Factory[ComputeProviderFactory]
+        RunPod[RunPodProvider]
+        Future[Vast / Lambda / Azure / AWS / GCP / K8s]
+    end
+
+    PS --> Factory
+    Factory --> ICP
+    ICP --> RunPod
+    ICP -.-> Future
+```
+
+- **`IComputeProvider`** (Application interface) — vendor-neutral contract: validate credentials, list regions/GPUs/templates, account info, health checks
+- **`ComputeProviderFactory`** (Infrastructure) — resolves the correct implementation by `ProviderType`
+- **`RunPodProvider`** (Infrastructure) — first concrete implementation using RunPod GraphQL + REST APIs
+- **Application layer never imports RunPod-specific code** — new providers are added by implementing `IComputeProvider` and registering in the factory
+
+Supported provider types (enum): `RunPod`, `Vast`, `Lambda`, `Azure`, `AWS`, `GoogleCloud`, `Kubernetes`. Only **RunPod** is implemented in this phase; the enum and factory pattern allow future providers without changing CQRS handlers or controllers.
+
+### Security
+
+- API keys are encrypted at rest via ASP.NET Data Protection (`ProviderCredential`)
+- API keys are **never** returned in API responses
+- Key rotation is supported via `PUT /providers/{id}` with a new `apiKey`
+- Validation and health checks decrypt credentials only in Infrastructure
+
+### Background Health Monitoring
+
+`ProviderHealthWorker` runs every **5 minutes**, checks each enabled provider, stores history in `ProviderHealthHistory`, and updates the current status on `ProviderHealth`.
+
+### Provider Permissions
+
+| Permission | Owner | Admin | Developer | Viewer |
+|------------|-------|-------|-----------|--------|
+| `Provider.Read` | ✓ | ✓ | ✓ | ✓ |
+| `Provider.Create` | ✓ | ✓ | ✓ | |
+| `Provider.Update` | ✓ | ✓ | ✓ | |
+| `Provider.Delete` | ✓ | ✓ | | |
+
+---
+
+## Part 4 — GPU Pod Management
+
+Part 4 adds full **GPU pod lifecycle management** on top of the provider abstraction. Users can create, view, start, stop, restart, delete, and sync pods — with RunPod as the first `IPodProvider` implementation.
+
+### Pod Provider Abstraction
+
+```mermaid
+flowchart LR
+    subgraph Application
+        PS[IPodService]
+        IPP[IPodProvider]
+    end
+
+    subgraph Infrastructure
+        Factory[PodProviderFactory]
+        RunPod[RunPodPodProvider]
+        Future[Vast / Lambda / Azure / AWS / GCP / K8s]
+    end
+
+    PS --> Factory
+    Factory --> IPP
+    IPP --> RunPod
+    IPP -.-> Future
+```
+
+- **`IPodProvider`** — vendor-neutral pod lifecycle contract (create, start, stop, restart, delete, sync)
+- **`RunPodPodProvider`** — RunPod REST API implementation (`https://rest.runpod.io/v1/pods`)
+- **Application layer never calls RunPod directly** — handlers use `IPodService` only
+
+### Pod Lifecycle
+
+| Status | Description |
+|--------|-------------|
+| `Creating` | Pod provisioning in progress |
+| `Starting` | Pod is starting |
+| `Running` | Pod is active and billing |
+| `Stopping` | Pod is shutting down |
+| `Stopped` | Pod is stopped, volume data preserved |
+| `Restarting` | Pod is restarting |
+| `Deleting` | Pod termination in progress |
+| `Deleted` | Pod removed (soft-deleted in DB) |
+| `Failed` | Provisioning or operation failed |
+
+### Real-Time Updates
+
+`PodStatusHub` (SignalR at `/hubs/pods`) broadcasts `PodStatusChanged` events to organization groups whenever pod status changes — from user actions or the `PodStatusSyncWorker` (runs every 60 seconds).
+
+### Pod Permissions
+
+| Permission | Owner | Admin | Developer | Viewer |
+|------------|-------|-------|-----------|--------|
+| `Pod.Read` | ✓ | ✓ | ✓ | ✓ |
+| `Pod.Create` | ✓ | ✓ | ✓ | |
+| `Pod.Update` | ✓ | ✓ | ✓ | |
+| `Pod.Delete` | ✓ | ✓ | ✓ | |
+
+---
+
 ## Architecture
 
 PodPilot follows **Clean Architecture** with **CQRS** (MediatR) separating concerns across layers:
@@ -95,6 +207,7 @@ flowchart TB
         ID[ASP.NET Identity]
         JWT[JWT + Refresh Tokens]
         LOG[Serilog]
+        CP[Compute Providers]
     end
 
     subgraph Contracts["PodPilot.Contracts"]
@@ -283,6 +396,36 @@ All endpoints are versioned under `/api/v1/`:
 | `POST` | `/organizations/{id}/invite` | Invite user by email |
 | `POST` | `/organizations/accept` | Accept invitation by token |
 
+### Providers (Part 3)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/providers` | List organization providers |
+| `GET` | `/providers/{id}` | Get provider details |
+| `POST` | `/providers` | Create provider (validates credentials) |
+| `PUT` | `/providers/{id}` | Update provider (supports API key rotation) |
+| `DELETE` | `/providers/{id}` | Delete provider |
+| `POST` | `/providers/validate` | Validate credentials before creation |
+| `POST` | `/providers/{id}/validate` | Re-validate stored provider |
+| `GET` | `/providers/{id}/regions` | List available regions |
+| `GET` | `/providers/{id}/gpus` | List available GPU types |
+| `GET` | `/providers/{id}/templates` | List deployment templates |
+| `GET` | `/providers/{id}/health` | Current health + recent history |
+
+### Pods (Part 4)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/pods` | List organization pods |
+| `GET` | `/pods/{id}` | Get pod details |
+| `POST` | `/pods` | Create GPU pod |
+| `PUT` | `/pods/{id}` | Update pod name/description |
+| `DELETE` | `/pods/{id}` | Delete pod (`force` for running pods) |
+| `POST` | `/pods/{id}/start` | Start pod |
+| `POST` | `/pods/{id}/stop` | Stop pod |
+| `POST` | `/pods/{id}/restart` | Restart pod |
+| `POST` | `/pods/{id}/sync` | Sync status with provider |
+
 ### Example: Register
 
 ```bash
@@ -311,6 +454,15 @@ curl -X POST http://localhost:5000/api/v1/auth/register \
 | `Permissions` | Seeded permission definitions |
 | `OrgRoles` | Seeded organization role catalog |
 | `RolePermissions` | Role-to-permission mappings |
+| `ComputeProviders` | Organization-scoped compute provider configs |
+| `ProviderCredentials` | Encrypted API keys (never exposed via API) |
+| `ProviderRegions` | Cached/synced region catalog per provider |
+| `ProviderGpuTypes` | Cached/synced GPU catalog per provider |
+| `ProviderHealthHistory` | Periodic health check history |
+| `GpuPods` | Organization-scoped GPU pod records |
+| `PodConfigurations` | Deployment configuration per pod |
+| `PodEndpoints` | Exposed network endpoints |
+| `PodStatusHistory` | Pod status change history |
 | `AuditLogs` | Immutable audit trail |
 | `Roles` / `UserRoles` | ASP.NET Identity role management |
 
@@ -332,11 +484,11 @@ dotnet test
 # Application unit tests (validators + permissions)
 dotnet test tests/PodPilot.Application.Tests
 
-# API integration tests (auth + organizations)
+# API integration tests (auth + organizations + providers + pods)
 dotnet test tests/PodPilot.Api.Tests
 ```
 
-## Frontend (Part 2)
+## Frontend (Part 2 + Part 3 + Part 4)
 
 | Page | Route | Description |
 |------|-------|-------------|
@@ -346,6 +498,13 @@ dotnet test tests/PodPilot.Api.Tests
 | Members | `/members` | Member table, invite, role management |
 | Accept Invitation | `/invitations/accept?token=` | Accept email invitation |
 | Profile | `/profile` | User profile and memberships |
+| Providers | `/providers` | List connected compute providers |
+| Add Provider | `/providers/add` | Validate API key, then save |
+| Edit Provider | `/providers/:id/edit` | Update provider settings / rotate key |
+| Provider Details | `/providers/:id` | Regions, GPUs, templates, health status |
+| GPU Pods | `/pods` | Dashboard of running/stopped pods |
+| Create Pod | `/pods/create` | Configure and deploy a GPU pod |
+| Pod Details | `/pods/:id` | Status, config, endpoints, history |
 
 Key components: `OrganizationSwitcher`, `OrganizationCard`, `MemberTable`, `InvitationModal`, `RoleBadge`, `Avatar`.
 
@@ -422,16 +581,16 @@ Serilog is configured with:
 
 ---
 
-## What's Next (Part 3+)
+## What's Next (Part 5+)
 
-Part 2 intentionally excludes:
+Part 4 intentionally excludes:
 
-- RunPod integration
+- Pod auto start / shutdown orchestration engines
 - Ollama model management
 - AI Gateway / inference providers
-- GPU pod orchestration
+- Request queue and model routing
 
-These will be built on top of the multi-tenant organization layer.
+These will be built on top of the organization, provider, and pod layers.
 
 ---
 

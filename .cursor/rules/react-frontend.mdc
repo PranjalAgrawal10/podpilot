@@ -1,0 +1,36 @@
+---
+description: React/TypeScript UI patterns for PodPilot dashboard
+globs: web/src/**/*.tsx,web/src/**/*.ts
+alwaysApply: false
+---
+
+# React Frontend Standards
+
+## Structure
+- Pages in `web/src/pages/`; reusable UI in `web/src/components/{feature}/`
+- API calls in `web/src/services/` — unwrap `ApiResponse<T>`, throw on missing `data`
+- Types and `PERMISSIONS` in `web/src/types/index.ts`; mirror backend `RolePermissionMatrix` in `utils/permissions.ts`
+
+## Data fetching
+- Use React Query with org-scoped keys: `['pods', currentOrganization?.id]`
+- Gate queries with `enabled: !!currentOrganization?.id && hasPermission(...)`
+- Use `refetchInterval` for status pages; prefer SignalR (`usePodStatusHub`) for real-time pod updates
+
+## Forms (reactstrap + react-hook-form)
+- Use `innerRef={field.ref}` on reactstrap `Input` — not `{...register('field')}` alone
+- Validate on submit; show toast errors via `react-toastify`
+- Gate actions with `hasPermission(PERMISSIONS.*)` from `OrganizationContext`
+
+## UX patterns
+- Permission-denied → `<Alert color="warning">` early return
+- Loading → `<Spinner />`; empty state with link to create flow
+- Destructive actions (delete running pod) → confirmation modal with `force` flag
+
+## API types
+- Match backend Contracts field names (camelCase JSON): `gpuId`, `templateId`, `providerType`
+- Use string union types for enums (`PodStatus`, `GpuType`, `ProviderType`)
+
+## Scalability
+- Keep components presentational; lift org/auth state to contexts
+- Add new features as page + service + types + route in `App.tsx` + sidebar entry
+- Do not import axios outside `services/api.ts`

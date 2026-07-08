@@ -15,6 +15,13 @@ import { OrganizationsPage } from './pages/OrganizationsPage';
 import { CreateOrganizationPage } from './pages/CreateOrganizationPage';
 import { OrganizationSettingsPage } from './pages/OrganizationSettingsPage';
 import { MembersPage } from './pages/MembersPage';
+import { ProvidersPage } from './pages/ProvidersPage';
+import { PodsPage } from './pages/PodsPage';
+import { CreatePodPage } from './pages/CreatePodPage';
+import { PodDetailsPage } from './pages/PodDetailsPage';
+import { AddProviderPage } from './pages/AddProviderPage';
+import { EditProviderPage } from './pages/EditProviderPage';
+import { ProviderDetailsPage } from './pages/ProviderDetailsPage';
 import { AcceptInvitationPage } from './pages/AcceptInvitationPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -51,6 +58,13 @@ function App() {
                     <Route path="/organizations/create" element={<CreateOrganizationPage />} />
                     <Route path="/organizations/:id/settings" element={<OrganizationSettingsPage />} />
                     <Route path="/members" element={<MembersPage />} />
+                    <Route path="/providers" element={<ProvidersPage />} />
+                    <Route path="/pods" element={<PodsPage />} />
+                    <Route path="/pods/create" element={<CreatePodPage />} />
+                    <Route path="/pods/:id" element={<PodDetailsPage />} />
+                    <Route path="/providers/add" element={<AddProviderPage />} />
+                    <Route path="/providers/:id" element={<ProviderDetailsPage />} />
+                    <Route path="/providers/:id/edit" element={<EditProviderPage />} />
                     <Route path="/invitations/accept" element={<AcceptInvitationPage />} />
                   </Route>
                 </Route>

@@ -22,6 +22,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\PodPilot.Application\PodPilot.Application.csproj" />
+    <ProjectReference Include="..\..\src\PodPilot.Infrastructure\PodPilot.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

@@ -25,8 +25,10 @@ builder.Host.UseSerilog((context, services, configuration) =>
 
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddInfrastructureHostedServices(builder.Environment);
 
 builder.Services.AddControllers();
+builder.Services.AddSignalR();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddPodPilotSwagger(builder.Configuration);
 
@@ -93,6 +95,7 @@ app.UseCors("Default");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+app.MapHub<PodPilot.Infrastructure.Hubs.PodStatusHub>("/hubs/pods");
 
 try
 {

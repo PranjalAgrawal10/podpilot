@@ -57,6 +57,7 @@ public static class SwaggerExtensions
                     "Auth" => "Authentication",
                     "Users" => "Users",
                     "Health" => "Health",
+                    "Providers" => "Providers",
                     _ => controller,
                 };
 

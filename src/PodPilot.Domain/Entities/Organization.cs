@@ -49,4 +49,9 @@ public class Organization : Common.AuditableEntity
     /// Gets the invitations for this organization.
     /// </summary>
     public ICollection<Invitation> Invitations { get; set; } = [];
+
+    /// <summary>
+    /// Gets the compute providers for this organization.
+    /// </summary>
+    public ICollection<ComputeProvider> ComputeProviders { get; set; } = [];
 }

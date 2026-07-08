@@ -34,6 +34,71 @@ public static class ApplicationConstants
     public const int InvitationExpirationDays = 7;
 
     /// <summary>
+    /// Maximum provider name length.
+    /// </summary>
+    public const int ProviderNameMaxLength = 200;
+
+    /// <summary>
+    /// Maximum provider display name length.
+    /// </summary>
+    public const int ProviderDisplayNameMaxLength = 200;
+
+    /// <summary>
+    /// Maximum provider description length.
+    /// </summary>
+    public const int ProviderDescriptionMaxLength = 1000;
+
+    /// <summary>
+    /// Maximum provider default region length.
+    /// </summary>
+    public const int ProviderRegionMaxLength = 100;
+
+    /// <summary>
+    /// Maximum pod name length.
+    /// </summary>
+    public const int PodNameMaxLength = 191;
+
+    /// <summary>
+    /// Maximum pod description length.
+    /// </summary>
+    public const int PodDescriptionMaxLength = 1000;
+
+    /// <summary>
+    /// Maximum pod image name length.
+    /// </summary>
+    public const int PodImageNameMaxLength = 500;
+
+    /// <summary>
+    /// Maximum pod region length.
+    /// </summary>
+    public const int PodRegionMaxLength = 100;
+
+    /// <summary>
+    /// Maximum provider pod identifier length.
+    /// </summary>
+    public const int ProviderPodIdMaxLength = 100;
+
+    /// <summary>
+    /// Minimum container disk size in gigabytes.
+    /// </summary>
+    public const int PodMinContainerDiskGb = 10;
+
+    /// <summary>
+    /// Maximum container disk size in gigabytes.
+    /// </summary>
+    public const int PodMaxContainerDiskGb = 500;
+
+    /// <summary>
+    /// Minimum volume disk size in gigabytes.
+    /// </summary>
+    public const int PodMinVolumeDiskGb = 0;
+
+    /// <summary>
+    /// Maximum volume disk size in gigabytes.
+    /// </summary>
+    public const int PodMaxVolumeDiskGb = 2000;
+
+    /// <summary>
     /// All ASP.NET Identity roles.
     /// </summary>
     public static readonly string[] AllRoles = [AdminRole, MemberRole];

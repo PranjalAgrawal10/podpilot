@@ -16,9 +16,13 @@ public static class RolePermissionMatrix
                 {
                     PermissionNames.OrganizationRead,
                     PermissionNames.OrganizationUpdate,
+                    PermissionNames.PodRead,
                     PermissionNames.PodCreate,
+                    PermissionNames.PodUpdate,
                     PermissionNames.PodDelete,
+                    PermissionNames.ProviderRead,
                     PermissionNames.ProviderCreate,
+                    PermissionNames.ProviderUpdate,
                     PermissionNames.ProviderDelete,
                     PermissionNames.ModelPull,
                     PermissionNames.ModelDelete,
@@ -33,9 +37,13 @@ public static class RolePermissionMatrix
                 new HashSet<string>
                 {
                     PermissionNames.OrganizationRead,
+                    PermissionNames.PodRead,
                     PermissionNames.PodCreate,
+                    PermissionNames.PodUpdate,
                     PermissionNames.PodDelete,
+                    PermissionNames.ProviderRead,
                     PermissionNames.ProviderCreate,
+                    PermissionNames.ProviderUpdate,
                     PermissionNames.ProviderDelete,
                     PermissionNames.ModelPull,
                     PermissionNames.ModelDelete,
@@ -46,6 +54,8 @@ public static class RolePermissionMatrix
                 new HashSet<string>
                 {
                     PermissionNames.OrganizationRead,
+                    PermissionNames.PodRead,
+                    PermissionNames.ProviderRead,
                     PermissionNames.DashboardView,
                     PermissionNames.BillingView,
                     PermissionNames.MemberRead,
