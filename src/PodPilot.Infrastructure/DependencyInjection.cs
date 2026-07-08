@@ -16,6 +16,7 @@ using PodPilot.Infrastructure.Configuration;
 using PodPilot.Infrastructure.Gateway;
 using PodPilot.Infrastructure.Hubs;
 using PodPilot.Infrastructure.Identity;
+using PodPilot.Infrastructure.Ollama;
 using PodPilot.Infrastructure.Persistence;
 using PodPilot.Infrastructure.RunPod;
 using PodPilot.Infrastructure.Services;
@@ -117,6 +118,7 @@ public static class DependencyInjection
         services.AddHttpClient(nameof(RunPodProvider));
         services.AddHttpClient(nameof(RunPodPodProvider));
         services.AddHttpClient(nameof(OllamaInferenceClient));
+        services.AddHttpClient(nameof(OllamaClient));
         services.AddHttpClient(nameof(StreamingProxy));
 
         services.AddSingleton<IComputeProvider, RunPodProvider>();
@@ -127,6 +129,7 @@ public static class DependencyInjection
         services.AddScoped<IProviderService, ProviderService>();
         services.AddScoped<IPodService, PodService>();
         services.AddScoped<IPodLifecycleService, PodLifecycleService>();
+        services.AddScoped<IPodRecoveryService, PodRecoveryService>();
         services.AddScoped<IPodNotificationService, PodNotificationService>();
 
         services.AddScoped<IApplicationDbContext>(provider => provider.GetRequiredService<ApplicationDbContext>());
@@ -148,6 +151,12 @@ public static class DependencyInjection
         services.AddScoped<IGatewayNotificationService, GatewayNotificationService>();
         services.AddSingleton<IGatewayRateLimitService, GatewayRateLimitService>();
 
+        services.AddScoped<IOllamaClient, OllamaClient>();
+        services.AddScoped<IModelRepository, Persistence.Repositories.ModelRepository>();
+        services.AddScoped<IModelService, ModelService>();
+        services.AddScoped<IModelHealthService, ModelHealthService>();
+        services.AddScoped<IModelNotificationService, ModelNotificationService>();
+
         return services;
     }
 
@@ -167,6 +176,7 @@ public static class DependencyInjection
             services.AddHostedService<PodStatusSyncWorker>();
             services.AddHostedService<IdleDetectionWorker>();
             services.AddHostedService<PodWakeWorker>();
+            services.AddHostedService<ModelHealthWorker>();
         }
 
         return services;

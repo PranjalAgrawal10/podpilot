@@ -40,4 +40,7 @@ public enum PodLifecycleEventType
 
     /// <summary>Pod stopped.</summary>
     PodStopped = 11,
+
+    /// <summary>Pod was replaced on the provider after a start failure.</summary>
+    PodReplaced = 12,
 }

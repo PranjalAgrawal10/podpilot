@@ -16,6 +16,7 @@ public sealed class StopPodCommandHandler : IRequestHandler<StopPodCommand, PodR
     private readonly IPodService podService;
     private readonly IPodNotificationService podNotificationService;
     private readonly IPodLifecycleService podLifecycleService;
+    private readonly IPodRecoveryService podRecoveryService;
     private readonly IAuditService auditService;
     private readonly IHttpContextService httpContextService;
     private readonly IDateTimeService dateTimeService;
@@ -30,6 +31,7 @@ public sealed class StopPodCommandHandler : IRequestHandler<StopPodCommand, PodR
         IPodService podService,
         IPodNotificationService podNotificationService,
         IPodLifecycleService podLifecycleService,
+        IPodRecoveryService podRecoveryService,
         IAuditService auditService,
         IHttpContextService httpContextService,
         IDateTimeService dateTimeService)
@@ -40,6 +42,7 @@ public sealed class StopPodCommandHandler : IRequestHandler<StopPodCommand, PodR
         this.podService = podService;
         this.podNotificationService = podNotificationService;
         this.podLifecycleService = podLifecycleService;
+        this.podRecoveryService = podRecoveryService;
         this.auditService = auditService;
         this.httpContextService = httpContextService;
         this.dateTimeService = dateTimeService;
@@ -59,6 +62,7 @@ public sealed class StopPodCommandHandler : IRequestHandler<StopPodCommand, PodR
             podService,
             podNotificationService,
             podLifecycleService,
+            podRecoveryService,
             auditService,
             httpContextService,
             dateTimeService,

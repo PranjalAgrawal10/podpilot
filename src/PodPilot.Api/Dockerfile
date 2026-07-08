@@ -26,9 +26,12 @@ RUN mkdir -p /app/logs
 
 COPY --from=build /app/publish .
 
+COPY src/PodPilot.Api/docker-entrypoint.sh /app/docker-entrypoint.sh
+RUN chmod +x /app/docker-entrypoint.sh
+
 ENV ASPNETCORE_URLS=http://+:8080
 ENV ASPNETCORE_ENVIRONMENT=Production
 
 EXPOSE 8080
 
-ENTRYPOINT ["dotnet", "PodPilot.Api.dll"]
+ENTRYPOINT ["/app/docker-entrypoint.sh"]

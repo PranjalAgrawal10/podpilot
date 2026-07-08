@@ -4,6 +4,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <RunMigrationsOnBuild Condition="'$(RunMigrationsOnBuild)' == ''">true</RunMigrationsOnBuild>
   </PropertyGroup>
 
   <ItemGroup>
@@ -28,6 +29,11 @@
   <Target Name="CopyReferencedXmlDocs" AfterTargets="Build">
     <Copy SourceFiles="..\PodPilot.Application\bin\$(Configuration)\$(TargetFramework)\PodPilot.Application.xml" DestinationFolder="$(OutputPath)" SkipUnchangedFiles="true" Condition="Exists('..\PodPilot.Application\bin\$(Configuration)\$(TargetFramework)\PodPilot.Application.xml')" />
     <Copy SourceFiles="..\PodPilot.Contracts\bin\$(Configuration)\$(TargetFramework)\PodPilot.Contracts.xml" DestinationFolder="$(OutputPath)" SkipUnchangedFiles="true" Condition="Exists('..\PodPilot.Contracts\bin\$(Configuration)\$(TargetFramework)\PodPilot.Contracts.xml')" />
+  </Target>
+
+  <Target Name="ApplyDatabaseMigrationsOnBuild" AfterTargets="Build" Condition="'$(SkipDatabaseMigrations)' != 'true' AND '$(RunMigrationsOnBuild)' == 'true' AND '$(DesignTimeBuild)' != 'true'">
+    <Message Importance="high" Text="Applying latest database migrations after build..." />
+    <Exec Command="dotnet exec &quot;$(TargetDir)$(AssemblyName).dll&quot; --migrate-only" WorkingDirectory="$(MSBuildProjectDirectory)" EnvironmentVariables="ASPNETCORE_ENVIRONMENT=Development" />
   </Target>
 
 </Project>

@@ -28,6 +28,7 @@ internal static class PodLifecycleHandler
         IPodService podService,
         IPodNotificationService podNotificationService,
         IPodLifecycleService podLifecycleService,
+        IPodRecoveryService podRecoveryService,
         IAuditService auditService,
         IHttpContextService httpContextService,
         IDateTimeService dateTimeService,
@@ -88,6 +89,61 @@ internal static class PodLifecycleHandler
         var result = await operation(podService, pod.Provider, pod.ProviderPodId, cancellationToken);
         if (!result.Success)
         {
+            if (transitionalStatus == PodStatus.Starting)
+            {
+                var recovery = await podRecoveryService.TryReplacePodOnStartFailureAsync(
+                    pod,
+                    organizationId,
+                    "api",
+                    userId,
+                    result.ErrorMessage,
+                    cancellationToken);
+
+                if (recovery.Success)
+                {
+                    if (recovery.Pod is not null)
+                    {
+                        podService.ApplyProviderStatus(pod, recovery.Pod, dateTimeService.UtcNow);
+                    }
+
+                    pod.UpdatedAt = dateTimeService.UtcNow;
+                    await dbContext.AddPodStatusHistoryAsync(
+                        new PodStatusHistory
+                        {
+                            GpuPodId = pod.Id,
+                            Status = pod.Status,
+                            RecordedAt = dateTimeService.UtcNow,
+                            Message = "Pod started after automatic replacement.",
+                        },
+                        cancellationToken);
+                    await dbContext.SaveChangesAsync(cancellationToken);
+                    await podNotificationService.NotifyPodStatusChangedAsync(
+                        organizationId,
+                        pod.Id,
+                        pod.Status.ToString(),
+                        cancellationToken);
+
+                    await auditService.LogAsync(
+                        AuditAction.Updated,
+                        nameof(GpuPod),
+                        pod.Id.ToString(),
+                        "Pod replaced and started after provider start failure",
+                        userId,
+                        httpContextService.IpAddress,
+                        httpContextService.CorrelationId,
+                        cancellationToken);
+
+                    await podLifecycleService.RecordActivityAsync(
+                        pod.Id,
+                        PodActivityType.Started,
+                        "api",
+                        userId,
+                        cancellationToken: cancellationToken);
+
+                    return PodMapper.ToResponse(pod, includeHistory: true);
+                }
+            }
+
             pod.Status = PodStatus.Failed;
             await dbContext.AddPodStatusHistoryAsync(
                 new PodStatusHistory

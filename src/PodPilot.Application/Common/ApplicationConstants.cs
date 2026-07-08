@@ -119,6 +119,11 @@ public static class ApplicationConstants
     public const int LifecycleLockDurationSeconds = 120;
 
     /// <summary>
+    /// Default Ollama API port on GPU pods.
+    /// </summary>
+    public const int OllamaPort = 11434;
+
+    /// <summary>
     /// Maximum wake wait attempts while polling provider health.
     /// </summary>
     public const int MaxWakeHealthCheckAttempts = 30;

@@ -63,6 +63,7 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+var migrateOnly = args.Contains("--migrate-only", StringComparer.OrdinalIgnoreCase);
 
 if (!app.Environment.IsEnvironment("Testing"))
 {
@@ -76,6 +77,12 @@ else
 
     var identityService = scope.ServiceProvider.GetRequiredService<PodPilot.Application.Common.Interfaces.IIdentityService>();
     await identityService.EnsureRolesExistAsync();
+}
+
+if (migrateOnly)
+{
+    Log.Information("Database migration and seed completed (--migrate-only).");
+    return;
 }
 
 app.UseMiddleware<CorrelationIdMiddleware>();
@@ -97,6 +104,7 @@ app.UseAuthorization();
 app.MapControllers();
 app.MapHub<PodPilot.Infrastructure.Hubs.PodStatusHub>("/hubs/pods");
 app.MapHub<PodPilot.Infrastructure.Hubs.GatewayHub>("/hubs/gateway");
+app.MapHub<PodPilot.Infrastructure.Hubs.ModelHub>("/hubs/models");
 
 try
 {

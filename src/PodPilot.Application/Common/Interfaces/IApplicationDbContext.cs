@@ -134,6 +134,31 @@ public interface IApplicationDbContext
     IQueryable<GatewayRequest> GatewayRequests { get; }
 
     /// <summary>
+    /// Gets the AI models set.
+    /// </summary>
+    IQueryable<AiModel> AiModels { get; }
+
+    /// <summary>
+    /// Gets the model downloads set.
+    /// </summary>
+    IQueryable<ModelDownload> ModelDownloads { get; }
+
+    /// <summary>
+    /// Gets the model health history set.
+    /// </summary>
+    IQueryable<ModelHealthHistory> ModelHealthHistory { get; }
+
+    /// <summary>
+    /// Gets applied database migration audit records.
+    /// </summary>
+    IQueryable<DatabaseMigrationHistory> DatabaseMigrationHistory { get; }
+
+    /// <summary>
+    /// Gets database seeder audit records.
+    /// </summary>
+    IQueryable<DatabaseSeedHistory> DatabaseSeedHistory { get; }
+
+    /// <summary>
     /// Adds an audit log entry.
     /// </summary>
     Task AddAuditLogAsync(AuditLog auditLog, CancellationToken cancellationToken = default);
@@ -247,6 +272,21 @@ public interface IApplicationDbContext
     /// Adds a gateway request.
     /// </summary>
     Task AddGatewayRequestAsync(GatewayRequest request, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Adds an AI model.
+    /// </summary>
+    Task AddAiModelAsync(AiModel model, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Adds a model download.
+    /// </summary>
+    Task AddModelDownloadAsync(ModelDownload download, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Adds a model health history entry.
+    /// </summary>
+    Task AddModelHealthHistoryAsync(ModelHealthHistory history, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Removes a gateway route.

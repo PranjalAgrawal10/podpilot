@@ -1,6 +1,6 @@
 # PodPilot
 
-**PodPilot** is an AI Infrastructure Autopilot that automatically manages GPU pods, AI models, and inference providers. This repository contains **Part 1** (authentication foundation), **Part 2** (multi-tenant organization management), **Part 3** (provider management abstraction), **Part 4** (GPU pod management), and **Part 5** (automatic GPU lifecycle management).
+**PodPilot** is an AI Infrastructure Autopilot that automatically manages GPU pods, AI models, and inference providers. This repository contains **Part 1** (authentication foundation), **Part 2** (multi-tenant organization management), **Part 3** (provider management abstraction), **Part 4** (GPU pod management), **Part 5** (automatic GPU lifecycle management), **Part 6** (AI Gateway), and **Part 7** (Ollama model management).
 
 ---
 
@@ -377,7 +377,26 @@ docker compose up --build
 | **Health** | http://localhost:5000/api/v1/health |
 | **MySQL** | localhost:3306 (local instance) |
 
-Database migrations run automatically on API startup.
+Database migrations and seeders run automatically:
+
+1. **On every API build** (`dotnet build` on `PodPilot.Api`) — applies the latest migration via `--migrate-only`
+2. **On Docker container start** — entrypoint runs migrations before the API starts
+3. **On API startup** — idempotent check for any pending migrations
+
+Applied migrations are recorded in both EF's `__EFMigrationsHistory` and the audit table `DatabaseMigrationHistory`. Each seeder run is appended to `DatabaseSeedHistory`.
+
+To skip build-time migrations (CI without MySQL):
+
+```bash
+dotnet build -p:SkipDatabaseMigrations=true
+dotnet test -p:SkipDatabaseMigrations=true
+```
+
+Manual migration only:
+
+```bash
+dotnet run --project src/PodPilot.Api -- --migrate-only
+```
 
 ### Docker Services
 
@@ -531,6 +550,8 @@ curl -X POST http://localhost:5000/api/v1/auth/register \
 | `PodLifecycleLocks` | Distributed operation locks |
 | `PodWakeRequests` | Queued wake requests |
 | `AuditLogs` | Immutable audit trail |
+| `DatabaseMigrationHistory` | Audit log of applied EF migrations |
+| `DatabaseSeedHistory` | Audit log of seeder executions |
 | `Roles` / `UserRoles` | ASP.NET Identity role management |
 
 ### Organization Roles
@@ -728,11 +749,87 @@ curl http://localhost:5000/v1/chat/completions \
 
 ---
 
-## What's Next (Part 7+)
+## Part 7 — Ollama Model Management
 
-Part 6 intentionally excludes:
+Part 7 adds full **Ollama model lifecycle management** on GPU pods: detect Ollama, list/pull/delete models, track download progress, set defaults, and monitor health.
 
-- Ollama model management UI
+### Architecture
+
+```
+React Models UI
+      ↓
+/api/v1/models (JWT + RBAC)
+      ↓
+CQRS Handlers → IModelService
+      ↓
+IOllamaClient → Ollama on GPU Pod (:11434)
+      ↓
+AiModels / ModelDownloads / ModelHealthHistory (MySQL)
+```
+
+| Interface | Responsibility |
+|-----------|----------------|
+| `IOllamaClient` | Ollama HTTP API (tags, pull, show, delete, generate) |
+| `IModelService` | Pod wake, pull orchestration, refresh, default model |
+| `IModelRepository` | EF persistence for models/downloads/health |
+| `IModelHealthService` | Generate test + health history |
+| `IModelNotificationService` | SignalR download/health events |
+
+### API Endpoints
+
+| Method | Path | Permission |
+|--------|------|------------|
+| GET | `/api/v1/models` | `Model.Read` |
+| GET | `/api/v1/models/dashboard` | `Model.Read` |
+| GET | `/api/v1/models/{id}` | `Model.Read` |
+| POST | `/api/v1/models/pull` | `Model.Pull` |
+| DELETE | `/api/v1/models/{id}?forceDefault=` | `Model.Delete` |
+| POST | `/api/v1/models/{id}/default` | `Model.Manage` |
+| POST | `/api/v1/models/refresh` | `Model.Manage` |
+| GET | `/api/v1/models/downloads` | `Model.Read` |
+| GET | `/api/v1/models/health` | `Model.Read` |
+
+### SignalR
+
+Hub: `/hubs/models`
+
+Events: `ModelDownloadStarted`, `ModelDownloadProgress`, `ModelDownloadCompleted`, `ModelDeleted`, `HealthUpdated`
+
+### Background Worker
+
+`ModelHealthWorker` runs every 5 minutes — checks Ollama reachability, model availability, and a generate test prompt. Results stored in `ModelHealthHistory`.
+
+### Frontend
+
+| Route | Page |
+|-------|------|
+| `/models` | Dashboard + installed models |
+| `/models/pull` | Pull new model |
+| `/models/downloads` | Active/historical downloads |
+| `/models/:id` | Model metadata + health |
+
+### Example
+
+```bash
+# Refresh models from Ollama on a pod
+curl -X POST http://localhost:5000/api/v1/models/refresh \
+  -H "Authorization: Bearer <jwt>" \
+  -H "Content-Type: application/json" \
+  -d '{"podId":"<pod-guid>"}'
+
+# Pull a model
+curl -X POST http://localhost:5000/api/v1/models/pull \
+  -H "Authorization: Bearer <jwt>" \
+  -H "Content-Type: application/json" \
+  -d '{"podId":"<pod-guid>","model":"llama3:latest"}'
+```
+
+---
+
+## What's Next (Part 8+)
+
+Part 7 intentionally excludes:
+
 - Billing
 - Multi-provider routing
 - Analytics

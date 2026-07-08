@@ -16,4 +16,9 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
   </ItemGroup>
+
+  <!-- Skip automatic migrations when building test projects (Api still migrates on its own build). -->
+  <PropertyGroup Condition="$(MSBuildProjectDirectory.Contains('tests'))">
+    <SkipDatabaseMigrations>true</SkipDatabaseMigrations>
+  </PropertyGroup>
 </Project>

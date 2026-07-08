@@ -96,6 +96,21 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     /// <inheritdoc />
     public DbSet<GatewayRequest> GatewayRequests => Set<GatewayRequest>();
 
+    /// <inheritdoc />
+    public DbSet<AiModel> AiModels => Set<AiModel>();
+
+    /// <inheritdoc />
+    public DbSet<ModelDownload> ModelDownloads => Set<ModelDownload>();
+
+    /// <inheritdoc />
+    public DbSet<ModelHealthHistory> ModelHealthHistoryEntries => Set<ModelHealthHistory>();
+
+    /// <inheritdoc />
+    public DbSet<DatabaseMigrationHistory> DatabaseMigrationHistoryEntries => Set<DatabaseMigrationHistory>();
+
+    /// <inheritdoc />
+    public DbSet<DatabaseSeedHistory> DatabaseSeedHistoryEntries => Set<DatabaseSeedHistory>();
+
     IQueryable<RefreshToken> IApplicationDbContext.RefreshTokens => RefreshTokens;
 
     IQueryable<Organization> IApplicationDbContext.Organizations => Organizations;
@@ -145,6 +160,16 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     IQueryable<GatewayRoute> IApplicationDbContext.GatewayRoutes => GatewayRoutes;
 
     IQueryable<GatewayRequest> IApplicationDbContext.GatewayRequests => GatewayRequests;
+
+    IQueryable<AiModel> IApplicationDbContext.AiModels => AiModels;
+
+    IQueryable<ModelDownload> IApplicationDbContext.ModelDownloads => ModelDownloads;
+
+    IQueryable<ModelHealthHistory> IApplicationDbContext.ModelHealthHistory => ModelHealthHistoryEntries;
+
+    IQueryable<DatabaseMigrationHistory> IApplicationDbContext.DatabaseMigrationHistory => DatabaseMigrationHistoryEntries;
+
+    IQueryable<DatabaseSeedHistory> IApplicationDbContext.DatabaseSeedHistory => DatabaseSeedHistoryEntries;
 
     /// <inheritdoc />
     public Task AddAuditLogAsync(AuditLog auditLog, CancellationToken cancellationToken = default) =>
@@ -265,6 +290,18 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
         GatewayRequests.AddAsync(request, cancellationToken).AsTask();
 
     /// <inheritdoc />
+    public Task AddAiModelAsync(AiModel model, CancellationToken cancellationToken = default) =>
+        AiModels.AddAsync(model, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public Task AddModelDownloadAsync(ModelDownload download, CancellationToken cancellationToken = default) =>
+        ModelDownloads.AddAsync(download, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public Task AddModelHealthHistoryAsync(ModelHealthHistory history, CancellationToken cancellationToken = default) =>
+        ModelHealthHistoryEntries.AddAsync(history, cancellationToken).AsTask();
+
+    /// <inheritdoc />
     public async Task RemoveGatewayRouteAsync(Guid routeId, CancellationToken cancellationToken = default)
     {
         var route = await GatewayRoutes.FirstOrDefaultAsync(r => r.Id == routeId, cancellationToken);
@@ -284,9 +321,16 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
             entry.State = EntityState.Detached;
         }
 
-        await PodEndpoints
+        var endpoints = await PodEndpoints
             .Where(e => e.GpuPodId == podId)
-            .ExecuteDeleteAsync(cancellationToken);
+            .ToListAsync(cancellationToken);
+
+        if (endpoints.Count == 0)
+        {
+            return;
+        }
+
+        PodEndpoints.RemoveRange(endpoints);
     }
 
     /// <inheritdoc />

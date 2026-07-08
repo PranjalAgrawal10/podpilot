@@ -15,6 +15,7 @@ public sealed class PodLifecycleService : IPodLifecycleService
 {
     private readonly IApplicationDbContext dbContext;
     private readonly IPodService podService;
+    private readonly IPodRecoveryService podRecoveryService;
     private readonly IPodNotificationService notificationService;
     private readonly IDateTimeService dateTimeService;
     private readonly ILogger<PodLifecycleService> logger;
@@ -25,12 +26,14 @@ public sealed class PodLifecycleService : IPodLifecycleService
     public PodLifecycleService(
         IApplicationDbContext dbContext,
         IPodService podService,
+        IPodRecoveryService podRecoveryService,
         IPodNotificationService notificationService,
         IDateTimeService dateTimeService,
         ILogger<PodLifecycleService> logger)
     {
         this.dbContext = dbContext;
         this.podService = podService;
+        this.podRecoveryService = podRecoveryService;
         this.notificationService = notificationService;
         this.dateTimeService = dateTimeService;
         this.logger = logger;
@@ -204,6 +207,7 @@ public sealed class PodLifecycleService : IPodLifecycleService
             var pod = await dbContext.GpuPods
                 .Include(p => p.Provider)
                     .ThenInclude(pr => pr.Credential)
+                .Include(p => p.Configuration)
                 .FirstAsync(p => p.Id == request.PodId, cancellationToken);
 
             logger.LogInformation("Wake started for pod {PodId}", request.PodId);
@@ -236,10 +240,26 @@ public sealed class PodLifecycleService : IPodLifecycleService
 
             if (!startResult.Success)
             {
-                throw new InvalidOperationException(startResult.ErrorMessage ?? "Provider start failed.");
-            }
+                var recovery = await podRecoveryService.TryReplacePodOnStartFailureAsync(
+                    pod,
+                    request.OrganizationId,
+                    request.Source,
+                    request.UserId,
+                    startResult.ErrorMessage,
+                    cancellationToken);
 
-            if (startResult.Pod is not null)
+                if (!recovery.Success)
+                {
+                    throw new InvalidOperationException(
+                        recovery.ErrorMessage ?? startResult.ErrorMessage ?? "Provider start failed.");
+                }
+
+                if (recovery.Pod is not null)
+                {
+                    podService.ApplyProviderStatus(pod, recovery.Pod, dateTimeService.UtcNow);
+                }
+            }
+            else if (startResult.Pod is not null)
             {
                 podService.ApplyProviderStatus(pod, startResult.Pod, dateTimeService.UtcNow);
             }

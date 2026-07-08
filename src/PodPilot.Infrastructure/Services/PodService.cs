@@ -174,6 +174,17 @@ public sealed class PodService : IPodService
     }
 
     /// <inheritdoc />
+    public async Task<PodInfo> GetProviderPodAsync(
+        ComputeProvider provider,
+        string providerPodId,
+        CancellationToken cancellationToken = default)
+    {
+        var apiKey = await providerService.GetDecryptedApiKeyAsync(provider, cancellationToken);
+        return await podProviderFactory.GetProvider(provider.ProviderType)
+            .GetPodAsync(apiKey, providerPodId, cancellationToken);
+    }
+
+    /// <inheritdoc />
     public async Task<PodInfo> SyncPodStatusAsync(
         GpuPod pod,
         CancellationToken cancellationToken = default)

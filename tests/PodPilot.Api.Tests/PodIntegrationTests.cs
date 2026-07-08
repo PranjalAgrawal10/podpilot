@@ -82,6 +82,58 @@ public class PodIntegrationTests : IClassFixture<PodWebApplicationFactory>
     }
 
     [Fact]
+    public async Task StartPod_Replaces_Provider_Instance_When_Start_Fails()
+    {
+        var auth = await RegisterAndAuthenticateAsync("pod-recovery");
+        SetBearerToken(auth.AccessToken);
+
+        var providerId = await CreateProviderAsync();
+        var podProvider = factory.Services.GetRequiredService<TestRunPodPodProvider>();
+
+        var createResponse = await client.PostAsJsonAsync(
+            "/api/v1/pods",
+            new CreatePodRequest
+            {
+                ProviderId = providerId,
+                Name = "recovery-pod",
+                GpuId = "NVIDIA GeForce RTX 4090",
+                GpuType = "RTX4090",
+                Region = "US",
+                ImageName = "runpod/pytorch:2.1.0-py3.10-cuda11.8.0-devel-ubuntu22.04",
+                ContainerDiskGb = 50,
+                VolumeDiskGb = 20,
+                EnablePublicIp = true,
+            });
+
+        Assert.Equal(HttpStatusCode.Created, createResponse.StatusCode);
+
+        var created = await createResponse.Content.ReadFromJsonAsync<ApiResponse<PodResponse>>(JsonOptions);
+        Assert.NotNull(created?.Data);
+
+        var originalProviderPodId = created.Data.ProviderPodId;
+        Assert.False(string.IsNullOrWhiteSpace(originalProviderPodId));
+
+        var stopResponse = await client.PostAsync($"/api/v1/pods/{created.Data.Id}/stop", null);
+        Assert.Equal(HttpStatusCode.OK, stopResponse.StatusCode);
+
+        podProvider.StartFailureProviderPodIds.Add(originalProviderPodId!);
+
+        var startResponse = await client.PostAsync($"/api/v1/pods/{created.Data.Id}/start", null);
+        Assert.Equal(HttpStatusCode.OK, startResponse.StatusCode);
+
+        var started = await startResponse.Content.ReadFromJsonAsync<ApiResponse<PodResponse>>(JsonOptions);
+        Assert.NotNull(started?.Data);
+        Assert.Equal(created.Data.Id, started.Data.Id);
+        Assert.Equal("Running", started.Data.Status);
+        Assert.False(string.IsNullOrWhiteSpace(started.Data.ProviderPodId));
+        Assert.NotEqual(originalProviderPodId, started.Data.ProviderPodId);
+        Assert.DoesNotContain(started.Data.ProviderPodId!, podProvider.StartFailureProviderPodIds);
+
+        var providerPods = await podProvider.ListPodsAsync("test", CancellationToken.None);
+        Assert.DoesNotContain(providerPods, p => p.ProviderPodId == originalProviderPodId);
+    }
+
+    [Fact]
     public async Task ListPods_Imports_PreExisting_Stopped_Pods_From_Provider()
     {
         var auth = await RegisterAndAuthenticateAsync("pod-import");
@@ -192,6 +244,8 @@ internal sealed class TestRunPodPodProvider : IPodProvider
 
     public ProviderType ProviderType => ProviderType.RunPod;
 
+    public HashSet<string> StartFailureProviderPodIds { get; } = new(StringComparer.Ordinal);
+
     public void SeedPod(PodInfo info) => pods[info.ProviderPodId] = info;
 
     public Task<PodInfo> CreatePodAsync(string apiKey, PodCreateOptions options, CancellationToken cancellationToken = default)
@@ -229,8 +283,20 @@ internal sealed class TestRunPodPodProvider : IPodProvider
         return Task.FromResult(new PodOperationResult { Success = true, Status = PodStatus.Deleted });
     }
 
-    public Task<PodOperationResult> StartPodAsync(string apiKey, string providerPodId, CancellationToken cancellationToken = default) =>
-        UpdateStatus(providerPodId, PodStatus.Running);
+    public Task<PodOperationResult> StartPodAsync(string apiKey, string providerPodId, CancellationToken cancellationToken = default)
+    {
+        if (StartFailureProviderPodIds.Contains(providerPodId))
+        {
+            return Task.FromResult(new PodOperationResult
+            {
+                Success = false,
+                Status = PodStatus.Failed,
+                ErrorMessage = "Simulated provider start failure.",
+            });
+        }
+
+        return UpdateStatus(providerPodId, PodStatus.Running);
+    }
 
     public Task<PodOperationResult> StopPodAsync(string apiKey, string providerPodId, CancellationToken cancellationToken = default) =>
         UpdateStatus(providerPodId, PodStatus.Stopped);

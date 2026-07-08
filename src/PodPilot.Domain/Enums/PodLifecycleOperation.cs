@@ -10,4 +10,7 @@ public enum PodLifecycleOperation
 
     /// <summary>Shut down a running pod.</summary>
     Shutdown = 1,
+
+    /// <summary>Replace a failed provider pod instance.</summary>
+    Replacement = 2,
 }

@@ -64,6 +64,14 @@ public interface IPodService
         CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Fetches pod information from the provider without updating persistence.
+    /// </summary>
+    Task<PodInfo> GetProviderPodAsync(
+        ComputeProvider provider,
+        string providerPodId,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Applies provider pod information to a persisted GPU pod entity.
     /// </summary>
     void ApplyProviderInfo(GpuPod pod, PodInfo info, DateTime syncedAt);

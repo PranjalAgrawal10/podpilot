@@ -38,11 +38,17 @@ public static class PermissionNames
     /// <summary>Delete providers.</summary>
     public const string ProviderDelete = "Provider.Delete";
 
+    /// <summary>Read models.</summary>
+    public const string ModelRead = "Model.Read";
+
     /// <summary>Pull models.</summary>
     public const string ModelPull = "Model.Pull";
 
     /// <summary>Delete models.</summary>
     public const string ModelDelete = "Model.Delete";
+
+    /// <summary>Manage models (refresh, set default).</summary>
+    public const string ModelManage = "Model.Manage";
 
     /// <summary>Read gateway configuration and metrics.</summary>
     public const string GatewayRead = "Gateway.Read";
@@ -82,8 +88,10 @@ public static class PermissionNames
         ProviderCreate,
         ProviderUpdate,
         ProviderDelete,
+        ModelRead,
         ModelPull,
         ModelDelete,
+        ModelManage,
         GatewayRead,
         GatewayManage,
         DashboardView,
