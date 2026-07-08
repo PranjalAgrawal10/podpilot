@@ -32,8 +32,8 @@ x86/
 *.coveragexml
 
 # Node
-web/node_modules/
-web/dist/
+**/node_modules/
+**/dist/
 
 # Environment
 .env

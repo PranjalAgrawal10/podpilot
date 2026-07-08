@@ -6,6 +6,7 @@ import {
 } from 'reactstrap';
 import { podService } from '../services/podService';
 import { StatusBadge } from '../components/pods/StatusBadge';
+import { RefreshIconButton } from '../components/common/RefreshIconButton';
 import { GpuBadge } from '../components/pods/GpuBadge';
 import { CostBadge } from '../components/pods/CostBadge';
 import { RegionBadge } from '../components/pods/RegionBadge';
@@ -89,6 +90,12 @@ export const PodDetailsPage = () => {
           </p>
         </div>
         <div className="d-flex gap-2 align-items-center">
+          {canUpdate && (
+            <RefreshIconButton
+              onClick={() => syncMutation.mutate()}
+              loading={syncMutation.isPending}
+            />
+          )}
           <StatusBadge status={pod.status} />
           <ActionMenu
             pod={pod}
@@ -98,7 +105,6 @@ export const PodDetailsPage = () => {
             onStop={() => stopMutation.mutate()}
             onRestart={() => restartMutation.mutate()}
             onDelete={(_, force) => deleteMutation.mutate(force)}
-            onSync={() => syncMutation.mutate()}
           />
         </div>
       </div>

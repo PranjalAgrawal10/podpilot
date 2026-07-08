@@ -1,6 +1,6 @@
 # PodPilot
 
-**PodPilot** is an AI Infrastructure Autopilot that automatically manages GPU pods, AI models, and inference providers. This repository contains **Part 1** (authentication foundation), **Part 2** (multi-tenant organization management), **Part 3** (provider management abstraction), **Part 4** (GPU pod management), **Part 5** (automatic GPU lifecycle management), **Part 6** (AI Gateway), and **Part 7** (Ollama model management).
+**PodPilot** is an AI Infrastructure Autopilot that automatically manages GPU pods, AI models, and inference providers. This repository contains **Part 1** (authentication foundation), **Part 2** (multi-tenant organization management), **Part 3** (provider management abstraction), **Part 4** (GPU pod management), **Part 5** (automatic GPU lifecycle management), **Part 6** (AI Gateway), **Part 7** (Ollama model management), and **Part 8** (smart request scheduler).
 
 ---
 
@@ -826,9 +826,116 @@ curl -X POST http://localhost:5000/api/v1/models/pull \
 
 ---
 
-## What's Next (Part 8+)
+## Part 8 — Smart Request Scheduler
 
-Part 7 intentionally excludes:
+Part 8 adds an enterprise-grade request scheduler in front of the AI Gateway. Every inference request passes through a scheduling pipeline with priority queuing, pod load balancing, retries, and streaming support.
+
+### Architecture
+
+```
+Incoming /v1/* request
+        ↓
+   IRequestScheduler (ProcessAsync)
+        ↓
+   Pod available? ──YES──► IRequestDispatcher (immediate)
+        ↓ NO
+   IRequestQueue (Redis priority queue)
+        ↓
+   SchedulerDispatchWorker
+        ↓
+   IRequestDispatcher ──► Ollama on GPU pod
+        ↓
+   IRequestTracker (wait/complete HTTP connection)
+```
+
+### Components
+
+| Interface | Implementation |
+|-----------|----------------|
+| `IRequestScheduler` | `RequestScheduler` |
+| `IRequestQueue` | `RedisRequestQueue` / `InMemoryRequestQueue` (tests) |
+| `IRequestDispatcher` | `RequestDispatcher` |
+| `IRequestTracker` | `RequestTracker` |
+| `IRequestPriorityResolver` | `RequestPriorityResolver` |
+| `IDistributedLockService` | `RedisDistributedLockService` |
+
+### Priority rules
+
+| Priority | Typical traffic |
+|----------|-----------------|
+| Critical | Admin overrides |
+| High | Personal API keys, streaming chat |
+| Normal | Organization API keys |
+| Low | Batch endpoints |
+| Background | Deferred jobs |
+
+Higher priority items dequeue first. FIFO applies within the same priority.
+
+### Queue design
+
+- Redis sorted-set priority queue per organization
+- MySQL persistence: `GatewayRequests`, `RequestQueue`, `RequestExecutions`, `SchedulerEvents`
+- Max queue length: 1000 per organization
+- Max concurrent requests per pod: 4
+- Duplicate detection via `X-Request-Id` header
+- Distributed locks for horizontal scaling
+
+### Retry strategy
+
+- Retries on transient network, provider, and gateway timeout failures
+- Exponential backoff: 2s × 2^attempt
+- Max 3 attempts
+- Invalid requests are never retried
+
+### Streaming lifecycle
+
+Streaming requests reserve pod capacity until the upstream response completes. Status transitions: `Queued` → `Forwarding` → `Streaming` → `Completed`.
+
+### Background workers
+
+| Worker | Purpose |
+|--------|---------|
+| `SchedulerDispatchWorker` | Dequeue and dispatch requests |
+| `SchedulerRetryWorker` | Retry failed requests |
+| `SchedulerTimeoutWorker` | Timeout stale queued requests |
+| `SchedulerCleanupWorker` | Clean stale queue entries |
+
+### API
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/v1/requests` | List scheduler requests |
+| GET | `/api/v1/requests/{id}` | Request details |
+| POST | `/api/v1/requests/{id}/cancel` | Cancel a queued request |
+| GET | `/api/v1/queue` | Queue metrics |
+| GET | `/api/v1/scheduler/status` | Scheduler health |
+
+### SignalR events
+
+`RequestQueued`, `RequestStarted`, `RequestStreaming`, `RequestCompleted`, `RequestFailed`, `QueueUpdated`
+
+### Frontend
+
+- `/scheduler` — Dashboard (queue length, utilization, recent requests)
+- `/scheduler/queue` — Queue metrics
+- `/scheduler/requests` — Request list
+- `/scheduler/requests/:id` — Request details
+
+### Redis
+
+```json
+"ConnectionStrings": {
+  "Redis": "localhost:6379"
+}
+```
+
+Docker Compose includes a `redis` service. Tests use in-memory queue/locks automatically.
+
+---
+
+## What's Next (Part 9+)
+
+Part 8 intentionally excludes:
 
 - Billing
 - Multi-provider routing

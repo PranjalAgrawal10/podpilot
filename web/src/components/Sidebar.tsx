@@ -27,6 +27,7 @@ export const Sidebar = () => {
     { to: '/pods', label: 'Pods', icon: '🖥️' },
     { to: '/models', label: 'Models', icon: '🧠' },
     { to: '/gateway', label: 'AI Gateway', icon: '🤖' },
+    { to: '/scheduler', label: 'Scheduler', icon: '⏱️' },
     { to: '/providers', label: 'Providers', icon: '🔌' },
     { to: '/members', label: 'Members', icon: '👥' },
     { to: '/profile', label: 'Profile', icon: '👤' },

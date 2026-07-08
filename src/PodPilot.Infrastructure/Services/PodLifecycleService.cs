@@ -106,7 +106,9 @@ public sealed class PodLifecycleService : IPodLifecycleService
             };
         }
 
-        if (pod.Status == PodStatus.Running || pod.Status == PodStatus.Starting)
+        if (pod.Status == PodStatus.Running
+            || pod.Status == PodStatus.Starting
+            || pod.Status == PodStatus.BuildingPending)
         {
             return new PodWakeResult
             {
@@ -233,6 +235,7 @@ public sealed class PodLifecycleService : IPodLifecycleService
                 throw new InvalidOperationException("Pod has not been provisioned on the provider.");
             }
 
+            var originalProviderPodId = pod.ProviderPodId;
             var startResult = await podService.StartPodAsync(
                 pod.Provider,
                 pod.ProviderPodId,
@@ -270,13 +273,22 @@ public sealed class PodLifecycleService : IPodLifecycleService
 
             pod.LastStartedAt = dateTimeService.UtcNow;
             pod.LastActivityAt = dateTimeService.UtcNow;
+            var wakeMessage = "Pod wake started.";
+            if (!string.IsNullOrWhiteSpace(originalProviderPodId)
+                && startResult.Pod is not null
+                && !string.Equals(startResult.Pod.ProviderPodId, originalProviderPodId, StringComparison.Ordinal))
+            {
+                wakeMessage =
+                    $"Pod migrated to a new provider instance during wake. Previous provider pod: {originalProviderPodId}.";
+            }
+
             await dbContext.AddPodStatusHistoryAsync(
                 new PodStatusHistory
                 {
                     GpuPodId = pod.Id,
                     Status = pod.Status,
                     RecordedAt = dateTimeService.UtcNow,
-                    Message = "Pod wake started.",
+                    Message = wakeMessage,
                 },
                 cancellationToken);
 
@@ -397,7 +409,9 @@ public sealed class PodLifecycleService : IPodLifecycleService
             var pod = await LoadPodAsync(podId, organizationId, cancellationToken);
             var policy = await GetOrCreateIdlePolicyAsync(podId, cancellationToken);
 
-            if (pod.Status != PodStatus.Running && pod.Status != PodStatus.Starting)
+            if (pod.Status != PodStatus.Running
+                && pod.Status != PodStatus.Starting
+                && pod.Status != PodStatus.BuildingPending)
             {
                 return new PodShutdownResult
                 {

@@ -197,10 +197,18 @@ public class GatewayWebApplicationFactory : WebApplicationFactory<Program>
 
     private sealed class MockInferenceClient : IInferenceClient
     {
-        public Task<bool> IsHealthyAsync(string baseUrl, CancellationToken cancellationToken = default) =>
+        public Task<bool> IsHealthyAsync(
+            string baseUrl,
+            CancellationToken cancellationToken = default,
+            TimeSpan? requestTimeout = null) =>
             Task.FromResult(false);
 
-        public Task<bool> WaitForHealthyAsync(string baseUrl, CancellationToken cancellationToken = default) =>
+        public Task<bool> WaitForHealthyAsync(
+            string baseUrl,
+            CancellationToken cancellationToken = default,
+            int? maxAttempts = null,
+            TimeSpan? checkInterval = null,
+            TimeSpan? requestTimeout = null) =>
             Task.FromResult(false);
 
         public Task<string> GetModelsAsync(string baseUrl, CancellationToken cancellationToken = default) =>

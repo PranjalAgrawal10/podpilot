@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Card, CardBody, CardTitle } from 'reactstrap';
 import type { Pod } from '../../types';
+import { RefreshIconButton } from '../common/RefreshIconButton';
 import { StatusBadge } from './StatusBadge';
 import { GpuBadge } from './GpuBadge';
 import { CostBadge } from './CostBadge';
@@ -15,7 +16,8 @@ interface PodCardProps {
   onStop: (pod: Pod) => void;
   onRestart: (pod: Pod) => void;
   onDelete: (pod: Pod, force: boolean) => void;
-  onSync: (pod: Pod) => void;
+  onRefresh: (pod: Pod) => void;
+  isRefreshing?: boolean;
 }
 
 export const PodCard = ({
@@ -26,7 +28,8 @@ export const PodCard = ({
   onStop,
   onRestart,
   onDelete,
-  onSync,
+  onRefresh,
+  isRefreshing = false,
 }: PodCardProps) => (
   <Card className="h-100 pod-card">
     <CardBody>
@@ -37,7 +40,15 @@ export const PodCard = ({
           </CardTitle>
           <small className="text-muted">{pod.providerName}</small>
         </div>
-        <StatusBadge status={pod.status} />
+        <div className="d-flex align-items-center gap-2">
+          {canUpdate && (
+            <RefreshIconButton
+              onClick={() => onRefresh(pod)}
+              loading={isRefreshing}
+            />
+          )}
+          <StatusBadge status={pod.status} />
+        </div>
       </div>
 
       <div className="d-flex flex-wrap gap-2 mb-3">
@@ -70,7 +81,6 @@ export const PodCard = ({
           onStop={onStop}
           onRestart={onRestart}
           onDelete={onDelete}
-          onSync={onSync}
         />
       </div>
     </CardBody>

@@ -40,6 +40,11 @@ export const ModelsPage = () => {
     [pods],
   );
 
+  const visiblePods = useMemo(
+    () => pods.filter((pod) => pod.status !== 'Deleted' && pod.status !== 'Deleting'),
+    [pods],
+  );
+
   useEffect(() => {
     if (selectedPodId || runningPods.length === 0) {
       return;
@@ -75,10 +80,14 @@ export const ModelsPage = () => {
     queryClient.invalidateQueries({ queryKey: ['models', currentOrganization?.id] });
     queryClient.invalidateQueries({ queryKey: ['model-dashboard', currentOrganization?.id] });
     queryClient.invalidateQueries({ queryKey: ['model-downloads', currentOrganization?.id] });
+    queryClient.invalidateQueries({ queryKey: ['pods', currentOrganization?.id] });
   };
 
   const refreshMutation = useMutation({
-    mutationFn: () => modelService.refresh(selectedPodId),
+    mutationFn: async () => {
+      await podService.sync(selectedPodId);
+      return modelService.refresh(selectedPodId);
+    },
     onSuccess: () => {
       invalidate();
     },
@@ -146,7 +155,7 @@ export const ModelsPage = () => {
         <CardBody>
           <Row className="g-3 align-items-end">
             <Col md={4}>
-              <ModelSelector pods={pods} value={selectedPodId} onChange={setSelectedPodId} required={false} />
+              <ModelSelector pods={visiblePods} value={selectedPodId} onChange={setSelectedPodId} required={false} />
             </Col>
             <Col md="auto">
               {canRead && selectedPodId && (

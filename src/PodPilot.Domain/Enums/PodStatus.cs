@@ -8,6 +8,9 @@ public enum PodStatus
     /// <summary>Pod is being provisioned.</summary>
     Creating = 0,
 
+    /// <summary>Pod is building or staging on the provider.</summary>
+    BuildingPending = 10,
+
     /// <summary>Pod is starting.</summary>
     Starting = 1,
 

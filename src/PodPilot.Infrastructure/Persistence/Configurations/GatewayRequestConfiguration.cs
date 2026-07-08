@@ -19,8 +19,12 @@ public sealed class GatewayRequestConfiguration : IEntityTypeConfiguration<Gatew
         builder.Property(r => r.Model).HasMaxLength(200);
         builder.Property(r => r.Status).HasConversion<string>().HasMaxLength(32);
         builder.Property(r => r.CorrelationId).HasMaxLength(64);
+        builder.Property(r => r.ClientRequestId).HasMaxLength(64);
+        builder.Property(r => r.RequestBodyHash).HasMaxLength(64);
+        builder.Property(r => r.Priority).HasConversion<string>().HasMaxLength(16);
         builder.Property(r => r.UpstreamBaseUrl).HasMaxLength(500);
-        builder.HasIndex(r => new { r.OrganizationId, r.StartedAt });
+        builder.HasIndex(r => new { r.OrganizationId, r.CreatedAt });
+        builder.HasIndex(r => new { r.OrganizationId, r.Status });
         builder.HasIndex(r => r.GpuPodId);
 
         builder.HasOne<GatewayApiKey>()

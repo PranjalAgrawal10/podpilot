@@ -1,4 +1,12 @@
 services:
+  redis:
+    image: redis:7-alpine
+    container_name: podpilot-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - podpilot-network
+
   api:
     build:
       context: .
@@ -8,6 +16,7 @@ services:
       ASPNETCORE_ENVIRONMENT: Production
       ASPNETCORE_URLS: http://+:8080
       ConnectionStrings__DefaultConnection: "Server=host.docker.internal;Port=3306;Database=podpilot;User=podpilot;Password=podpilot_secret;"
+      ConnectionStrings__Redis: "redis:6379"
       Jwt__Secret: "PodPilot_Docker_Super_Secret_Key_For_JWT_Token_Generation_2026!"
       Cors__AllowedOrigins__0: "http://localhost:3000"
       Cors__AllowedOrigins__1: "http://localhost:5173"
@@ -15,6 +24,8 @@ services:
       Swagger__Enabled: "true"
     ports:
       - "5000:8080"
+    depends_on:
+      - redis
     extra_hosts:
       - "host.docker.internal:host-gateway"
     healthcheck:

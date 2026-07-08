@@ -16,6 +16,8 @@ public sealed class ListPodsQueryHandler : IRequestHandler<ListPodsQuery, IReadO
     private readonly IOrganizationAuthorizationService organizationAuthorizationService;
     private readonly IApplicationDbContext dbContext;
     private readonly IPodService podService;
+    private readonly IPodNotificationService podNotificationService;
+    private readonly IDateTimeService dateTimeService;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ListPodsQueryHandler"/> class.
@@ -24,12 +26,16 @@ public sealed class ListPodsQueryHandler : IRequestHandler<ListPodsQuery, IReadO
         ICurrentUserService currentUserService,
         IOrganizationAuthorizationService organizationAuthorizationService,
         IApplicationDbContext dbContext,
-        IPodService podService)
+        IPodService podService,
+        IPodNotificationService podNotificationService,
+        IDateTimeService dateTimeService)
     {
         this.currentUserService = currentUserService;
         this.organizationAuthorizationService = organizationAuthorizationService;
         this.dbContext = dbContext;
         this.podService = podService;
+        this.podNotificationService = podNotificationService;
+        this.dateTimeService = dateTimeService;
     }
 
     /// <inheritdoc />
@@ -64,11 +70,39 @@ public sealed class ListPodsQueryHandler : IRequestHandler<ListPodsQuery, IReadO
         }
 
         var pods = await dbContext.GpuPods
-            .Where(p => p.OrganizationId == organizationId && p.Status != PodStatus.Deleted)
+            .Where(p => p.OrganizationId == organizationId
+                && p.Status != PodStatus.Deleted
+                && p.Status != PodStatus.Deleting)
             .Include(p => p.Provider)
+                .ThenInclude(provider => provider.Credential)
+            .Include(p => p.Endpoints)
             .OrderByDescending(p => p.UpdatedAt ?? p.CreatedAt)
             .ToListAsync(cancellationToken);
 
-        return pods.Select(p => PodMapper.ToResponse(p)).ToList();
+        var utcNow = dateTimeService.UtcNow;
+        foreach (var pod in pods.Where(p => PodSyncHelper.IsStale(p, utcNow)))
+        {
+            try
+            {
+                await PodSyncHelper.SyncWithProviderAsync(
+                    pod,
+                    organizationId,
+                    podService,
+                    dbContext,
+                    podNotificationService,
+                    dateTimeService,
+                    "Status synchronized.",
+                    cancellationToken);
+            }
+            catch
+            {
+                // Keep listing responsive when a single provider sync fails.
+            }
+        }
+
+        return pods
+            .Where(p => PodSyncHelper.IsVisible(p.Status))
+            .Select(p => PodMapper.ToResponse(p))
+            .ToList();
     }
 }

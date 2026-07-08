@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { useMemo } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-toastify';
 import { Button, Row, Col, Spinner, Alert } from 'reactstrap';
@@ -66,8 +67,13 @@ export const PodsPage = () => {
     return <Alert color="warning">You don&apos;t have permission to view pods.</Alert>;
   }
 
-  const runningPods = pods.filter((p) => p.status === 'Running').length;
-  const stoppedPods = pods.filter((p) => p.status === 'Stopped').length;
+  const visiblePods = useMemo(
+    () => pods.filter((pod) => pod.status !== 'Deleted' && pod.status !== 'Deleting'),
+    [pods],
+  );
+
+  const runningPods = visiblePods.filter((p) => p.status === 'Running').length;
+  const stoppedPods = visiblePods.filter((p) => p.status === 'Stopped').length;
 
   return (
     <div>
@@ -75,7 +81,7 @@ export const PodsPage = () => {
         <div>
           <h1 className="page-title mb-1">GPU Pods</h1>
           <p className="text-muted mb-0">
-            {runningPods} running · {stoppedPods} stopped · {pods.length} total
+            {runningPods} running · {stoppedPods} stopped · {visiblePods.length} total
           </p>
         </div>
         {canCreate && (
@@ -88,16 +94,16 @@ export const PodsPage = () => {
       {isLoading && <div className="text-center py-5"><Spinner /></div>}
       {error && <Alert color="danger">{error instanceof Error ? error.message : 'Failed to load pods'}</Alert>}
 
-      {!isLoading && !error && pods.length === 0 && (
+      {!isLoading && !error && visiblePods.length === 0 && (
         <Alert color="info">
           No pods yet.{' '}
           {canCreate && <Link to="/pods/create">Create your first GPU pod</Link>}
         </Alert>
       )}
 
-      {!isLoading && pods.length > 0 && (
+      {!isLoading && visiblePods.length > 0 && (
         <Row>
-          {pods.map((pod) => (
+          {visiblePods.map((pod) => (
             <Col key={pod.id} md={6} lg={4} className="mb-4">
               <PodCard
                 pod={pod}
@@ -107,7 +113,8 @@ export const PodsPage = () => {
                 onStop={(p) => stopMutation.mutate(p)}
                 onRestart={(p) => restartMutation.mutate(p)}
                 onDelete={(p, force) => deleteMutation.mutate({ pod: p, force })}
-                onSync={(p) => syncMutation.mutate(p)}
+                onRefresh={(p) => syncMutation.mutate(p)}
+                isRefreshing={syncMutation.isPending && syncMutation.variables?.id === pod.id}
               />
             </Col>
           ))}

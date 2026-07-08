@@ -131,6 +131,7 @@ export interface HealthResponse {
 
 export type PodStatus =
   | 'Creating'
+  | 'BuildingPending'
   | 'Starting'
   | 'Running'
   | 'Stopping'
@@ -299,6 +300,7 @@ export const GPU_TYPES: GpuType[] = [
 
 export const POD_STATUSES: PodStatus[] = [
   'Creating',
+  'BuildingPending',
   'Starting',
   'Running',
   'Stopping',

@@ -24,6 +24,10 @@ import { EditProviderPage } from './pages/EditProviderPage';
 import { ProviderDetailsPage } from './pages/ProviderDetailsPage';
 import { AcceptInvitationPage } from './pages/AcceptInvitationPage';
 import { GatewayPage } from './pages/GatewayPage';
+import { SchedulerPage } from './pages/SchedulerPage';
+import { QueuePage } from './pages/QueuePage';
+import { RequestsPage } from './pages/RequestsPage';
+import { RequestDetailsPage } from './pages/RequestDetailsPage';
 import { ModelsPage } from './pages/ModelsPage';
 import { PullModelPage } from './pages/PullModelPage';
 import { ModelDetailsPage } from './pages/ModelDetailsPage';
@@ -68,6 +72,10 @@ function App() {
                     <Route path="/pods/create" element={<CreatePodPage />} />
                     <Route path="/pods/:id" element={<PodDetailsPage />} />
                     <Route path="/gateway" element={<GatewayPage />} />
+                    <Route path="/scheduler" element={<SchedulerPage />} />
+                    <Route path="/scheduler/queue" element={<QueuePage />} />
+                    <Route path="/scheduler/requests" element={<RequestsPage />} />
+                    <Route path="/scheduler/requests/:id" element={<RequestDetailsPage />} />
                     <Route path="/models" element={<ModelsPage />} />
                     <Route path="/models/pull" element={<PullModelPage />} />
                     <Route path="/models/downloads" element={<ModelDownloadsPage />} />

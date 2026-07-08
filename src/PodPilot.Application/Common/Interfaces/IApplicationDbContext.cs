@@ -134,6 +134,21 @@ public interface IApplicationDbContext
     IQueryable<GatewayRequest> GatewayRequests { get; }
 
     /// <summary>
+    /// Gets the request queue entries set.
+    /// </summary>
+    IQueryable<RequestQueueEntry> RequestQueueEntries { get; }
+
+    /// <summary>
+    /// Gets the request executions set.
+    /// </summary>
+    IQueryable<RequestExecution> RequestExecutions { get; }
+
+    /// <summary>
+    /// Gets the scheduler events set.
+    /// </summary>
+    IQueryable<SchedulerEvent> SchedulerEvents { get; }
+
+    /// <summary>
     /// Gets the AI models set.
     /// </summary>
     IQueryable<AiModel> AiModels { get; }
@@ -272,6 +287,21 @@ public interface IApplicationDbContext
     /// Adds a gateway request.
     /// </summary>
     Task AddGatewayRequestAsync(GatewayRequest request, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Adds a request queue entry.
+    /// </summary>
+    Task AddRequestQueueEntryAsync(RequestQueueEntry entry, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Adds a request execution record.
+    /// </summary>
+    Task AddRequestExecutionAsync(RequestExecution execution, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Adds a scheduler event.
+    /// </summary>
+    Task AddSchedulerEventAsync(SchedulerEvent schedulerEvent, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Adds an AI model.

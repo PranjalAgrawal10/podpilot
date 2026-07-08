@@ -1,9 +1,7 @@
 using MediatR;
-using PodPilot.Application.Common.Exceptions;
 using PodPilot.Application.Common.Interfaces;
 using PodPilot.Contracts.Pods;
 using PodPilot.Domain.Authorization;
-using PodPilot.Domain.Entities;
 using PodPilot.Domain.Enums;
 
 namespace PodPilot.Application.Pods.Commands.SyncPod;
@@ -60,35 +58,18 @@ public sealed class SyncPodCommandHandler : IRequestHandler<SyncPodCommand, PodR
 
         if (pod.Status == PodStatus.Deleted)
         {
-            throw new NotFoundException("Pod", request.PodId);
+            throw new Common.Exceptions.NotFoundException("Pod", request.PodId);
         }
 
-        if (string.IsNullOrWhiteSpace(pod.ProviderPodId))
-        {
-            return PodMapper.ToResponse(pod, includeHistory: true);
-        }
-
-        var previousStatus = pod.Status;
-        var info = await podService.SyncPodStatusAsync(pod, cancellationToken);
-
-        if (previousStatus != pod.Status)
-        {
-            await dbContext.AddPodStatusHistoryAsync(
-                new PodStatusHistory
-                {
-                    GpuPodId = pod.Id,
-                    Status = pod.Status,
-                    RecordedAt = dateTimeService.UtcNow,
-                    Message = info.StatusMessage ?? "Status synchronized.",
-                },
-                cancellationToken);
-            await dbContext.SaveChangesAsync(cancellationToken);
-            await podNotificationService.NotifyPodStatusChangedAsync(
-                organizationId,
-                pod.Id,
-                pod.Status.ToString(),
-                cancellationToken);
-        }
+        await PodSyncHelper.SyncWithProviderAsync(
+            pod,
+            organizationId,
+            podService,
+            dbContext,
+            podNotificationService,
+            dateTimeService,
+            "Status synchronized.",
+            cancellationToken);
 
         return PodMapper.ToResponse(pod, includeHistory: true);
     }

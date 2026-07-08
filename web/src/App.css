@@ -409,3 +409,12 @@ body {
   white-space: pre-wrap;
   word-break: break-word;
 }
+
+.pod-refresh-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+}

@@ -218,10 +218,18 @@ public class ModelWebApplicationFactory : WebApplicationFactory<Program>
 
     private sealed class HealthyInferenceClient : IInferenceClient
     {
-        public Task<bool> IsHealthyAsync(string baseUrl, CancellationToken cancellationToken = default) =>
+        public Task<bool> IsHealthyAsync(
+            string baseUrl,
+            CancellationToken cancellationToken = default,
+            TimeSpan? requestTimeout = null) =>
             Task.FromResult(true);
 
-        public Task<bool> WaitForHealthyAsync(string baseUrl, CancellationToken cancellationToken = default) =>
+        public Task<bool> WaitForHealthyAsync(
+            string baseUrl,
+            CancellationToken cancellationToken = default,
+            int? maxAttempts = null,
+            TimeSpan? checkInterval = null,
+            TimeSpan? requestTimeout = null) =>
             Task.FromResult(true);
 
         public Task<string> GetModelsAsync(string baseUrl, CancellationToken cancellationToken = default) =>

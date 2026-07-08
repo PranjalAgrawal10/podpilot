@@ -233,7 +233,7 @@ public sealed class OllamaClient : IOllamaClient
         }
         catch (Exception ex)
         {
-            logger.LogDebug(ex, "Ollama is not reachable at {BaseUrl}", baseUrl);
+            logger.LogDebug("Ollama is not reachable at {BaseUrl}: {Error}", baseUrl, ex.Message);
             return false;
         }
     }

@@ -14,6 +14,9 @@ public sealed class GetPodQueryHandler : IRequestHandler<GetPodQuery, PodRespons
     private readonly ICurrentUserService currentUserService;
     private readonly IOrganizationAuthorizationService organizationAuthorizationService;
     private readonly IApplicationDbContext dbContext;
+    private readonly IPodService podService;
+    private readonly IPodNotificationService podNotificationService;
+    private readonly IDateTimeService dateTimeService;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="GetPodQueryHandler"/> class.
@@ -21,11 +24,17 @@ public sealed class GetPodQueryHandler : IRequestHandler<GetPodQuery, PodRespons
     public GetPodQueryHandler(
         ICurrentUserService currentUserService,
         IOrganizationAuthorizationService organizationAuthorizationService,
-        IApplicationDbContext dbContext)
+        IApplicationDbContext dbContext,
+        IPodService podService,
+        IPodNotificationService podNotificationService,
+        IDateTimeService dateTimeService)
     {
         this.currentUserService = currentUserService;
         this.organizationAuthorizationService = organizationAuthorizationService;
         this.dbContext = dbContext;
+        this.podService = podService;
+        this.podNotificationService = podNotificationService;
+        this.dateTimeService = dateTimeService;
     }
 
     /// <inheritdoc />
@@ -47,7 +56,32 @@ public sealed class GetPodQueryHandler : IRequestHandler<GetPodQuery, PodRespons
             cancellationToken,
             includeDetails: true);
 
-        if (pod.Status == PodStatus.Deleted)
+        if (pod.Status == PodStatus.Deleted || pod.Status == PodStatus.Deleting)
+        {
+            throw new Common.Exceptions.NotFoundException("Pod", request.PodId);
+        }
+
+        if (PodSyncHelper.IsStale(pod, dateTimeService.UtcNow))
+        {
+            try
+            {
+                await PodSyncHelper.SyncWithProviderAsync(
+                    pod,
+                    organizationId,
+                    podService,
+                    dbContext,
+                    podNotificationService,
+                    dateTimeService,
+                    "Status synchronized.",
+                    cancellationToken);
+            }
+            catch
+            {
+                // Return the last known pod state when provider sync fails.
+            }
+        }
+
+        if (pod.Status == PodStatus.Deleted || pod.Status == PodStatus.Deleting)
         {
             throw new Common.Exceptions.NotFoundException("Pod", request.PodId);
         }

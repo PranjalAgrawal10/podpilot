@@ -28,4 +28,10 @@ public enum GatewayRequestStatus
 
     /// <summary>Request was cancelled.</summary>
     Cancelled = 7,
+
+    /// <summary>Request is queued waiting for pod capacity.</summary>
+    Queued = 8,
+
+    /// <summary>Request timed out while queued or executing.</summary>
+    TimedOut = 9,
 }

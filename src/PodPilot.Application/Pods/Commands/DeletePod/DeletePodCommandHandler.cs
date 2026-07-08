@@ -67,7 +67,7 @@ public sealed class DeletePodCommandHandler : IRequestHandler<DeletePodCommand>
             return;
         }
 
-        if (!request.Force && pod.Status is PodStatus.Running or PodStatus.Starting or PodStatus.Restarting)
+        if (!request.Force && pod.Status is PodStatus.Running or PodStatus.Starting or PodStatus.Restarting or PodStatus.BuildingPending)
         {
             throw new ValidationException(
             [

@@ -20,7 +20,6 @@ interface ActionMenuProps {
   onStop: (pod: Pod) => void;
   onRestart: (pod: Pod) => void;
   onDelete: (pod: Pod, force: boolean) => void;
-  onSync: (pod: Pod) => void;
 }
 
 export const ActionMenu = ({
@@ -31,7 +30,6 @@ export const ActionMenu = ({
   onStop,
   onRestart,
   onDelete,
-  onSync,
 }: ActionMenuProps) => {
   const [open, setOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -50,8 +48,6 @@ export const ActionMenu = ({
         <DropdownMenu end>
           {canUpdate && (
             <>
-              <DropdownItem onClick={() => onSync(pod)}>Sync Status</DropdownItem>
-              <DropdownItem divider />
               <DropdownItem disabled={pod.status === 'Running'} onClick={() => onStart(pod)}>
                 Start
               </DropdownItem>

@@ -161,6 +161,17 @@ public static class DependencyInjection
     }
 
     /// <summary>
+    /// Registers scheduler layer services. Call after <see cref="AddInfrastructure"/>.
+    /// </summary>
+    public static IServiceCollection AddScheduler(
+        this IServiceCollection services,
+        IConfiguration configuration,
+        IHostEnvironment environment) =>
+        services
+            .AddSchedulerServices(configuration, environment)
+            .AddSchedulerHostedServices(environment);
+
+    /// <summary>
     /// Registers background services for non-testing environments.
     /// </summary>
     /// <param name="services">The service collection.</param>

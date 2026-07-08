@@ -124,6 +124,11 @@ public static class ApplicationConstants
     public const int OllamaPort = 11434;
 
     /// <summary>
+    /// Re-sync pod status from the provider when data is older than this threshold.
+    /// </summary>
+    public const int PodStatusStaleThresholdSeconds = 60;
+
+    /// <summary>
     /// Maximum wake wait attempts while polling provider health.
     /// </summary>
     public const int MaxWakeHealthCheckAttempts = 30;
@@ -154,6 +159,31 @@ public static class ApplicationConstants
     public const int MaxOllamaHealthCheckAttempts = 60;
 
     /// <summary>
+    /// Maximum Ollama health check attempts when the pod is already running.
+    /// </summary>
+    public const int MaxOllamaQuickHealthCheckAttempts = 1;
+
+    /// <summary>
+    /// Maximum scheduler queue length per organization.
+    /// </summary>
+    public const int SchedulerMaxQueueLength = 1000;
+
+    /// <summary>
+    /// Maximum concurrent requests per GPU pod.
+    /// </summary>
+    public const int SchedulerMaxConcurrentPerPod = 4;
+
+    /// <summary>
+    /// Maximum request body size in bytes for gateway requests.
+    /// </summary>
+    public const int SchedulerMaxRequestBodyBytes = 10 * 1024 * 1024;
+
+    /// <summary>
+    /// Maximum retry attempts for scheduler requests.
+    /// </summary>
+    public const int SchedulerMaxRetryAttempts = 3;
+
+    /// <summary>
     /// Delay between wake health check attempts.
     /// </summary>
     public static readonly TimeSpan WakeHealthCheckInterval = TimeSpan.FromSeconds(5);
@@ -164,9 +194,39 @@ public static class ApplicationConstants
     public static readonly TimeSpan OllamaHealthCheckInterval = TimeSpan.FromSeconds(2);
 
     /// <summary>
+    /// Per-request timeout for quick Ollama health checks on already-running pods.
+    /// </summary>
+    public static readonly TimeSpan OllamaQuickHealthCheckTimeout = TimeSpan.FromSeconds(3);
+
+    /// <summary>
+    /// Default per-request timeout for Ollama health checks.
+    /// </summary>
+    public static readonly TimeSpan OllamaHealthCheckTimeout = TimeSpan.FromSeconds(10);
+
+    /// <summary>
     /// Default gateway forward timeout.
     /// </summary>
     public static readonly TimeSpan GatewayForwardTimeout = TimeSpan.FromMinutes(10);
+
+    /// <summary>
+    /// Base retry delay for exponential backoff.
+    /// </summary>
+    public static readonly TimeSpan SchedulerRetryBaseDelay = TimeSpan.FromSeconds(2);
+
+    /// <summary>
+    /// Maximum time a request may wait in the queue.
+    /// </summary>
+    public static readonly TimeSpan SchedulerQueueTimeout = TimeSpan.FromMinutes(15);
+
+    /// <summary>
+    /// Distributed lock expiry for scheduler operations.
+    /// </summary>
+    public static readonly TimeSpan SchedulerLockExpiry = TimeSpan.FromSeconds(30);
+
+    /// <summary>
+    /// Scheduler worker polling interval.
+    /// </summary>
+    public static readonly TimeSpan SchedulerWorkerInterval = TimeSpan.FromSeconds(2);
 
     /// <summary>
     /// All ASP.NET Identity roles.

@@ -66,6 +66,7 @@ internal static class PodLifecycleHandler
         }
 
         var now = dateTimeService.UtcNow;
+        var originalProviderPodId = pod.ProviderPodId;
         pod.Status = transitionalStatus;
         pod.UpdatedAt = now;
         pod.UpdatedBy = userId.ToString();
@@ -178,13 +179,23 @@ internal static class PodLifecycleHandler
         }
 
         pod.UpdatedAt = dateTimeService.UtcNow;
+        var statusMessage = result.Pod?.StatusMessage;
+        if (transitionalStatus == PodStatus.Starting
+            && !string.IsNullOrWhiteSpace(originalProviderPodId)
+            && result.Pod is not null
+            && !string.Equals(result.Pod.ProviderPodId, originalProviderPodId, StringComparison.Ordinal))
+        {
+            statusMessage =
+                $"Pod migrated to a new provider instance. Previous provider pod: {originalProviderPodId}.";
+        }
+
         await dbContext.AddPodStatusHistoryAsync(
             new PodStatusHistory
             {
                 GpuPodId = pod.Id,
                 Status = pod.Status,
                 RecordedAt = dateTimeService.UtcNow,
-                Message = result.Pod?.StatusMessage,
+                Message = statusMessage,
             },
             cancellationToken);
         await dbContext.SaveChangesAsync(cancellationToken);

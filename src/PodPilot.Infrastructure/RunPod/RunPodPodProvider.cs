@@ -13,6 +13,7 @@ namespace PodPilot.Infrastructure.RunPod;
 /// </summary>
 public sealed class RunPodPodProvider : IPodProvider
 {
+    private const string GraphQlEndpoint = "https://api.runpod.io/graphql";
     private const string RestBaseUrl = "https://rest.runpod.io/v1";
 
     private static readonly JsonSerializerOptions JsonOptions = new()
@@ -136,8 +137,67 @@ public sealed class RunPodPodProvider : IPodProvider
     public async Task<PodOperationResult> StartPodAsync(
         string apiKey,
         string providerPodId,
-        CancellationToken cancellationToken = default) =>
-        await ExecuteLifecycleAsync(apiKey, providerPodId, "start", PodStatus.Starting, cancellationToken);
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            using var podResponse = await CreateRestClient(apiKey).GetAsync(
+                $"{RestBaseUrl}/pods/{providerPodId}",
+                cancellationToken);
+
+            var podContent = await podResponse.Content.ReadAsStringAsync(cancellationToken);
+            if (!podResponse.IsSuccessStatusCode)
+            {
+                return CreateFailureResult(podContent);
+            }
+
+            using var podDocument = JsonDocument.Parse(podContent);
+            var gpuCount = ResolveGpuCount(podDocument.RootElement);
+
+            const string mutation = """
+                mutation podResume($input: PodResumeInput!) {
+                  podResume(input: $input) {
+                    id
+                    desiredStatus
+                    lastStatusChange
+                  }
+                }
+                """;
+
+            using var graphDocument = await ExecuteGraphQlAsync(
+                apiKey,
+                mutation,
+                new
+                {
+                    input = new
+                    {
+                        podId = providerPodId,
+                        gpuCount,
+                        syncMachine = true,
+                    },
+                },
+                cancellationToken);
+
+            var resumedPodId = graphDocument.RootElement
+                .GetProperty("data")
+                .GetProperty("podResume")
+                .GetProperty("id")
+                .GetString() ?? providerPodId;
+
+            var pod = await GetPodAsync(apiKey, resumedPodId, cancellationToken);
+
+            return new PodOperationResult
+            {
+                Success = true,
+                Status = pod.Status == PodStatus.Unknown ? PodStatus.Starting : pod.Status,
+                Pod = pod,
+            };
+        }
+        catch (Exception ex)
+        {
+            return CreateFailureResult(ex.Message);
+        }
+    }
 
     /// <inheritdoc />
     public async Task<PodOperationResult> StopPodAsync(
@@ -317,7 +377,7 @@ public sealed class RunPodPodProvider : IPodProvider
         {
             ProviderPodId = providerPodId,
             Name = name,
-            Status = MapStatus(desiredStatus),
+            Status = ResolvePodStatus(desiredStatus, publicIp, lastStatusChange, endpoints, element),
             GpuId = gpuId ?? string.Empty,
             GpuType = MapGpuType(gpuDisplayName ?? gpuId ?? string.Empty),
             Region = region,
@@ -390,8 +450,60 @@ public sealed class RunPodPodProvider : IPodProvider
             "RUNNING" => PodStatus.Running,
             "EXITED" => PodStatus.Stopped,
             "TERMINATED" => PodStatus.Deleted,
+            "CREATED" => PodStatus.BuildingPending,
+            "BUILDING" => PodStatus.BuildingPending,
+            "STAGING" => PodStatus.BuildingPending,
+            "RESTARTING" => PodStatus.Restarting,
             _ => PodStatus.Unknown,
         };
+
+    private static PodStatus ResolvePodStatus(
+        string? desiredStatus,
+        string? publicIp,
+        string? lastStatusChange,
+        IReadOnlyList<PodEndpointInfo> endpoints,
+        JsonElement element)
+    {
+        if (IsBuildingOrStaging(lastStatusChange))
+        {
+            return PodStatus.BuildingPending;
+        }
+
+        var mapped = MapStatus(desiredStatus);
+        if (mapped == PodStatus.Running && IsInitializing(publicIp, endpoints, element))
+        {
+            return PodStatus.BuildingPending;
+        }
+
+        return mapped;
+    }
+
+    private static bool IsBuildingOrStaging(string? lastStatusChange) =>
+        !string.IsNullOrWhiteSpace(lastStatusChange)
+        && (lastStatusChange.Contains("building", StringComparison.OrdinalIgnoreCase)
+            || lastStatusChange.Contains("staging", StringComparison.OrdinalIgnoreCase)
+            || lastStatusChange.Contains("initializ", StringComparison.OrdinalIgnoreCase)
+            || lastStatusChange.Contains("pulling image", StringComparison.OrdinalIgnoreCase));
+
+    private static bool IsInitializing(
+        string? publicIp,
+        IReadOnlyList<PodEndpointInfo> endpoints,
+        JsonElement element)
+    {
+        if (string.IsNullOrWhiteSpace(publicIp))
+        {
+            return true;
+        }
+
+        if (element.TryGetProperty("portMappings", out var mappings)
+            && (mappings.ValueKind == JsonValueKind.Null || mappings.ValueKind == JsonValueKind.Undefined))
+        {
+            return true;
+        }
+
+        return endpoints.Count == 0
+            || endpoints.All(endpoint => string.IsNullOrWhiteSpace(endpoint.Url));
+    }
 
     private static GpuType MapGpuType(string name)
     {
@@ -432,6 +544,56 @@ public sealed class RunPodPodProvider : IPodProvider
         }
 
         return GpuType.Custom;
+    }
+
+    private static PodOperationResult CreateFailureResult(string? message) =>
+        new()
+        {
+            Success = false,
+            Status = PodStatus.Failed,
+            ErrorMessage = message,
+        };
+
+    private static int ResolveGpuCount(JsonElement element) =>
+        element.TryGetProperty("gpuCount", out var gpuCountProp)
+        && gpuCountProp.TryGetInt32(out var gpuCount)
+        && gpuCount > 0
+            ? gpuCount
+            : 1;
+
+    private async Task<JsonDocument> ExecuteGraphQlAsync(
+        string apiKey,
+        string query,
+        object variables,
+        CancellationToken cancellationToken)
+    {
+        var client = httpClientFactory.CreateClient(nameof(RunPodPodProvider));
+        var requestUri = $"{GraphQlEndpoint}?api_key={Uri.EscapeDataString(apiKey)}";
+        using var response = await client.PostAsJsonAsync(
+            requestUri,
+            new { query, variables },
+            JsonOptions,
+            cancellationToken);
+
+        var content = await response.Content.ReadAsStringAsync(cancellationToken);
+        if (!response.IsSuccessStatusCode)
+        {
+            throw new InvalidOperationException($"RunPod GraphQL request failed: {content}");
+        }
+
+        var document = JsonDocument.Parse(content);
+        if (document.RootElement.TryGetProperty("errors", out var errors)
+            && errors.ValueKind == JsonValueKind.Array
+            && errors.GetArrayLength() > 0)
+        {
+            var message = errors[0].TryGetProperty("message", out var messageProp)
+                ? messageProp.GetString()
+                : "RunPod GraphQL request failed.";
+
+            throw new InvalidOperationException(message);
+        }
+
+        return document;
     }
 
     private HttpClient CreateRestClient(string apiKey)

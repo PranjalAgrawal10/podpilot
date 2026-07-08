@@ -167,7 +167,13 @@ public sealed class PodService : IPodService
             imported = true;
         }
 
-        if (imported)
+        var reconciled = await ReconcileMissingProviderPodsAsync(
+            provider,
+            organizationId,
+            providerPods,
+            cancellationToken);
+
+        if (imported || reconciled)
         {
             await dbContext.SaveChangesAsync(cancellationToken);
         }
@@ -204,8 +210,25 @@ public sealed class PodService : IPodService
             .FirstAsync(p => p.Id == pod.ProviderId, cancellationToken);
 
         var apiKey = await providerService.GetDecryptedApiKeyAsync(provider, cancellationToken);
-        var info = await podProviderFactory.GetProvider(provider.ProviderType)
-            .SyncPodStatusAsync(apiKey, pod.ProviderPodId, cancellationToken);
+
+        PodInfo info;
+        try
+        {
+            info = await podProviderFactory.GetProvider(provider.ProviderType)
+                .SyncPodStatusAsync(apiKey, pod.ProviderPodId, cancellationToken);
+        }
+        catch (Exception ex) when (IsProviderPodNotFound(ex))
+        {
+            return await MarkPodDeletedOnProviderAsync(pod, "Pod not found on provider.", cancellationToken);
+        }
+
+        if (info.Status == PodStatus.Deleted)
+        {
+            return await MarkPodDeletedOnProviderAsync(
+                pod,
+                info.StatusMessage ?? "Pod was removed on the provider.",
+                cancellationToken);
+        }
 
         var syncedAt = DateTime.UtcNow;
         ApplyProviderScalars(pod, info, syncedAt);
@@ -346,4 +369,86 @@ public sealed class PodService : IPodService
         usedNames.Add(candidate);
         return candidate;
     }
+
+    private async Task<bool> ReconcileMissingProviderPodsAsync(
+        ComputeProvider provider,
+        Guid organizationId,
+        IReadOnlyList<PodInfo> providerPods,
+        CancellationToken cancellationToken)
+    {
+        var activeProviderIds = providerPods
+            .Where(p => !string.IsNullOrWhiteSpace(p.ProviderPodId) && p.Status != PodStatus.Deleted)
+            .Select(p => p.ProviderPodId!)
+            .ToHashSet(StringComparer.Ordinal);
+
+        var localPods = await dbContext.GpuPods
+            .Where(p => p.OrganizationId == organizationId
+                && p.ProviderId == provider.Id
+                && p.ProviderPodId != null
+                && p.Status != PodStatus.Deleted
+                && p.Status != PodStatus.Deleting)
+            .ToListAsync(cancellationToken);
+
+        var now = DateTime.UtcNow;
+        var reconciled = false;
+
+        foreach (var pod in localPods)
+        {
+            if (activeProviderIds.Contains(pod.ProviderPodId!))
+            {
+                continue;
+            }
+
+            pod.Status = PodStatus.Deleted;
+            pod.UpdatedAt = now;
+            await dbContext.AddPodStatusHistoryAsync(
+                new PodStatusHistory
+                {
+                    GpuPodId = pod.Id,
+                    Status = PodStatus.Deleted,
+                    RecordedAt = now,
+                    Message = "Pod no longer exists on the provider.",
+                },
+                cancellationToken);
+            reconciled = true;
+        }
+
+        return reconciled;
+    }
+
+    private async Task<PodInfo> MarkPodDeletedOnProviderAsync(
+        GpuPod pod,
+        string message,
+        CancellationToken cancellationToken)
+    {
+        var syncedAt = DateTime.UtcNow;
+        var info = new PodInfo
+        {
+            ProviderPodId = pod.ProviderPodId ?? string.Empty,
+            Name = pod.Name,
+            Status = PodStatus.Deleted,
+            StatusMessage = message,
+        };
+
+        pod.Status = PodStatus.Deleted;
+        pod.LastSyncedAt = syncedAt;
+        pod.UpdatedAt = syncedAt;
+
+        await dbContext.AddPodStatusHistoryAsync(
+            new PodStatusHistory
+            {
+                GpuPodId = pod.Id,
+                Status = PodStatus.Deleted,
+                RecordedAt = syncedAt,
+                Message = message,
+            },
+            cancellationToken);
+
+        return info;
+    }
+
+    private static bool IsProviderPodNotFound(Exception ex) =>
+        ex is InvalidOperationException invalidOperationException
+        && (invalidOperationException.Message.Contains("404", StringComparison.OrdinalIgnoreCase)
+            || invalidOperationException.Message.Contains("not found", StringComparison.OrdinalIgnoreCase));
 }

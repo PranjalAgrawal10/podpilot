@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { HubConnectionBuilder, LogLevel } from '@microsoft/signalr';
 import { useQueryClient } from '@tanstack/react-query';
+import { startSignalRHub } from '../utils/startSignalRHub';
 import { tokenStorage } from '../utils/tokenStorage';
 
 const hubUrl = import.meta.env.VITE_MODEL_HUB_URL || '/hubs/models';
@@ -41,11 +42,11 @@ export const useModelHub = (organizationId?: string | null) => {
       connection.on(eventName, invalidate);
     });
 
-    connection.start().catch(() => {
-      // SignalR is best-effort; pages still poll via React Query.
-    });
+    const abortController = new AbortController();
+    void startSignalRHub(connection, abortController.signal);
 
     return () => {
+      abortController.abort();
       connection.stop();
     };
   }, [organizationId, queryClient]);

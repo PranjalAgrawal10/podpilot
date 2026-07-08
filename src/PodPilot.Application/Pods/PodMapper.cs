@@ -1,5 +1,6 @@
 using PodPilot.Contracts.Pods;
 using PodPilot.Domain.Entities;
+using PodPilot.Domain.Enums;
 
 namespace PodPilot.Application.Pods;
 
@@ -19,7 +20,7 @@ internal static class PodMapper
                 .Take(20)
                 .Select(h => new PodStatusHistoryResponse
                 {
-                    Status = h.Status.ToString(),
+                    Status = FormatStatus(h.Status),
                     RecordedAt = h.RecordedAt,
                     Message = h.Message,
                 })
@@ -36,7 +37,7 @@ internal static class PodMapper
             ProviderPodId = pod.ProviderPodId,
             Name = pod.Name,
             Description = pod.Description,
-            Status = pod.Status.ToString(),
+            Status = FormatStatus(pod.Status),
             GpuType = pod.GpuType.ToString(),
             GpuId = pod.GpuId,
             Region = pod.Region,
@@ -81,4 +82,11 @@ internal static class PodMapper
                 },
         };
     }
+
+    private static string FormatStatus(PodStatus status) =>
+        status switch
+        {
+            PodStatus.Creating => nameof(PodStatus.BuildingPending),
+            _ => status.ToString(),
+        };
 }

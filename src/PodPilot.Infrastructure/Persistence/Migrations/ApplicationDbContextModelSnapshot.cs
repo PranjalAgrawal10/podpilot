@@ -500,12 +500,22 @@ namespace PodPilot.Infrastructure.Persistence.Migrations
                     b.Property<Guid?>("ApiKeyId")
                         .HasColumnType("char(36)");
 
+                    b.Property<string>("ClientRequestId")
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
                     b.Property<DateTime?>("CompletedAt")
                         .HasColumnType("datetime(6)");
 
                     b.Property<string>("CorrelationId")
                         .HasMaxLength(64)
                         .HasColumnType("varchar(64)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("ExecutionTimeMs")
+                        .HasColumnType("int");
 
                     b.Property<Guid>("GpuPodId")
                         .HasColumnType("char(36)");
@@ -522,6 +532,9 @@ namespace PodPilot.Infrastructure.Persistence.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("varchar(200)");
 
+                    b.Property<Guid?>("ModelId")
+                        .HasColumnType("char(36)");
+
                     b.Property<Guid>("OrganizationId")
                         .HasColumnType("char(36)");
 
@@ -529,6 +542,21 @@ namespace PodPilot.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("varchar(500)");
+
+                    b.Property<string>("Priority")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("varchar(16)");
+
+                    b.Property<int?>("QueueTimeMs")
+                        .HasColumnType("int");
+
+                    b.Property<string>("RequestBodyHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<int>("RetryCount")
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("StartedAt")
                         .HasColumnType("datetime(6)");
@@ -542,6 +570,9 @@ namespace PodPilot.Infrastructure.Persistence.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("varchar(500)");
 
+                    b.Property<Guid?>("UserId")
+                        .HasColumnType("char(36)");
+
                     b.Property<bool>("WakeTriggered")
                         .HasColumnType("tinyint(1)");
 
@@ -551,7 +582,9 @@ namespace PodPilot.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("GpuPodId");
 
-                    b.HasIndex("OrganizationId", "StartedAt");
+                    b.HasIndex("OrganizationId", "CreatedAt");
+
+                    b.HasIndex("OrganizationId", "Status");
 
                     b.ToTable("GatewayRequests", (string)null);
                 });
@@ -1487,6 +1520,90 @@ namespace PodPilot.Infrastructure.Persistence.Migrations
                     b.ToTable("RefreshTokens", (string)null);
                 });
 
+            modelBuilder.Entity("PodPilot.Domain.Entities.RequestExecution", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<int>("AttemptNumber")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("ErrorMessage")
+                        .HasMaxLength(2000)
+                        .HasColumnType("varchar(2000)");
+
+                    b.Property<Guid>("GatewayRequestId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid>("GpuPodId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime>("StartedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("varchar(32)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GpuPodId");
+
+                    b.HasIndex("GatewayRequestId", "AttemptNumber");
+
+                    b.ToTable("RequestExecutions", (string)null);
+                });
+
+            modelBuilder.Entity("PodPilot.Domain.Entities.RequestQueueEntry", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("ClientRequestId")
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<DateTime>("EnqueuedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<Guid>("GatewayRequestId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<int>("Position")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Priority")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("varchar(16)");
+
+                    b.Property<string>("QueueName")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GatewayRequestId")
+                        .IsUnique();
+
+                    b.HasIndex("OrganizationId", "IsActive", "EnqueuedAt");
+
+                    b.ToTable("RequestQueue", (string)null);
+                });
+
             modelBuilder.Entity("PodPilot.Domain.Entities.Role", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1527,6 +1644,44 @@ namespace PodPilot.Infrastructure.Persistence.Migrations
                     b.HasIndex("PermissionId");
 
                     b.ToTable("RolePermissions", (string)null);
+                });
+
+            modelBuilder.Entity("PodPilot.Domain.Entities.SchedulerEvent", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("EventType")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("varchar(32)");
+
+                    b.Property<Guid>("GatewayRequestId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("varchar(2000)");
+
+                    b.Property<string>("Metadata")
+                        .HasMaxLength(4000)
+                        .HasColumnType("varchar(4000)");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime>("Timestamp")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GatewayRequestId");
+
+                    b.HasIndex("OrganizationId", "Timestamp");
+
+                    b.ToTable("SchedulerEvents", (string)null);
                 });
 
             modelBuilder.Entity("PodPilot.Infrastructure.Identity.ApplicationRole", b =>

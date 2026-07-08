@@ -97,6 +97,15 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     public DbSet<GatewayRequest> GatewayRequests => Set<GatewayRequest>();
 
     /// <inheritdoc />
+    public DbSet<RequestQueueEntry> RequestQueueEntries => Set<RequestQueueEntry>();
+
+    /// <inheritdoc />
+    public DbSet<RequestExecution> RequestExecutions => Set<RequestExecution>();
+
+    /// <inheritdoc />
+    public DbSet<SchedulerEvent> SchedulerEvents => Set<SchedulerEvent>();
+
+    /// <inheritdoc />
     public DbSet<AiModel> AiModels => Set<AiModel>();
 
     /// <inheritdoc />
@@ -160,6 +169,12 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     IQueryable<GatewayRoute> IApplicationDbContext.GatewayRoutes => GatewayRoutes;
 
     IQueryable<GatewayRequest> IApplicationDbContext.GatewayRequests => GatewayRequests;
+
+    IQueryable<RequestQueueEntry> IApplicationDbContext.RequestQueueEntries => RequestQueueEntries;
+
+    IQueryable<RequestExecution> IApplicationDbContext.RequestExecutions => RequestExecutions;
+
+    IQueryable<SchedulerEvent> IApplicationDbContext.SchedulerEvents => SchedulerEvents;
 
     IQueryable<AiModel> IApplicationDbContext.AiModels => AiModels;
 
@@ -288,6 +303,18 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     /// <inheritdoc />
     public Task AddGatewayRequestAsync(GatewayRequest request, CancellationToken cancellationToken = default) =>
         GatewayRequests.AddAsync(request, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public Task AddRequestQueueEntryAsync(RequestQueueEntry entry, CancellationToken cancellationToken = default) =>
+        RequestQueueEntries.AddAsync(entry, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public Task AddRequestExecutionAsync(RequestExecution execution, CancellationToken cancellationToken = default) =>
+        RequestExecutions.AddAsync(execution, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public Task AddSchedulerEventAsync(SchedulerEvent schedulerEvent, CancellationToken cancellationToken = default) =>
+        SchedulerEvents.AddAsync(schedulerEvent, cancellationToken).AsTask();
 
     /// <inheritdoc />
     public Task AddAiModelAsync(AiModel model, CancellationToken cancellationToken = default) =>

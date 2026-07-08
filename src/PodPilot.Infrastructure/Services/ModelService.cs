@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using PodPilot.Application.Common;
 using PodPilot.Application.Common.Exceptions;
 using PodPilot.Application.Common.Interfaces;
 using PodPilot.Application.Models;
@@ -65,8 +66,10 @@ public sealed class ModelService : IModelService
             .FirstOrDefaultAsync(cancellationToken)
             ?? throw new NotFoundException("Pod", podId);
 
+        var wasWoken = false;
         if (pod.Status != PodStatus.Running)
         {
+            wasWoken = true;
             logger.LogInformation("Waking pod {PodId} for model operation", podId);
             var wakeResult = await podLifecycleService.WakePodAsync(
                 podId,
@@ -87,7 +90,13 @@ public sealed class ModelService : IModelService
         }
 
         var baseUrl = GetOllamaBaseUrl(pod);
-        var healthy = await inferenceClient.WaitForHealthyAsync(baseUrl, cancellationToken);
+        var healthy = wasWoken
+            ? await inferenceClient.WaitForHealthyAsync(baseUrl, cancellationToken)
+            : await inferenceClient.WaitForHealthyAsync(
+                baseUrl,
+                cancellationToken,
+                maxAttempts: ApplicationConstants.MaxOllamaQuickHealthCheckAttempts,
+                requestTimeout: ApplicationConstants.OllamaQuickHealthCheckTimeout);
         if (!healthy)
         {
             throw new ValidationException("Ollama is not reachable on the selected pod.");
