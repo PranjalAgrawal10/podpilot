@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using PodPilot.Application.Common.Interfaces;
 using PodPilot.Application.Models.Gateway;
+using PodPilot.Application.Models.Orchestration;
 using PodPilot.Domain.Entities;
 using PodPilot.Domain.Enums;
 
@@ -12,13 +13,15 @@ namespace PodPilot.Infrastructure.Gateway;
 public sealed class GatewayRouter : IGatewayRouter
 {
     private readonly IApplicationDbContext dbContext;
+    private readonly IPodOrchestrator podOrchestrator;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="GatewayRouter"/> class.
     /// </summary>
-    public GatewayRouter(IApplicationDbContext dbContext)
+    public GatewayRouter(IApplicationDbContext dbContext, IPodOrchestrator podOrchestrator)
     {
         this.dbContext = dbContext;
+        this.podOrchestrator = podOrchestrator;
     }
 
     /// <inheritdoc />
@@ -27,6 +30,24 @@ public sealed class GatewayRouter : IGatewayRouter
         string? model,
         CancellationToken cancellationToken = default)
     {
+        var orchestratorResult = await podOrchestrator.ResolvePodAsync(
+            new OrchestratorRouteRequest
+            {
+                OrganizationId = organizationId,
+                ModelName = model,
+            },
+            cancellationToken);
+
+        if (orchestratorResult is not null)
+        {
+            return new GatewayRouteResult
+            {
+                Pod = orchestratorResult.Pod,
+                Model = orchestratorResult.Model ?? model,
+                BaseUrl = orchestratorResult.BaseUrl,
+            };
+        }
+
         GatewayRoute? route = null;
 
         if (!string.IsNullOrWhiteSpace(model))

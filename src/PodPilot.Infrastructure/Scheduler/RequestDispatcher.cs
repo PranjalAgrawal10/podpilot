@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using PodPilot.Application.Common;
 using PodPilot.Application.Common.Interfaces;
 using PodPilot.Application.Models.Gateway;
+using PodPilot.Application.Models.Orchestration;
 using PodPilot.Application.Models.Scheduler;
 using PodPilot.Domain.Entities;
 using PodPilot.Domain.Enums;
@@ -18,6 +19,7 @@ public sealed class RequestDispatcher : IRequestDispatcher
 {
     private readonly IApplicationDbContext dbContext;
     private readonly IGatewayRouter router;
+    private readonly IPodOrchestrator podOrchestrator;
     private readonly IStreamingProxy streamingProxy;
     private readonly IInferenceClient inferenceClient;
     private readonly IPodLifecycleService lifecycleService;
@@ -31,6 +33,7 @@ public sealed class RequestDispatcher : IRequestDispatcher
     public RequestDispatcher(
         IApplicationDbContext dbContext,
         IGatewayRouter router,
+        IPodOrchestrator podOrchestrator,
         IStreamingProxy streamingProxy,
         IInferenceClient inferenceClient,
         IPodLifecycleService lifecycleService,
@@ -40,6 +43,7 @@ public sealed class RequestDispatcher : IRequestDispatcher
     {
         this.dbContext = dbContext;
         this.router = router;
+        this.podOrchestrator = podOrchestrator;
         this.streamingProxy = streamingProxy;
         this.inferenceClient = inferenceClient;
         this.lifecycleService = lifecycleService;
@@ -176,6 +180,28 @@ public sealed class RequestDispatcher : IRequestDispatcher
     {
         try
         {
+            var orchestratorResult = await podOrchestrator.ResolvePodAsync(
+                new OrchestratorRouteRequest
+                {
+                    OrganizationId = organizationId,
+                    ModelName = modelName,
+                    PreferredPodId = preferredPodId,
+                },
+                cancellationToken);
+
+            if (orchestratorResult is not null
+                && orchestratorResult.CurrentLoad < ApplicationConstants.SchedulerMaxConcurrentPerPod)
+            {
+                return new PodSelectionResult
+                {
+                    PodId = orchestratorResult.Pod.Id,
+                    BaseUrl = orchestratorResult.BaseUrl,
+                    Model = orchestratorResult.Model,
+                    ModelId = null,
+                    CurrentLoad = orchestratorResult.CurrentLoad,
+                };
+            }
+
             var route = await router.ResolveAsync(organizationId, modelName, cancellationToken);
             var candidates = new List<(GpuPod Pod, string BaseUrl, string? Model, Guid? ModelId)>
             {

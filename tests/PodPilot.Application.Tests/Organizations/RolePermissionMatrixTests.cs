@@ -22,6 +22,18 @@ public class RolePermissionMatrixTests
     [InlineData(OrganizationRole.Viewer, PermissionNames.ProviderUpdate, false)]
     [InlineData(OrganizationRole.Developer, PermissionNames.ProviderUpdate, true)]
     [InlineData(OrganizationRole.Admin, PermissionNames.ProviderRead, true)]
+    [InlineData(OrganizationRole.Admin, PermissionNames.OrchestratorRead, true)]
+    [InlineData(OrganizationRole.Admin, PermissionNames.OrchestratorManage, true)]
+    [InlineData(OrganizationRole.Developer, PermissionNames.OrchestratorRead, true)]
+    [InlineData(OrganizationRole.Developer, PermissionNames.OrchestratorManage, true)]
+    [InlineData(OrganizationRole.Viewer, PermissionNames.OrchestratorRead, true)]
+    [InlineData(OrganizationRole.Viewer, PermissionNames.OrchestratorManage, false)]
+    [InlineData(OrganizationRole.Admin, PermissionNames.ObservabilityRead, true)]
+    [InlineData(OrganizationRole.Admin, PermissionNames.ObservabilityExport, true)]
+    [InlineData(OrganizationRole.Developer, PermissionNames.ObservabilityRead, true)]
+    [InlineData(OrganizationRole.Developer, PermissionNames.ObservabilityExport, false)]
+    [InlineData(OrganizationRole.Viewer, PermissionNames.ObservabilityRead, true)]
+    [InlineData(OrganizationRole.Viewer, PermissionNames.ObservabilityExport, false)]
     public void HasPermission_ReturnsExpectedResult(
         OrganizationRole role,
         string permission,

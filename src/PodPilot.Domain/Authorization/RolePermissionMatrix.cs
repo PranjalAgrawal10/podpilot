@@ -36,6 +36,10 @@ public static class RolePermissionMatrix
                     PermissionNames.MemberManage,
                     PermissionNames.MemberRoleUpdate,
                     PermissionNames.InvitationCreate,
+                    PermissionNames.OrchestratorRead,
+                    PermissionNames.OrchestratorManage,
+                    PermissionNames.ObservabilityRead,
+                    PermissionNames.ObservabilityExport,
                 },
             [OrganizationRole.Developer] =
                 new HashSet<string>
@@ -57,6 +61,9 @@ public static class RolePermissionMatrix
                     PermissionNames.GatewayManage,
                     PermissionNames.DashboardView,
                     PermissionNames.MemberRead,
+                    PermissionNames.OrchestratorRead,
+                    PermissionNames.OrchestratorManage,
+                    PermissionNames.ObservabilityRead,
                 },
             [OrganizationRole.Viewer] =
                 new HashSet<string>
@@ -69,6 +76,8 @@ public static class RolePermissionMatrix
                     PermissionNames.DashboardView,
                     PermissionNames.BillingView,
                     PermissionNames.MemberRead,
+                    PermissionNames.OrchestratorRead,
+                    PermissionNames.ObservabilityRead,
                 },
         };
 

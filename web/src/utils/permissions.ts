@@ -23,6 +23,10 @@ const ROLE_PERMISSIONS: Record<OrganizationRole, readonly Permission[]> = {
     PERMISSIONS.MemberManage,
     PERMISSIONS.MemberRoleUpdate,
     PERMISSIONS.InvitationCreate,
+    PERMISSIONS.OrchestratorRead,
+    PERMISSIONS.OrchestratorManage,
+    PERMISSIONS.ObservabilityRead,
+    PERMISSIONS.ObservabilityExport,
   ],
   Developer: [
     PERMISSIONS.OrganizationRead,
@@ -38,6 +42,9 @@ const ROLE_PERMISSIONS: Record<OrganizationRole, readonly Permission[]> = {
     PERMISSIONS.ModelDelete,
     PERMISSIONS.DashboardView,
     PERMISSIONS.MemberRead,
+    PERMISSIONS.OrchestratorRead,
+    PERMISSIONS.OrchestratorManage,
+    PERMISSIONS.ObservabilityRead,
   ],
   Viewer: [
     PERMISSIONS.OrganizationRead,
@@ -46,6 +53,8 @@ const ROLE_PERMISSIONS: Record<OrganizationRole, readonly Permission[]> = {
     PERMISSIONS.BillingView,
     PERMISSIONS.MemberRead,
     PERMISSIONS.ProviderRead,
+    PERMISSIONS.OrchestratorRead,
+    PERMISSIONS.ObservabilityRead,
   ],
 };
 

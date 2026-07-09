@@ -1,6 +1,6 @@
 # PodPilot
 
-**PodPilot** is an AI Infrastructure Autopilot that automatically manages GPU pods, AI models, and inference providers. This repository contains **Part 1** (authentication foundation), **Part 2** (multi-tenant organization management), **Part 3** (provider management abstraction), **Part 4** (GPU pod management), **Part 5** (automatic GPU lifecycle management), **Part 6** (AI Gateway), **Part 7** (Ollama model management), and **Part 8** (smart request scheduler).
+**PodPilot** is an AI Infrastructure Autopilot that automatically manages GPU pods, AI models, and inference providers. This repository contains **Part 1** (authentication foundation), **Part 2** (multi-tenant organization management), **Part 3** (provider management abstraction), **Part 4** (GPU pod management), **Part 5** (automatic GPU lifecycle management), **Part 6** (AI Gateway), **Part 7** (Ollama model management), **Part 8** (smart request scheduler), **Part 9** (multi-pod orchestration and auto scaling), and **Part 10** (observability, monitoring, and cost analytics).
 
 ---
 
@@ -933,14 +933,324 @@ Docker Compose includes a `redis` service. Tests use in-memory queue/locks autom
 
 ---
 
-## What's Next (Part 9+)
+## Part 9 — Multi-Pod Orchestration & Auto Scaling
 
-Part 8 intentionally excludes:
+Part 9 transforms PodPilot from a single GPU manager into a **distributed inference platform** with pod pools, load balancing, automatic scale up/down, capacity planning, warm standby pods, and high-availability failover.
 
-- Billing
-- Multi-provider routing
-- Analytics
+### Architecture
+
+```
+Incoming request (Gateway / Scheduler)
+        ↓
+   IPodOrchestrator.ResolvePodAsync
+        ↓
+   IPodPoolManager.ResolvePoolAsync (model → pool)
+        ↓
+   ILoadBalancer.SelectPodAsync (strategy per org)
+        ↓
+   Healthy GpuPod → Ollama inference
+```
+
+| Interface | Responsibility |
+|-----------|----------------|
+| `IPodOrchestrator` | Coordinates routing, failover, and status |
+| `IPodPoolManager` | Pool CRUD, membership, healthy member resolution |
+| `ILoadBalancer` | Round-robin, least-busy, least-queue, lowest-latency, weighted, sticky sessions |
+| `IAutoScaler` | Threshold-based scale up/down with drain-before-shutdown |
+| `ICapacityPlanner` | Current/projected/remaining capacity and scale recommendations |
+
+### Pod Pools
+
+Pools group multiple pods and models with shared scaling policies:
+
+| Pool Type | Use Case |
+|-----------|----------|
+| Development | Dev workloads |
+| Production | Production inference |
+| Testing | QA / staging |
+| Custom | Organization-defined |
+
+Each pool contains members (`PodPoolMembers`), served models (`PodPoolModels`), and an optional `ScalingPolicy`.
+
+### Orchestration Pod States
+
+`Provisioning` → `Starting` → `Warming` → `Healthy` → `Busy` → `Draining` → `Stopping` → `Stopped` / `Failed` / `Deleting`
+
+### Load Balancing
+
+Configurable per organization via `LoadBalancerConfig`:
+
+| Strategy | Behavior |
+|----------|----------|
+| RoundRobin | Rotate across healthy pods (Redis-backed index) |
+| LeastBusy | Lowest active request count |
+| LeastQueue | Shortest queue depth |
+| LowestLatency | Best measured latency |
+| Weighted | Distribution by pod weight |
+| StickySession | Session affinity via Redis |
+
+### Auto Scaling
+
+**Scale Up** — triggered when thresholds exceeded:
+
+- Queue length
+- Average wait time
+- GPU utilization
+- Concurrent streams
+- Average latency
+
+Flow: evaluate → create pod via provider template → wait healthy → join pool.
+
+**Scale Down** — only when safe:
+
+- Pod is idle
+- Minimum runtime satisfied
+- No active streams
+- Drain pod → shutdown → remove from pool
+
+Never interrupts active requests.
+
+### Failover
+
+When a pod fails:
+
+1. Mark member as `Failed`
+2. Reassign queued requests to a healthy pod
+3. Wake replacement pod if needed
+4. Broadcast `FailoverTriggered` via SignalR
+
+### Capacity Planning
+
+`ICapacityPlanner` calculates:
+
+- Current / projected / remaining capacity (0–1)
+- Maximum throughput (requests/sec)
+- Suggested scale adjustment
+- GPU utilization and queue metrics
+
+Snapshots stored in `CapacitySnapshots` every minute.
+
+### Pod Health
+
+`PodHealthWorker` runs every **30 seconds**:
+
+- GPU, Ollama, models, latency, memory, disk, network
+- Updates member orchestration state
+- Stores history in `PodHealthMetrics`
+
+### Database Tables
+
+| Table | Description |
+|-------|-------------|
+| `PodPools` | Pool definitions with auto-provision templates |
+| `PodPoolMembers` | Pod membership and orchestration state |
+| `PodPoolModels` | Models served by each pool |
+| `ScalingPolicies` | Min/max pods, thresholds, warm standby count |
+| `ScalingEvents` | Audit log of scale up/down actions |
+| `PodHealthMetrics` | Point-in-time health measurements |
+| `CapacitySnapshots` | Capacity planning snapshots |
+| `LoadBalancerConfigs` | Per-org load balancing strategy |
+
+### API Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/v1/pod-pools` | List pod pools |
+| POST | `/api/v1/pod-pools` | Create pod pool |
+| PUT | `/api/v1/pod-pools/{id}` | Update pod pool |
+| DELETE | `/api/v1/pod-pools/{id}` | Delete pod pool |
+| GET | `/api/v1/orchestrator` | Orchestrator status |
+| GET | `/api/v1/autoscaler` | Auto-scaler status |
+| GET | `/api/v1/capacity` | Capacity planning data |
+| POST | `/api/v1/autoscaler/scale-up` | Manual scale up |
+| POST | `/api/v1/autoscaler/scale-down` | Manual scale down |
+| GET | `/api/v1/load-balancer` | Load balancer config |
+| PUT | `/api/v1/load-balancer` | Update load balancer config |
+| GET | `/api/v1/orchestrator/health` | Pod health metrics |
+| GET | `/api/v1/orchestrator/scaling-events` | Scaling event history |
+
+### SignalR
+
+Hub: `/hubs/orchestrator`
+
+Events: `PodAdded`, `PodRemoved`, `ScalingStarted`, `ScalingCompleted`, `PodFailed`, `FailoverTriggered`, `PoolUpdated`
+
+### Background Workers
+
+| Worker | Interval | Purpose |
+|--------|----------|---------|
+| `PodHealthWorker` | 30s | Health checks + metrics |
+| `AutoScalerWorker` | 60s | Evaluate scaling policies |
+| `CapacityPlannerWorker` | 60s | Record capacity snapshots |
+
+### Scheduler Integration
+
+The request scheduler and gateway router now resolve pods via `IPodOrchestrator` first:
+
+```
+Scheduler → LoadBalancer → PodPool → Pod (healthy only)
+```
+
+Falls back to legacy single-pod routing when no pools exist.
+
+### Permissions
+
+| Permission | Owner | Admin | Developer | Viewer |
+|------------|-------|-------|-----------|--------|
+| `Orchestrator.Read` | ✓ | ✓ | ✓ | ✓ |
+| `Orchestrator.Manage` | ✓ | ✓ | ✓ | |
+
+### Frontend
+
+| Route | Page |
+|-------|------|
+| `/orchestration/pools` | Pod pool management |
+| `/orchestration/scaling` | Auto-scaling status and manual controls |
+| `/orchestration/capacity` | Capacity planning dashboard |
+| `/orchestration/health` | Pod health metrics |
+| `/orchestration/load-balancer` | Load balancer configuration |
+
+Dashboard shows: running/healthy pods, pool capacity, GPU utilization, scaling events, average queue, throughput.
+
+### High Availability
+
+- Multiple pods per pool with load balancing
+- Warm standby pods maintained per scaling policy
+- Automatic failover with request reassignment
+- Drain-before-shutdown prevents request interruption
+- Health-based exclusion of unhealthy pods from routing
+
+---
+
+## Part 10 — Observability, Monitoring & Cost Analytics
+
+Part 10 provides complete visibility into AI infrastructure: real-time metrics, cost analytics, health monitoring, alerts, and exportable reports.
+
+### Architecture
+
+```
+Background Workers (60s)
+        ↓
+IMetricsCollector → MetricsSnapshots (MySQL)
+ICostCalculator   → CostSnapshots (MySQL)
+IMonitoringService → AlertHistory + SystemHealthHistory
+        ↓
+IMetricsAggregator → Live dashboard metrics (Redis cache)
+IAnalyticsService → Usage statistics from gateway requests
+        ↓
+SignalR ObservabilityHub → React dashboards
+```
+
+| Interface | Responsibility |
+|-----------|----------------|
+| `IMetricsCollector` | Collect GPU/CPU/RAM/disk/network/queue metrics and persist snapshots |
+| `ICostCalculator` | Hourly/daily/weekly/monthly cost + auto-shutdown savings |
+| `IAnalyticsService` | Request volume, model/provider/pod usage breakdowns |
+| `IMonitoringService` | System health checks and alert threshold detection |
+| `IMetricsAggregator` | Live dashboard metrics with Redis caching |
+
+### Metrics Collected
+
+GPU utilization, GPU memory (VRAM), CPU, RAM, disk, network I/O, temperature, power usage, active streams, queue size, inference count, tokens generated, average latency, error rate.
+
+### Cost Engine
+
+Calculates per organization, provider, pod, and model:
+
+- Current hourly cost
+- Daily / weekly / monthly cost
+- Projected monthly cost
+- Auto-shutdown savings from idle pod detection
+
+### Health Monitoring
+
+| Component | Checks |
+|-----------|--------|
+| System | Overall platform status |
+| Provider | Provider health snapshots |
+| Pod | Orchestration pod health metrics |
+| Gateway | Recent error rate |
+| Ollama | Model health status |
+| Database | EF Core connectivity |
+| Redis | Connection multiplexer ping |
+| SignalR | Hub availability |
+
+### Alerts
+
+Threshold-based alerts for: high GPU usage, high queue length, high latency, pod failure, provider failure, disk full, memory pressure, model failure, repeated gateway errors.
+
+### Database Tables
+
+| Table | Description |
+|-------|-------------|
+| `MetricsSnapshots` | Point-in-time infrastructure metrics |
+| `CostSnapshots` | Cost calculations over time |
+| `UsageStatistics` | Aggregated usage per period |
+| `AlertHistory` | Raised and resolved alerts |
+| `SystemHealthHistory` | Component health over time |
+
+### API Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/v1/metrics` | Historical metrics snapshots |
+| GET | `/api/v1/metrics/live` | Live dashboard metrics |
+| GET | `/api/v1/cost` | Cost summary |
+| GET | `/api/v1/analytics` | Usage analytics |
+| GET | `/api/v1/health/system` | System health |
+| GET | `/api/v1/health/pods` | Pod health overview |
+| GET | `/api/v1/health/providers` | Provider health overview |
+| GET | `/api/v1/alerts` | Alert history |
+| GET | `/api/v1/observability/export` | Export CSV/JSON/Excel |
+
+### SignalR
+
+Hub: `/hubs/observability`
+
+Events: `MetricsUpdated`, `CostUpdated`, `AlertRaised`, `PodHealthChanged`, `ProviderHealthChanged`, `QueueUpdated`
+
+### Background Workers
+
+| Worker | Interval | Purpose |
+|--------|----------|---------|
+| `MetricsCollectionWorker` | 60s | Collect and persist metrics |
+| `CostSnapshotWorker` | 60s | Record cost snapshots |
+| `MonitoringWorker` | 60s | Health checks and alert detection |
+
+### Permissions
+
+| Permission | Owner | Admin | Developer | Viewer |
+|------------|-------|-------|-----------|--------|
+| `Observability.Read` | ✓ | ✓ | ✓ | ✓ |
+| `Observability.Export` | ✓ | ✓ | | |
+
+### Frontend
+
+| Route | Page |
+|-------|------|
+| `/observability` | Overview dashboard with stat cards and charts |
+| `/observability/metrics` | GPU/CPU/RAM charts over time |
+| `/observability/analytics` | Request volume, model/provider usage |
+| `/observability/health` | System/pod/provider health |
+| `/observability/alerts` | Alert list with filters |
+| `/observability/costs` | Cost summary, charts, export |
+
+Dashboard also shows live observability metrics (GPU util, VRAM, today's cost, latency, active requests).
+
+### Export
+
+Supports CSV, JSON, and Excel export for metrics, costs, usage, alerts, and health data. Filterable by organization, provider, pod, model, and date range.
+
+---
+
+## What's Next (Part 11+)
+
+Part 10 intentionally excludes:
+
+- Billing & payments
 - Marketplace
+- Multi-cloud routing
+- Kubernetes support
 
 ---
 

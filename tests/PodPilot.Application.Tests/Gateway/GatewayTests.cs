@@ -3,6 +3,7 @@ using System.Text.Json;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using PodPilot.Application.Common.Interfaces;
+using PodPilot.Application.Models.Orchestration;
 using PodPilot.Domain.Entities;
 using PodPilot.Domain.Enums;
 using PodPilot.Infrastructure.Gateway;
@@ -18,7 +19,7 @@ public class GatewayRouterTests
         var podId = Guid.NewGuid();
         var dbContext = CreateContext(organizationId, podId, "llama3", "http://10.0.0.1:11434");
 
-        var router = new GatewayRouter(dbContext);
+        var router = new GatewayRouter(dbContext, new NoOpPodOrchestrator());
         var result = await router.ResolveAsync(organizationId, "llama3");
 
         Assert.Equal(podId, result.Pod.Id);
@@ -33,7 +34,7 @@ public class GatewayRouterTests
         var podId = Guid.NewGuid();
         var dbContext = CreateContext(organizationId, podId, "default-model", "http://10.0.0.2:11434", isDefault: true);
 
-        var router = new GatewayRouter(dbContext);
+        var router = new GatewayRouter(dbContext, new NoOpPodOrchestrator());
         var result = await router.ResolveAsync(organizationId, "unknown-model");
 
         Assert.Equal(podId, result.Pod.Id);
@@ -71,6 +72,26 @@ public class GatewayRouterTests
         });
         context.SaveChanges();
         return context;
+    }
+
+    private sealed class NoOpPodOrchestrator : IPodOrchestrator
+    {
+        public Task<OrchestratorRouteResult?> ResolvePodAsync(
+            OrchestratorRouteRequest request,
+            CancellationToken cancellationToken = default) =>
+            Task.FromResult<OrchestratorRouteResult?>(null);
+
+        public Task<FailoverResult> HandleFailoverAsync(
+            Guid organizationId,
+            Guid failedPodId,
+            Guid? requestId,
+            CancellationToken cancellationToken = default) =>
+            Task.FromResult(new FailoverResult { Success = false });
+
+        public Task<OrchestratorStatus> GetStatusAsync(
+            Guid organizationId,
+            CancellationToken cancellationToken = default) =>
+            Task.FromResult(new OrchestratorStatus());
     }
 }
 

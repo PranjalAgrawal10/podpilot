@@ -74,6 +74,18 @@ public static class PermissionNames
     /// <summary>Send invitations.</summary>
     public const string InvitationCreate = "Invitation.Create";
 
+    /// <summary>Read orchestration, pools, and capacity.</summary>
+    public const string OrchestratorRead = "Orchestrator.Read";
+
+    /// <summary>Manage pod pools and auto-scaling.</summary>
+    public const string OrchestratorManage = "Orchestrator.Manage";
+
+    /// <summary>Read observability metrics, health, and analytics.</summary>
+    public const string ObservabilityRead = "Observability.Read";
+
+    /// <summary>Export observability data.</summary>
+    public const string ObservabilityExport = "Observability.Export";
+
     /// <summary>All defined permissions.</summary>
     public static readonly IReadOnlyList<string> All =
     [
@@ -100,5 +112,9 @@ public static class PermissionNames
         MemberManage,
         MemberRoleUpdate,
         InvitationCreate,
+        OrchestratorRead,
+        OrchestratorManage,
+        ObservabilityRead,
+        ObservabilityExport,
     ];
 }

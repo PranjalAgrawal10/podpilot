@@ -26,6 +26,8 @@ builder.Host.UseSerilog((context, services, configuration) =>
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddScheduler(builder.Configuration, builder.Environment);
+builder.Services.AddOrchestratorLayer(builder.Configuration, builder.Environment);
+builder.Services.AddObservabilityLayer(builder.Configuration, builder.Environment);
 builder.Services.AddInfrastructureHostedServices(builder.Environment);
 
 builder.Services.AddControllers();
@@ -106,6 +108,8 @@ app.MapControllers();
 app.MapHub<PodPilot.Infrastructure.Hubs.PodStatusHub>("/hubs/pods");
 app.MapHub<PodPilot.Infrastructure.Hubs.GatewayHub>("/hubs/gateway");
 app.MapHub<PodPilot.Infrastructure.Hubs.ModelHub>("/hubs/models");
+app.MapHub<PodPilot.Infrastructure.Hubs.OrchestratorHub>("/hubs/orchestrator");
+app.MapHub<PodPilot.Infrastructure.Hubs.ObservabilityHub>("/hubs/observability");
 
 try
 {

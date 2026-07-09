@@ -169,9 +169,74 @@ public interface IApplicationDbContext
     IQueryable<DatabaseMigrationHistory> DatabaseMigrationHistory { get; }
 
     /// <summary>
-    /// Gets database seeder audit records.
+    /// Gets the database seeder audit records.
     /// </summary>
     IQueryable<DatabaseSeedHistory> DatabaseSeedHistory { get; }
+
+    /// <summary>
+    /// Gets the pod pools set.
+    /// </summary>
+    IQueryable<PodPool> PodPools { get; }
+
+    /// <summary>
+    /// Gets the pod pool members set.
+    /// </summary>
+    IQueryable<PodPoolMember> PodPoolMembers { get; }
+
+    /// <summary>
+    /// Gets the pod pool models set.
+    /// </summary>
+    IQueryable<PodPoolModel> PodPoolModels { get; }
+
+    /// <summary>
+    /// Gets the scaling policies set.
+    /// </summary>
+    IQueryable<ScalingPolicy> ScalingPolicies { get; }
+
+    /// <summary>
+    /// Gets the scaling events set.
+    /// </summary>
+    IQueryable<ScalingEvent> ScalingEvents { get; }
+
+    /// <summary>
+    /// Gets the pod health metrics set.
+    /// </summary>
+    IQueryable<PodHealthMetric> PodHealthMetrics { get; }
+
+    /// <summary>
+    /// Gets the capacity snapshots set.
+    /// </summary>
+    IQueryable<CapacitySnapshot> CapacitySnapshots { get; }
+
+    /// <summary>
+    /// Gets the load balancer configs set.
+    /// </summary>
+    IQueryable<LoadBalancerConfig> LoadBalancerConfigs { get; }
+
+    /// <summary>
+    /// Gets the metrics snapshots set.
+    /// </summary>
+    IQueryable<MetricsSnapshot> MetricsSnapshots { get; }
+
+    /// <summary>
+    /// Gets the cost snapshots set.
+    /// </summary>
+    IQueryable<CostSnapshot> CostSnapshots { get; }
+
+    /// <summary>
+    /// Gets the usage statistics set.
+    /// </summary>
+    IQueryable<UsageStatistics> UsageStatistics { get; }
+
+    /// <summary>
+    /// Gets the alert history set.
+    /// </summary>
+    IQueryable<AlertHistory> AlertHistory { get; }
+
+    /// <summary>
+    /// Gets the system health history set.
+    /// </summary>
+    IQueryable<SystemHealthHistory> SystemHealthHistory { get; }
 
     /// <summary>
     /// Adds an audit log entry.
@@ -317,6 +382,86 @@ public interface IApplicationDbContext
     /// Adds a model health history entry.
     /// </summary>
     Task AddModelHealthHistoryAsync(ModelHealthHistory history, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Adds a pod pool.
+    /// </summary>
+    Task AddPodPoolAsync(PodPool pool, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Adds a pod pool member.
+    /// </summary>
+    Task AddPodPoolMemberAsync(PodPoolMember member, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Adds a pod pool model.
+    /// </summary>
+    Task AddPodPoolModelAsync(PodPoolModel model, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Adds a scaling policy.
+    /// </summary>
+    Task AddScalingPolicyAsync(ScalingPolicy policy, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Adds a scaling event.
+    /// </summary>
+    Task AddScalingEventAsync(ScalingEvent scalingEvent, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Adds a pod health metric.
+    /// </summary>
+    Task AddPodHealthMetricAsync(PodHealthMetric metric, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Adds a capacity snapshot.
+    /// </summary>
+    Task AddCapacitySnapshotAsync(CapacitySnapshot snapshot, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Adds a load balancer config.
+    /// </summary>
+    Task AddLoadBalancerConfigAsync(LoadBalancerConfig config, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Adds a metrics snapshot.
+    /// </summary>
+    Task AddMetricsSnapshotAsync(MetricsSnapshot snapshot, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Adds a cost snapshot.
+    /// </summary>
+    Task AddCostSnapshotAsync(CostSnapshot snapshot, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Adds usage statistics.
+    /// </summary>
+    Task AddUsageStatisticsAsync(UsageStatistics statistics, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Adds an alert history entry.
+    /// </summary>
+    Task AddAlertHistoryAsync(AlertHistory alert, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Adds a system health history entry.
+    /// </summary>
+    Task AddSystemHealthHistoryAsync(SystemHealthHistory history, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Removes a pod pool and its children.
+    /// </summary>
+    Task RemovePodPoolAsync(Guid poolId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Removes pod pool models for a pool.
+    /// </summary>
+    Task RemovePodPoolModelsAsync(Guid poolId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Removes a pod pool member.
+    /// </summary>
+    Task RemovePodPoolMemberAsync(Guid memberId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Removes a gateway route.

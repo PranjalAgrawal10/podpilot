@@ -172,6 +172,24 @@ public static class DependencyInjection
             .AddSchedulerHostedServices(environment);
 
     /// <summary>
+    /// Registers orchestrator layer services. Call after <see cref="AddScheduler"/>.
+    /// </summary>
+    public static IServiceCollection AddOrchestratorLayer(
+        this IServiceCollection services,
+        IConfiguration configuration,
+        IHostEnvironment environment) =>
+        services.AddOrchestrator(configuration, environment);
+
+    /// <summary>
+    /// Registers observability layer services. Call after <see cref="AddOrchestratorLayer"/>.
+    /// </summary>
+    public static IServiceCollection AddObservabilityLayer(
+        this IServiceCollection services,
+        IConfiguration configuration,
+        IHostEnvironment environment) =>
+        services.AddObservability(configuration, environment);
+
+    /// <summary>
     /// Registers background services for non-testing environments.
     /// </summary>
     /// <param name="services">The service collection.</param>

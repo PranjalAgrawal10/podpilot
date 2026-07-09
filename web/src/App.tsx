@@ -32,6 +32,17 @@ import { ModelsPage } from './pages/ModelsPage';
 import { PullModelPage } from './pages/PullModelPage';
 import { ModelDetailsPage } from './pages/ModelDetailsPage';
 import { ModelDownloadsPage } from './pages/ModelDownloadsPage';
+import { PodPoolsPage } from './pages/PodPoolsPage';
+import { AutoScalingPage } from './pages/AutoScalingPage';
+import { CapacityPage } from './pages/CapacityPage';
+import { HealthPage } from './pages/HealthPage';
+import { LoadBalancerPage } from './pages/LoadBalancerPage';
+import { ObservabilityDashboardPage } from './pages/ObservabilityDashboardPage';
+import { MetricsPage } from './pages/MetricsPage';
+import { AnalyticsPage } from './pages/AnalyticsPage';
+import { ObservabilityHealthPage } from './pages/ObservabilityHealthPage';
+import { AlertsPage } from './pages/AlertsPage';
+import { CostsPage } from './pages/CostsPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'react-toastify/dist/ReactToastify.css';
@@ -76,6 +87,17 @@ function App() {
                     <Route path="/scheduler/queue" element={<QueuePage />} />
                     <Route path="/scheduler/requests" element={<RequestsPage />} />
                     <Route path="/scheduler/requests/:id" element={<RequestDetailsPage />} />
+                    <Route path="/orchestration/pools" element={<PodPoolsPage />} />
+                    <Route path="/orchestration/scaling" element={<AutoScalingPage />} />
+                    <Route path="/orchestration/capacity" element={<CapacityPage />} />
+                    <Route path="/orchestration/health" element={<HealthPage />} />
+                    <Route path="/orchestration/load-balancer" element={<LoadBalancerPage />} />
+                    <Route path="/observability" element={<ObservabilityDashboardPage />} />
+                    <Route path="/observability/metrics" element={<MetricsPage />} />
+                    <Route path="/observability/analytics" element={<AnalyticsPage />} />
+                    <Route path="/observability/health" element={<ObservabilityHealthPage />} />
+                    <Route path="/observability/alerts" element={<AlertsPage />} />
+                    <Route path="/observability/costs" element={<CostsPage />} />
                     <Route path="/models" element={<ModelsPage />} />
                     <Route path="/models/pull" element={<PullModelPage />} />
                     <Route path="/models/downloads" element={<ModelDownloadsPage />} />

@@ -469,6 +469,10 @@ export const PERMISSIONS = {
   MemberManage: 'Member.Manage',
   MemberRoleUpdate: 'Member.RoleUpdate',
   InvitationCreate: 'Invitation.Create',
+  OrchestratorRead: 'Orchestrator.Read',
+  OrchestratorManage: 'Orchestrator.Manage',
+  ObservabilityRead: 'Observability.Read',
+  ObservabilityExport: 'Observability.Export',
 } as const;
 
 export type Permission = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];
@@ -574,4 +578,389 @@ export interface ModelDashboard {
   ollamaDetected: boolean;
   healthyModels: number;
   unhealthyModels: number;
+}
+
+export type PodPoolType = 'Development' | 'Production' | 'Testing' | 'Custom';
+
+export type LoadBalancingStrategy =
+  | 'RoundRobin'
+  | 'LeastBusy'
+  | 'LeastQueue'
+  | 'LowestLatency'
+  | 'Weighted'
+  | 'StickySession';
+
+export const POD_POOL_TYPES: PodPoolType[] = ['Development', 'Production', 'Testing', 'Custom'];
+
+export const LOAD_BALANCING_STRATEGIES: LoadBalancingStrategy[] = [
+  'RoundRobin',
+  'LeastBusy',
+  'LeastQueue',
+  'LowestLatency',
+  'Weighted',
+  'StickySession',
+];
+
+export interface ScalingPolicy {
+  id?: string;
+  name: string;
+  minPods: number;
+  maxPods: number;
+  maxQueueLength: number;
+  maxLatencyMs: number;
+  scaleUpThreshold: number;
+  scaleDownThreshold: number;
+  warmStandbyCount: number;
+  minRuntimeMinutes: number;
+  autoScaleUpEnabled: boolean;
+  autoScaleDownEnabled: boolean;
+  evaluationIntervalSeconds?: number;
+}
+
+export interface PodPoolMember {
+  id: string;
+  gpuPodId: string;
+  podName: string;
+  podStatus: string;
+  state: string;
+  weight: number;
+  isWarmStandby: boolean;
+  activeStreams: number;
+  joinedAt: string;
+  lastHealthCheckAt?: string | null;
+}
+
+export interface PodPool {
+  id: string;
+  organizationId: string;
+  name: string;
+  description?: string | null;
+  poolType: PodPoolType | string;
+  isDefault: boolean;
+  isActive: boolean;
+  providerId?: string | null;
+  gpuId?: string | null;
+  gpuType?: string | null;
+  region?: string | null;
+  templateId?: string | null;
+  imageName?: string | null;
+  scalingPolicyId?: string | null;
+  scalingPolicy?: ScalingPolicy | null;
+  models: string[];
+  members: PodPoolMember[];
+  createdAt: string;
+  updatedAt?: string | null;
+}
+
+export interface CreatePodPoolRequest {
+  name: string;
+  description?: string | null;
+  poolType?: PodPoolType | string;
+  isDefault?: boolean;
+  providerId?: string | null;
+  gpuId?: string | null;
+  gpuType?: string | null;
+  region?: string | null;
+  templateId?: string | null;
+  imageName?: string | null;
+  models?: string[];
+  podIds?: string[];
+  scalingPolicy?: ScalingPolicy;
+}
+
+export interface UpdatePodPoolRequest {
+  name?: string | null;
+  description?: string | null;
+  poolType?: PodPoolType | string | null;
+  isDefault?: boolean | null;
+  isActive?: boolean | null;
+  models?: string[];
+  podIds?: string[];
+  scalingPolicy?: ScalingPolicy;
+}
+
+export interface OrchestratorStatus {
+  poolCount: number;
+  runningPods: number;
+  healthyPods: number;
+  drainingPods: number;
+  failedPods: number;
+  queueLength: number;
+  averageLatencyMs: number;
+  requestsPerSecond: number;
+}
+
+export interface PoolScalingStatus {
+  poolId: string;
+  poolName: string;
+  currentPods: number;
+  minPods: number;
+  maxPods: number;
+  warmStandbyCount: number;
+  utilization: number;
+  scaleUpRecommended: boolean;
+  scaleDownRecommended: boolean;
+}
+
+export interface ScalingEvent {
+  id: string;
+  podPoolId?: string | null;
+  gpuPodId?: string | null;
+  direction: string;
+  triggerType: string;
+  reason: string;
+  success: boolean;
+  errorMessage?: string | null;
+  occurredAt: string;
+  podCountBefore: number;
+  podCountAfter: number;
+}
+
+export interface AutoScalerStatus {
+  pools: PoolScalingStatus[];
+  recentEvents: ScalingEvent[];
+}
+
+export interface CapacityInfo {
+  organizationId: string;
+  poolId?: string | null;
+  currentCapacity: number;
+  projectedCapacity: number;
+  remainingCapacity: number;
+  maximumThroughput: number;
+  suggestedScale: number;
+  totalPods: number;
+  healthyPods: number;
+  busyPods: number;
+  queueLength: number;
+  averageWaitTimeMs: number;
+  averageLatencyMs: number;
+  gpuUtilizationPercent: number;
+  concurrentStreams: number;
+}
+
+export interface LoadBalancerConfig {
+  strategy: LoadBalancingStrategy | string;
+  stickySessionsEnabled: boolean;
+  stickySessionTtlMinutes: number;
+}
+
+export interface UpdateLoadBalancerConfigRequest {
+  strategy: LoadBalancingStrategy | string;
+  stickySessionsEnabled: boolean;
+  stickySessionTtlMinutes: number;
+}
+
+export interface PodHealthMetric {
+  id: string;
+  gpuPodId: string;
+  recordedAt: string;
+  gpuHealthy: boolean;
+  ollamaHealthy: boolean;
+  modelsHealthy: boolean;
+  latencyMs: number;
+  gpuUtilizationPercent?: number | null;
+  memoryUsedBytes?: number | null;
+  diskUsedBytes?: number | null;
+  networkHealthy: boolean;
+  state: string;
+  errorMessage?: string | null;
+}
+
+export interface ManualScaleRequest {
+  poolId: string;
+  reason?: string | null;
+}
+
+export interface ScalingActionResult {
+  poolId: string;
+  direction: string;
+  success: boolean;
+  podId?: string | null;
+  reason: string;
+  errorMessage?: string | null;
+}
+
+export type MetricsPeriod = 'Hourly' | 'Daily' | 'Weekly' | 'Monthly';
+
+export type ObservabilityExportFormat = 'csv' | 'json' | 'excel';
+
+export type ObservabilityExportType = 'metrics' | 'cost' | 'usage' | 'alerts' | 'health';
+
+export interface MetricsSnapshot {
+  id: string;
+  recordedAt: string;
+  providerId?: string | null;
+  gpuPodId?: string | null;
+  modelName?: string | null;
+  gpuUtilizationPercent: number;
+  gpuMemoryUsedBytes?: number | null;
+  gpuMemoryTotalBytes?: number | null;
+  cpuUtilizationPercent: number;
+  memoryUsedBytes?: number | null;
+  memoryTotalBytes?: number | null;
+  diskUsedBytes?: number | null;
+  diskTotalBytes?: number | null;
+  networkInBytes: number;
+  networkOutBytes: number;
+  temperatureCelsius?: number | null;
+  powerWatts?: number | null;
+  activeStreams: number;
+  queueSize: number;
+  inferenceCount: number;
+  tokensGenerated: number;
+  averageLatencyMs: number;
+  errorRate: number;
+}
+
+export interface LiveMetrics {
+  capturedAt: string;
+  gpuUtilizationPercent: number;
+  cpuUtilizationPercent: number;
+  activeStreams: number;
+  queueSize: number;
+  requestsPerSecond: number;
+  averageLatencyMs: number;
+  errorRate: number;
+  runningPods: number;
+  healthyPods: number;
+  failedPods: number;
+  inferenceCountLastHour: number;
+  tokensGeneratedLastHour: number;
+}
+
+export interface PodCostBreakdown {
+  podId: string;
+  podName: string;
+  hourlyCost: number;
+  periodCost: number;
+}
+
+export interface ProviderCostBreakdown {
+  providerId: string;
+  providerName: string;
+  hourlyCost: number;
+  periodCost: number;
+}
+
+export interface CostSummary {
+  period: string;
+  calculatedAt: string;
+  hourlyCost: number;
+  dailyCost: number;
+  weeklyCost: number;
+  monthlyCost: number;
+  projectedMonthlyCost: number;
+  autoShutdownSavings: number;
+  podBreakdowns: PodCostBreakdown[];
+  providerBreakdowns: ProviderCostBreakdown[];
+}
+
+export interface ModelUsageBreakdown {
+  modelName: string;
+  requestCount: number;
+  tokenCount: number;
+  averageLatencyMs: number;
+}
+
+export interface ProviderUsageBreakdown {
+  providerId: string;
+  providerName: string;
+  requestCount: number;
+  inferenceCount: number;
+}
+
+export interface PodUsageBreakdown {
+  podId: string;
+  podName: string;
+  requestCount: number;
+  uptimeSeconds: number;
+}
+
+export interface AnalyticsSummary {
+  period: string;
+  totalRequests: number;
+  totalTokens: number;
+  totalInferences: number;
+  averageLatencyMs: number;
+  errorRate: number;
+  totalUptimeSeconds: number;
+  modelBreakdowns: ModelUsageBreakdown[];
+  providerBreakdowns: ProviderUsageBreakdown[];
+  podBreakdowns: PodUsageBreakdown[];
+}
+
+export interface ComponentHealth {
+  component: string;
+  status: string;
+  message: string;
+  relatedEntityId?: string | null;
+}
+
+export interface SystemHealth {
+  checkedAt: string;
+  overallStatus: string;
+  components: ComponentHealth[];
+}
+
+export interface PodHealthEntry {
+  podId: string;
+  podName: string;
+  status: string;
+  gpuHealthy: boolean;
+  ollamaHealthy: boolean;
+  modelsHealthy: boolean;
+  latencyMs: number;
+  gpuUtilizationPercent?: number | null;
+  errorMessage?: string | null;
+  lastCheckedAt?: string | null;
+}
+
+export interface PodHealthOverview {
+  checkedAt: string;
+  totalPods: number;
+  healthyPods: number;
+  degradedPods: number;
+  unhealthyPods: number;
+  pods: PodHealthEntry[];
+}
+
+export interface ProviderHealthEntry {
+  providerId: string;
+  providerName: string;
+  status: string;
+  responseTimeMs?: number | null;
+  errorMessage?: string | null;
+  lastCheckedAt?: string | null;
+}
+
+export interface ProviderHealthOverview {
+  checkedAt: string;
+  totalProviders: number;
+  healthyProviders: number;
+  unhealthyProviders: number;
+  providers: ProviderHealthEntry[];
+}
+
+export interface ObservabilityAlert {
+  id: string;
+  raisedAt: string;
+  resolvedAt?: string | null;
+  alertType: string;
+  severity: string;
+  title: string;
+  message: string;
+  providerId?: string | null;
+  gpuPodId?: string | null;
+  modelName?: string | null;
+  isActive: boolean;
+}
+
+export interface ObservabilityFilters {
+  providerId?: string;
+  podId?: string;
+  model?: string;
+  from?: string;
+  to?: string;
+  period?: MetricsPeriod;
 }

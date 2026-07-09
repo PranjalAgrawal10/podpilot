@@ -1,4 +1,3 @@
-import { useQuery } from '@tanstack/react-query';
 import api from './api';
 import type { ApiResponse } from '../types';
 

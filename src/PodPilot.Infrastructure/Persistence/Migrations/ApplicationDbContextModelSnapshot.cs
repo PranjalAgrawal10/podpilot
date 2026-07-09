@@ -197,6 +197,63 @@ namespace PodPilot.Infrastructure.Persistence.Migrations
                     b.ToTable("AiModels", (string)null);
                 });
 
+            modelBuilder.Entity("PodPilot.Domain.Entities.AlertHistory", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("AlertType")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<Guid?>("GpuPodId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("varchar(2000)");
+
+                    b.Property<string>("ModelName")
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(256)");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid?>("ProviderId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime>("RaisedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime?>("ResolvedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Severity")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("varchar(32)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(256)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrganizationId", "RaisedAt");
+
+                    b.HasIndex("OrganizationId", "IsActive", "RaisedAt");
+
+                    b.ToTable("AlertHistory", (string)null);
+                });
+
             modelBuilder.Entity("PodPilot.Domain.Entities.AuditLog", b =>
                 {
                     b.Property<Guid>("Id")
@@ -241,6 +298,69 @@ namespace PodPilot.Infrastructure.Persistence.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("AuditLogs", (string)null);
+                });
+
+            modelBuilder.Entity("PodPilot.Domain.Entities.CapacitySnapshot", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<double>("AverageLatencyMs")
+                        .HasColumnType("double");
+
+                    b.Property<double>("AverageWaitTimeMs")
+                        .HasColumnType("double");
+
+                    b.Property<int>("BusyPods")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ConcurrentStreams")
+                        .HasColumnType("int");
+
+                    b.Property<double>("CurrentCapacity")
+                        .HasColumnType("double");
+
+                    b.Property<double>("GpuUtilizationPercent")
+                        .HasColumnType("double");
+
+                    b.Property<int>("HealthyPods")
+                        .HasColumnType("int");
+
+                    b.Property<double>("MaximumThroughput")
+                        .HasColumnType("double");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid?>("PodPoolId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<double>("ProjectedCapacity")
+                        .HasColumnType("double");
+
+                    b.Property<int>("QueueLength")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("RecordedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<double>("RemainingCapacity")
+                        .HasColumnType("double");
+
+                    b.Property<int>("SuggestedScale")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TotalPods")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrganizationId", "RecordedAt");
+
+                    b.HasIndex("OrganizationId", "PodPoolId", "RecordedAt");
+
+                    b.ToTable("CapacitySnapshots", (string)null);
                 });
 
             modelBuilder.Entity("PodPilot.Domain.Entities.ComputeProvider", b =>
@@ -302,6 +422,66 @@ namespace PodPilot.Infrastructure.Persistence.Migrations
                         .IsUnique();
 
                     b.ToTable("ComputeProviders", (string)null);
+                });
+
+            modelBuilder.Entity("PodPilot.Domain.Entities.CostSnapshot", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<decimal>("AutoShutdownSavings")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
+
+                    b.Property<decimal>("DailyCost")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
+
+                    b.Property<Guid?>("GpuPodId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<decimal>("HourlyCost")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
+
+                    b.Property<string>("ModelName")
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(256)");
+
+                    b.Property<decimal>("MonthlyCost")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("Period")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("varchar(32)");
+
+                    b.Property<decimal>("ProjectedMonthlyCost")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
+
+                    b.Property<Guid?>("ProviderId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime>("RecordedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<decimal>("WeeklyCost")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrganizationId", "RecordedAt");
+
+                    b.HasIndex("OrganizationId", "Period", "RecordedAt");
+
+                    b.ToTable("CostSnapshots", (string)null);
                 });
 
             modelBuilder.Entity("PodPilot.Domain.Entities.DatabaseMigrationHistory", b =>
@@ -796,6 +976,135 @@ namespace PodPilot.Infrastructure.Persistence.Migrations
                     b.ToTable("Invitations", (string)null);
                 });
 
+            modelBuilder.Entity("PodPilot.Domain.Entities.LoadBalancerConfig", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("CreatedBy")
+                        .HasMaxLength(128)
+                        .HasColumnType("varchar(128)");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<int>("StickySessionTtlMinutes")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("StickySessionsEnabled")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("Strategy")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("varchar(32)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(128)
+                        .HasColumnType("varchar(128)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrganizationId")
+                        .IsUnique();
+
+                    b.ToTable("LoadBalancerConfigs", (string)null);
+                });
+
+            modelBuilder.Entity("PodPilot.Domain.Entities.MetricsSnapshot", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<int>("ActiveStreams")
+                        .HasColumnType("int");
+
+                    b.Property<double>("AverageLatencyMs")
+                        .HasColumnType("double");
+
+                    b.Property<double>("CpuUtilizationPercent")
+                        .HasColumnType("double");
+
+                    b.Property<long?>("DiskTotalBytes")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("DiskUsedBytes")
+                        .HasColumnType("bigint");
+
+                    b.Property<double>("ErrorRate")
+                        .HasColumnType("double");
+
+                    b.Property<long?>("GpuMemoryTotalBytes")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("GpuMemoryUsedBytes")
+                        .HasColumnType("bigint");
+
+                    b.Property<Guid?>("GpuPodId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<double>("GpuUtilizationPercent")
+                        .HasColumnType("double");
+
+                    b.Property<int>("InferenceCount")
+                        .HasColumnType("int");
+
+                    b.Property<long?>("MemoryTotalBytes")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("MemoryUsedBytes")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("ModelName")
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(256)");
+
+                    b.Property<long>("NetworkInBytes")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("NetworkOutBytes")
+                        .HasColumnType("bigint");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<double?>("PowerWatts")
+                        .HasColumnType("double");
+
+                    b.Property<Guid?>("ProviderId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<int>("QueueSize")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("RecordedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<double?>("TemperatureCelsius")
+                        .HasColumnType("double");
+
+                    b.Property<long>("TokensGenerated")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrganizationId", "RecordedAt");
+
+                    b.HasIndex("OrganizationId", "GpuPodId", "RecordedAt");
+
+                    b.HasIndex("OrganizationId", "ProviderId", "RecordedAt");
+
+                    b.ToTable("MetricsSnapshots", (string)null);
+                });
+
             modelBuilder.Entity("PodPilot.Domain.Entities.ModelDownload", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1117,6 +1426,63 @@ namespace PodPilot.Infrastructure.Persistence.Migrations
                     b.ToTable("PodEndpoints", (string)null);
                 });
 
+            modelBuilder.Entity("PodPilot.Domain.Entities.PodHealthMetric", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<long?>("DiskUsedBytes")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("ErrorMessage")
+                        .HasMaxLength(2000)
+                        .HasColumnType("varchar(2000)");
+
+                    b.Property<bool>("GpuHealthy")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<Guid>("GpuPodId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<double?>("GpuUtilizationPercent")
+                        .HasColumnType("double");
+
+                    b.Property<int>("LatencyMs")
+                        .HasColumnType("int");
+
+                    b.Property<long?>("MemoryUsedBytes")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("ModelsHealthy")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("NetworkHealthy")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("OllamaHealthy")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime>("RecordedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("State")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("varchar(32)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GpuPodId", "RecordedAt");
+
+                    b.HasIndex("OrganizationId", "GpuPodId", "RecordedAt");
+
+                    b.ToTable("PodHealthMetrics", (string)null);
+                });
+
             modelBuilder.Entity("PodPilot.Domain.Entities.PodIdlePolicy", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1235,6 +1601,162 @@ namespace PodPilot.Infrastructure.Persistence.Migrations
                         .IsUnique();
 
                     b.ToTable("PodLifecycleLocks", (string)null);
+                });
+
+            modelBuilder.Entity("PodPilot.Domain.Entities.PodPool", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("CreatedBy")
+                        .HasMaxLength(128)
+                        .HasColumnType("varchar(128)");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(1000)
+                        .HasColumnType("varchar(1000)");
+
+                    b.Property<string>("GpuId")
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<string>("GpuType")
+                        .HasMaxLength(32)
+                        .HasColumnType("varchar(32)");
+
+                    b.Property<string>("ImageName")
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("IsDefault")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("PoolType")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("varchar(32)");
+
+                    b.Property<Guid?>("ProviderId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("Region")
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<Guid?>("ScalingPolicyId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("TemplateId")
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(128)
+                        .HasColumnType("varchar(128)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ScalingPolicyId");
+
+                    b.HasIndex("OrganizationId", "IsActive");
+
+                    b.HasIndex("OrganizationId", "IsDefault");
+
+                    b.HasIndex("OrganizationId", "Name")
+                        .IsUnique();
+
+                    b.ToTable("PodPools", (string)null);
+                });
+
+            modelBuilder.Entity("PodPilot.Domain.Entities.PodPoolMember", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<int>("ActiveStreams")
+                        .HasColumnType("int");
+
+                    b.Property<string>("AffinityTag")
+                        .HasMaxLength(64)
+                        .HasColumnType("varchar(64)");
+
+                    b.Property<DateTime?>("DrainingStartedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<Guid>("GpuPodId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<bool>("IsWarmStandby")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<DateTime>("JoinedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime?>("LastHealthCheckAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<Guid>("PodPoolId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("State")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("varchar(32)");
+
+                    b.Property<int>("Weight")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GpuPodId");
+
+                    b.HasIndex("PodPoolId", "GpuPodId")
+                        .IsUnique();
+
+                    b.HasIndex("PodPoolId", "State");
+
+                    b.ToTable("PodPoolMembers", (string)null);
+                });
+
+            modelBuilder.Entity("PodPilot.Domain.Entities.PodPoolModel", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("ModelName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<Guid>("PodPoolId")
+                        .HasColumnType("char(36)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PodPoolId", "ModelName")
+                        .IsUnique();
+
+                    b.ToTable("PodPoolModels", (string)null);
                 });
 
             modelBuilder.Entity("PodPilot.Domain.Entities.PodStatusHistory", b =>
@@ -1646,6 +2168,130 @@ namespace PodPilot.Infrastructure.Persistence.Migrations
                     b.ToTable("RolePermissions", (string)null);
                 });
 
+            modelBuilder.Entity("PodPilot.Domain.Entities.ScalingEvent", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("Direction")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("varchar(16)");
+
+                    b.Property<string>("ErrorMessage")
+                        .HasMaxLength(2000)
+                        .HasColumnType("varchar(2000)");
+
+                    b.Property<Guid?>("GpuPodId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime>("OccurredAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<int>("PodCountAfter")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PodCountBefore")
+                        .HasColumnType("int");
+
+                    b.Property<Guid?>("PodPoolId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("varchar(1000)");
+
+                    b.Property<bool>("Success")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("TriggerType")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("varchar(16)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrganizationId", "OccurredAt");
+
+                    b.HasIndex("PodPoolId", "OccurredAt");
+
+                    b.ToTable("ScalingEvents", (string)null);
+                });
+
+            modelBuilder.Entity("PodPilot.Domain.Entities.ScalingPolicy", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<bool>("AutoScaleDownEnabled")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("AutoScaleUpEnabled")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("CreatedBy")
+                        .HasMaxLength(128)
+                        .HasColumnType("varchar(128)");
+
+                    b.Property<int>("EvaluationIntervalSeconds")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MaxLatencyMs")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MaxPods")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MaxQueueLength")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MinPods")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MinRuntimeMinutes")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<double>("ScaleDownThreshold")
+                        .HasColumnType("double");
+
+                    b.Property<double>("ScaleUpThreshold")
+                        .HasColumnType("double");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(128)
+                        .HasColumnType("varchar(128)");
+
+                    b.Property<int>("WarmStandbyCount")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrganizationId", "Name")
+                        .IsUnique();
+
+                    b.ToTable("ScalingPolicies", (string)null);
+                });
+
             modelBuilder.Entity("PodPilot.Domain.Entities.SchedulerEvent", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1682,6 +2328,103 @@ namespace PodPilot.Infrastructure.Persistence.Migrations
                     b.HasIndex("OrganizationId", "Timestamp");
 
                     b.ToTable("SchedulerEvents", (string)null);
+                });
+
+            modelBuilder.Entity("PodPilot.Domain.Entities.SystemHealthHistory", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("Component")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("varchar(32)");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("varchar(2000)");
+
+                    b.Property<string>("Metadata")
+                        .HasMaxLength(4000)
+                        .HasColumnType("varchar(4000)");
+
+                    b.Property<Guid?>("OrganizationId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime>("RecordedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<Guid?>("RelatedEntityId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("varchar(32)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrganizationId", "RecordedAt");
+
+                    b.HasIndex("OrganizationId", "Component", "RecordedAt");
+
+                    b.ToTable("SystemHealthHistory", (string)null);
+                });
+
+            modelBuilder.Entity("PodPilot.Domain.Entities.UsageStatistics", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<int>("ErrorCount")
+                        .HasColumnType("int");
+
+                    b.Property<Guid?>("GpuPodId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<int>("InferenceCount")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ModelName")
+                        .HasMaxLength(256)
+                        .HasColumnType("varchar(256)");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("Period")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("varchar(32)");
+
+                    b.Property<Guid?>("ProviderId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime>("RecordedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("RequestCount")
+                        .HasColumnType("int");
+
+                    b.Property<long>("TokenCount")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("TotalLatencyMs")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("UptimeSeconds")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrganizationId", "RecordedAt");
+
+                    b.HasIndex("OrganizationId", "Period", "RecordedAt");
+
+                    b.ToTable("UsageStatistics", (string)null);
                 });
 
             modelBuilder.Entity("PodPilot.Infrastructure.Identity.ApplicationRole", b =>
@@ -1972,6 +2715,17 @@ namespace PodPilot.Infrastructure.Persistence.Migrations
                     b.Navigation("Organization");
                 });
 
+            modelBuilder.Entity("PodPilot.Domain.Entities.LoadBalancerConfig", b =>
+                {
+                    b.HasOne("PodPilot.Domain.Entities.Organization", "Organization")
+                        .WithMany()
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Organization");
+                });
+
             modelBuilder.Entity("PodPilot.Domain.Entities.ModelDownload", b =>
                 {
                     b.HasOne("PodPilot.Domain.Entities.AiModel", "Model")
@@ -2075,6 +2829,54 @@ namespace PodPilot.Infrastructure.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("Pod");
+                });
+
+            modelBuilder.Entity("PodPilot.Domain.Entities.PodPool", b =>
+                {
+                    b.HasOne("PodPilot.Domain.Entities.Organization", "Organization")
+                        .WithMany()
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("PodPilot.Domain.Entities.ScalingPolicy", "ScalingPolicy")
+                        .WithMany()
+                        .HasForeignKey("ScalingPolicyId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Organization");
+
+                    b.Navigation("ScalingPolicy");
+                });
+
+            modelBuilder.Entity("PodPilot.Domain.Entities.PodPoolMember", b =>
+                {
+                    b.HasOne("PodPilot.Domain.Entities.GpuPod", "GpuPod")
+                        .WithMany()
+                        .HasForeignKey("GpuPodId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("PodPilot.Domain.Entities.PodPool", "PodPool")
+                        .WithMany("Members")
+                        .HasForeignKey("PodPoolId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("GpuPod");
+
+                    b.Navigation("PodPool");
+                });
+
+            modelBuilder.Entity("PodPilot.Domain.Entities.PodPoolModel", b =>
+                {
+                    b.HasOne("PodPilot.Domain.Entities.PodPool", "PodPool")
+                        .WithMany("Models")
+                        .HasForeignKey("PodPoolId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("PodPool");
                 });
 
             modelBuilder.Entity("PodPilot.Domain.Entities.PodStatusHistory", b =>
@@ -2182,6 +2984,17 @@ namespace PodPilot.Infrastructure.Persistence.Migrations
                     b.Navigation("Role");
                 });
 
+            modelBuilder.Entity("PodPilot.Domain.Entities.ScalingPolicy", b =>
+                {
+                    b.HasOne("PodPilot.Domain.Entities.Organization", "Organization")
+                        .WithMany()
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Organization");
+                });
+
             modelBuilder.Entity("PodPilot.Domain.Entities.AiModel", b =>
                 {
                     b.Navigation("Downloads");
@@ -2236,6 +3049,13 @@ namespace PodPilot.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("PodPilot.Domain.Entities.Permission", b =>
                 {
                     b.Navigation("RolePermissions");
+                });
+
+            modelBuilder.Entity("PodPilot.Domain.Entities.PodPool", b =>
+                {
+                    b.Navigation("Members");
+
+                    b.Navigation("Models");
                 });
 
             modelBuilder.Entity("PodPilot.Domain.Entities.Role", b =>

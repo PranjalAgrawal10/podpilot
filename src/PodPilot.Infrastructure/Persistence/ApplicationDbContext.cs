@@ -120,6 +120,45 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     /// <inheritdoc />
     public DbSet<DatabaseSeedHistory> DatabaseSeedHistoryEntries => Set<DatabaseSeedHistory>();
 
+    /// <inheritdoc />
+    public DbSet<PodPool> PodPools => Set<PodPool>();
+
+    /// <inheritdoc />
+    public DbSet<PodPoolMember> PodPoolMembers => Set<PodPoolMember>();
+
+    /// <inheritdoc />
+    public DbSet<PodPoolModel> PodPoolModels => Set<PodPoolModel>();
+
+    /// <inheritdoc />
+    public DbSet<ScalingPolicy> ScalingPolicies => Set<ScalingPolicy>();
+
+    /// <inheritdoc />
+    public DbSet<ScalingEvent> ScalingEvents => Set<ScalingEvent>();
+
+    /// <inheritdoc />
+    public DbSet<PodHealthMetric> PodHealthMetrics => Set<PodHealthMetric>();
+
+    /// <inheritdoc />
+    public DbSet<CapacitySnapshot> CapacitySnapshots => Set<CapacitySnapshot>();
+
+    /// <inheritdoc />
+    public DbSet<LoadBalancerConfig> LoadBalancerConfigs => Set<LoadBalancerConfig>();
+
+    /// <inheritdoc />
+    public DbSet<MetricsSnapshot> MetricsSnapshots => Set<MetricsSnapshot>();
+
+    /// <inheritdoc />
+    public DbSet<CostSnapshot> CostSnapshots => Set<CostSnapshot>();
+
+    /// <inheritdoc />
+    public DbSet<UsageStatistics> UsageStatisticsEntries => Set<UsageStatistics>();
+
+    /// <inheritdoc />
+    public DbSet<AlertHistory> AlertHistoryEntries => Set<AlertHistory>();
+
+    /// <inheritdoc />
+    public DbSet<SystemHealthHistory> SystemHealthHistoryEntries => Set<SystemHealthHistory>();
+
     IQueryable<RefreshToken> IApplicationDbContext.RefreshTokens => RefreshTokens;
 
     IQueryable<Organization> IApplicationDbContext.Organizations => Organizations;
@@ -185,6 +224,32 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     IQueryable<DatabaseMigrationHistory> IApplicationDbContext.DatabaseMigrationHistory => DatabaseMigrationHistoryEntries;
 
     IQueryable<DatabaseSeedHistory> IApplicationDbContext.DatabaseSeedHistory => DatabaseSeedHistoryEntries;
+
+    IQueryable<PodPool> IApplicationDbContext.PodPools => PodPools;
+
+    IQueryable<PodPoolMember> IApplicationDbContext.PodPoolMembers => PodPoolMembers;
+
+    IQueryable<PodPoolModel> IApplicationDbContext.PodPoolModels => PodPoolModels;
+
+    IQueryable<ScalingPolicy> IApplicationDbContext.ScalingPolicies => ScalingPolicies;
+
+    IQueryable<ScalingEvent> IApplicationDbContext.ScalingEvents => ScalingEvents;
+
+    IQueryable<PodHealthMetric> IApplicationDbContext.PodHealthMetrics => PodHealthMetrics;
+
+    IQueryable<CapacitySnapshot> IApplicationDbContext.CapacitySnapshots => CapacitySnapshots;
+
+    IQueryable<LoadBalancerConfig> IApplicationDbContext.LoadBalancerConfigs => LoadBalancerConfigs;
+
+    IQueryable<MetricsSnapshot> IApplicationDbContext.MetricsSnapshots => MetricsSnapshots;
+
+    IQueryable<CostSnapshot> IApplicationDbContext.CostSnapshots => CostSnapshots;
+
+    IQueryable<UsageStatistics> IApplicationDbContext.UsageStatistics => UsageStatisticsEntries;
+
+    IQueryable<AlertHistory> IApplicationDbContext.AlertHistory => AlertHistoryEntries;
+
+    IQueryable<SystemHealthHistory> IApplicationDbContext.SystemHealthHistory => SystemHealthHistoryEntries;
 
     /// <inheritdoc />
     public Task AddAuditLogAsync(AuditLog auditLog, CancellationToken cancellationToken = default) =>
@@ -327,6 +392,102 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     /// <inheritdoc />
     public Task AddModelHealthHistoryAsync(ModelHealthHistory history, CancellationToken cancellationToken = default) =>
         ModelHealthHistoryEntries.AddAsync(history, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public Task AddPodPoolAsync(PodPool pool, CancellationToken cancellationToken = default) =>
+        PodPools.AddAsync(pool, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public Task AddPodPoolMemberAsync(PodPoolMember member, CancellationToken cancellationToken = default) =>
+        PodPoolMembers.AddAsync(member, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public Task AddPodPoolModelAsync(PodPoolModel model, CancellationToken cancellationToken = default) =>
+        PodPoolModels.AddAsync(model, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public Task AddScalingPolicyAsync(ScalingPolicy policy, CancellationToken cancellationToken = default) =>
+        ScalingPolicies.AddAsync(policy, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public Task AddScalingEventAsync(ScalingEvent scalingEvent, CancellationToken cancellationToken = default) =>
+        ScalingEvents.AddAsync(scalingEvent, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public Task AddPodHealthMetricAsync(PodHealthMetric metric, CancellationToken cancellationToken = default) =>
+        PodHealthMetrics.AddAsync(metric, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public Task AddCapacitySnapshotAsync(CapacitySnapshot snapshot, CancellationToken cancellationToken = default) =>
+        CapacitySnapshots.AddAsync(snapshot, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public Task AddLoadBalancerConfigAsync(LoadBalancerConfig config, CancellationToken cancellationToken = default) =>
+        LoadBalancerConfigs.AddAsync(config, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public Task AddMetricsSnapshotAsync(MetricsSnapshot snapshot, CancellationToken cancellationToken = default) =>
+        MetricsSnapshots.AddAsync(snapshot, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public Task AddCostSnapshotAsync(CostSnapshot snapshot, CancellationToken cancellationToken = default) =>
+        CostSnapshots.AddAsync(snapshot, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public Task AddUsageStatisticsAsync(UsageStatistics statistics, CancellationToken cancellationToken = default) =>
+        UsageStatisticsEntries.AddAsync(statistics, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public Task AddAlertHistoryAsync(AlertHistory alert, CancellationToken cancellationToken = default) =>
+        AlertHistoryEntries.AddAsync(alert, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public Task AddSystemHealthHistoryAsync(SystemHealthHistory history, CancellationToken cancellationToken = default) =>
+        SystemHealthHistoryEntries.AddAsync(history, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public async Task RemovePodPoolAsync(Guid poolId, CancellationToken cancellationToken = default)
+    {
+        await RemovePodPoolModelsAsync(poolId, cancellationToken);
+
+        var members = await PodPoolMembers
+            .Where(m => m.PodPoolId == poolId)
+            .ToListAsync(cancellationToken);
+
+        if (members.Count > 0)
+        {
+            PodPoolMembers.RemoveRange(members);
+        }
+
+        var pool = await PodPools.FirstOrDefaultAsync(p => p.Id == poolId, cancellationToken);
+        if (pool is not null)
+        {
+            PodPools.Remove(pool);
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task RemovePodPoolModelsAsync(Guid poolId, CancellationToken cancellationToken = default)
+    {
+        var models = await PodPoolModels
+            .Where(m => m.PodPoolId == poolId)
+            .ToListAsync(cancellationToken);
+
+        if (models.Count > 0)
+        {
+            PodPoolModels.RemoveRange(models);
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task RemovePodPoolMemberAsync(Guid memberId, CancellationToken cancellationToken = default)
+    {
+        var member = await PodPoolMembers.FirstOrDefaultAsync(m => m.Id == memberId, cancellationToken);
+        if (member is not null)
+        {
+            PodPoolMembers.Remove(member);
+        }
+    }
 
     /// <inheritdoc />
     public async Task RemoveGatewayRouteAsync(Guid routeId, CancellationToken cancellationToken = default)
