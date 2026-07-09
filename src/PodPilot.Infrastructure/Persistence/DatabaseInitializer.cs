@@ -1,6 +1,10 @@
 using System.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using PodPilot.Application.Common.Interfaces;
 using PodPilot.Domain.Authorization;
@@ -30,9 +34,21 @@ public static class DatabaseInitializer
         var logger = scope.ServiceProvider.GetRequiredService<ILogger<ApplicationDbContext>>();
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var identityService = scope.ServiceProvider.GetRequiredService<IIdentityService>();
+        var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
+        var environment = scope.ServiceProvider.GetRequiredService<IHostEnvironment>();
 
         try
         {
+            if (environment.IsDevelopment()
+                && !string.IsNullOrWhiteSpace(configuration.GetConnectionString("AdminConnection")))
+            {
+                await MySqlDevelopmentBootstrapper.EnsureDatabaseAndUserAsync(configuration, logger);
+            }
+            else
+            {
+                await EnsureDatabaseExistsAsync(context, logger);
+            }
+
             logger.LogInformation("Applying database migrations...");
             await context.Database.MigrateAsync();
             logger.LogInformation("Database migrations applied successfully.");
@@ -67,6 +83,24 @@ public static class DatabaseInitializer
             logger.LogError(ex, "An error occurred while initializing the database.");
             throw;
         }
+    }
+
+    private static async Task EnsureDatabaseExistsAsync(ApplicationDbContext context, ILogger logger)
+    {
+        var creator = context.GetService<IRelationalDatabaseCreator>();
+        if (creator is null)
+        {
+            return;
+        }
+
+        if (await creator.ExistsAsync())
+        {
+            return;
+        }
+
+        logger.LogInformation("Database does not exist. Creating database...");
+        await creator.CreateAsync();
+        logger.LogInformation("Database created successfully.");
     }
 
     private static async Task SyncMigrationHistoryAsync(ApplicationDbContext context, ILogger logger)
