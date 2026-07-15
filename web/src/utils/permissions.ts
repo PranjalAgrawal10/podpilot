@@ -27,6 +27,12 @@ const ROLE_PERMISSIONS: Record<OrganizationRole, readonly Permission[]> = {
     PERMISSIONS.OrchestratorManage,
     PERMISSIONS.ObservabilityRead,
     PERMISSIONS.ObservabilityExport,
+    PERMISSIONS.AiProviderRead,
+    PERMISSIONS.AiProviderCreate,
+    PERMISSIONS.AiProviderUpdate,
+    PERMISSIONS.AiProviderDelete,
+    PERMISSIONS.RoutingRead,
+    PERMISSIONS.RoutingManage,
   ],
   Developer: [
     PERMISSIONS.OrganizationRead,
@@ -45,6 +51,12 @@ const ROLE_PERMISSIONS: Record<OrganizationRole, readonly Permission[]> = {
     PERMISSIONS.OrchestratorRead,
     PERMISSIONS.OrchestratorManage,
     PERMISSIONS.ObservabilityRead,
+    PERMISSIONS.AiProviderRead,
+    PERMISSIONS.AiProviderCreate,
+    PERMISSIONS.AiProviderUpdate,
+    PERMISSIONS.AiProviderDelete,
+    PERMISSIONS.RoutingRead,
+    PERMISSIONS.RoutingManage,
   ],
   Viewer: [
     PERMISSIONS.OrganizationRead,
@@ -55,6 +67,8 @@ const ROLE_PERMISSIONS: Record<OrganizationRole, readonly Permission[]> = {
     PERMISSIONS.ProviderRead,
     PERMISSIONS.OrchestratorRead,
     PERMISSIONS.ObservabilityRead,
+    PERMISSIONS.AiProviderRead,
+    PERMISSIONS.RoutingRead,
   ],
 };
 

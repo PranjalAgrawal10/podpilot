@@ -1,6 +1,6 @@
 # PodPilot
 
-**PodPilot** is an AI Infrastructure Autopilot that automatically manages GPU pods, AI models, and inference providers. This repository contains **Part 1** (authentication foundation), **Part 2** (multi-tenant organization management), **Part 3** (provider management abstraction), **Part 4** (GPU pod management), **Part 5** (automatic GPU lifecycle management), **Part 6** (AI Gateway), **Part 7** (Ollama model management), **Part 8** (smart request scheduler), **Part 9** (multi-pod orchestration and auto scaling), and **Part 10** (observability, monitoring, and cost analytics).
+**PodPilot** is an AI Infrastructure Autopilot that automatically manages GPU pods, AI models, and inference providers. This repository contains **Part 1** (authentication foundation), **Part 2** (multi-tenant organization management), **Part 3** (provider management abstraction), **Part 4** (GPU pod management), **Part 5** (automatic GPU lifecycle management), **Part 6** (AI Gateway), **Part 7** (Ollama model management), **Part 8** (smart request scheduler), **Part 9** (multi-pod orchestration and auto scaling), **Part 10** (observability, monitoring, and cost analytics), and **Part 11** (universal AI provider engine).
 
 ---
 
@@ -1243,14 +1243,140 @@ Supports CSV, JSON, and Excel export for metrics, costs, usage, alerts, and heal
 
 ---
 
-## What's Next (Part 11+)
+## Part 11 — Universal AI Provider Engine
 
-Part 10 intentionally excludes:
+Part 11 adds a provider-agnostic inference layer so PodPilot can route chat and embeddings requests through OpenAI-compatible and native APIs (Ollama, vLLM, llama.cpp, OpenAI, Anthropic, OpenRouter, Azure OpenAI, Gemini, Groq, Together, Fireworks, DeepInfra) with model registry, routing policies, and failover.
+
+### Architecture
+
+```mermaid
+flowchart LR
+    Gateway --> Router
+    Router -->|policy or catalog match| Dispatcher
+    Router -->|no match| Scheduler
+    Dispatcher --> Failover
+    Dispatcher --> Providers
+    Providers --> OpenAICompat
+    Providers --> Anthropic
+    Providers --> Gemini
+```
+
+- **`IAiProvider`** — list models, chat, stream, embeddings, health, validate, token estimate
+- **`IAiInferenceRouter`** — resolve by routing policy (model match → default) else enabled catalog models; returns null so the existing Ollama pod path continues
+- **`IAiInferenceDispatcher`** — chat vs embeddings vs stream, retries, failover events
+- **Model registry** — synced `ProviderModels` catalog per org/provider
+- **Routing policies** — primary + ordered fallbacks with `RetryThenFailover` / `ImmediateFailover` / `None`
+
+### How to add a new provider
+
+1. Add an `AiProviderKind` enum value
+2. Implement `IAiProvider` (prefer extending `OpenAiCompatibleAiProvider`)
+3. Register metadata in `AiProviderRegistry`
+4. Register the implementation as `IAiProvider` in `AiProvidersDependencyInjection`
+5. Add UI kind metadata is automatic via `GET /api/v1/ai/provider-kinds`
+
+### API surface
+
+| Method | Route |
+|--------|-------|
+| GET/POST | `/api/v1/ai/providers` |
+| GET/PUT/DELETE | `/api/v1/ai/providers/{id}` |
+| POST | `/api/v1/ai/providers/{id}/validate` |
+| GET | `/api/v1/ai/providers/{id}/health` |
+| GET | `/api/v1/ai/models` |
+| GET/POST | `/api/v1/ai/routing-policies` |
+| PUT/DELETE | `/api/v1/ai/routing-policies/{id}` |
+| GET | `/api/v1/ai/dashboard` |
+| GET | `/api/v1/ai/provider-kinds` |
+
+Permissions: `AiProvider.Read/Create/Update/Delete`. SignalR hub: `/hubs/ai-providers`.
+
+---
+
+## Part 12 — Intelligent Model Router & Cost Optimizer
+
+Part 12 adds an intelligent routing engine so organizations do not need to pick models manually. PodPilot classifies each request, estimates tokens/cost/latency, scores eligible provider models, and selects the best route with transparent failover.
+
+### Request flow
+
+```mermaid
+flowchart TD
+    Request --> Analyze
+    Analyze --> ClassifyTask
+    ClassifyTask --> Complexity
+    Complexity --> EstimateTokens
+    EstimateTokens --> ChooseProvider
+    ChooseProvider --> ChooseModel
+    ChooseModel --> Execute
+    Execute -->|failure| Fallback
+    Fallback --> ChooseProvider
+```
+
+### Architecture
+
+| Interface | Role |
+|-----------|------|
+| `ITaskClassifier` | Classify Coding / Reasoning / Chat / Translation / Summarization / Vision / Embeddings / Planning / General |
+| `ICostEstimator` | Estimate input/output token cost, GPU runtime, and monthly spend projection |
+| `ILatencyPredictor` | Combine latency history, queue depth, health, warm pods, and cold starts |
+| `IAvailabilityScorer` | Score provider availability from health and consecutive failures |
+| `IProviderSelector` | Load catalog candidates filtered by required capabilities |
+| `IModelRouter` | Weighted scoring and model selection |
+| `IRoutingPolicy` | Resolve org policy + strategy weights |
+| `IRoutingEngine` | Orchestrate route / simulate / persist / record outcomes |
+
+### Scoring algorithm
+
+Candidates are scored 0–100 on **cost**, **latency**, **reliability**, **context**, **features**, and **availability**. Organization strategy selects weights:
+
+| Strategy | Emphasis |
+|----------|----------|
+| LowestCost | Cost |
+| LowestLatency | Latency + availability |
+| HighestAccuracy | Features + context + reliability |
+| Balanced / CustomRules / OrganizationRules | Configurable weights (must sum to 1.0) |
+| ProviderPriority | Explicit primary + ordered fallbacks |
+
+Feature scoring boosts vision/tools/embeddings/reasoning match and high-context models for complex tasks.
+
+### Provider selection & failover
+
+1. Analyze request path/body/prompt
+2. Load enabled+validated catalog models (capability filters applied)
+3. Estimate cost/latency and availability per candidate
+4. Select top score; keep next scores as fallbacks
+5. On dispatch failure: retry per policy, then failover without exposing provider errors to clients
+6. Persist `RoutingEvents`, refresh `ModelScores`, append `LatencyHistory` / `CostHistory`
+
+### API
+
+| Method | Route |
+|--------|-------|
+| GET | `/api/v1/routing` |
+| GET/PUT | `/api/v1/routing/policy` |
+| GET | `/api/v1/routing/models` |
+| GET | `/api/v1/routing/history` |
+| POST | `/api/v1/routing/simulate` |
+
+Permissions: `Routing.Read`, `Routing.Manage`. SignalR hub: `/hubs/routing` (`RoutingDecision`, `ProviderChanged`, `FallbackOccurred`, `PolicyUpdated`).
+
+### UI
+
+- **Smart Routing** dashboard — current model/provider, estimated cost/latency, fallbacks, rankings
+- **Routing Strategy** — org strategy and scoring weights
+- **Model Ranking** — scored catalog
+- **Simulate** — prompt → predicted provider/model/cost/latency + history
+
+---
+
+## What's Next (Part 13+)
+
+Intentionally excluded from Parts 11–12:
 
 - Billing & payments
 - Marketplace
-- Multi-cloud routing
 - Kubernetes support
+- Provider cost invoicing integrations
 
 ---
 

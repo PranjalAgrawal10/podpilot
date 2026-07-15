@@ -54,4 +54,9 @@ public class Organization : Common.AuditableEntity
     /// Gets the compute providers for this organization.
     /// </summary>
     public ICollection<ComputeProvider> ComputeProviders { get; set; } = [];
+
+    /// <summary>
+    /// Gets the AI inference providers for this organization.
+    /// </summary>
+    public ICollection<AiInferenceProvider> AiInferenceProviders { get; set; } = [];
 }

@@ -58,6 +58,10 @@ internal static class ObservabilityMapper
             RunningPods = snapshot.RunningPods,
             HealthyPods = snapshot.HealthyPods,
             FailedPods = snapshot.FailedPods,
+            StoppedPods = snapshot.StoppedPods,
+            ModelsInstalled = snapshot.ModelsInstalled,
+            GpuMemoryUsedBytes = snapshot.GpuMemoryUsedBytes,
+            GpuMemoryTotalBytes = snapshot.GpuMemoryTotalBytes,
             InferenceCountLastHour = snapshot.InferenceCountLastHour,
             TokensGeneratedLastHour = snapshot.TokensGeneratedLastHour,
         };
@@ -89,6 +93,13 @@ internal static class ObservabilityMapper
                 ProviderName = b.ProviderName,
                 HourlyCost = b.HourlyCost,
                 PeriodCost = b.PeriodCost,
+            }).ToList(),
+            ModelBreakdowns = summary.ModelBreakdowns.Select(b => new ModelCostBreakdownResponse
+            {
+                ModelName = b.ModelName,
+                HourlyCost = b.HourlyCost,
+                PeriodCost = b.PeriodCost,
+                RequestCount = b.RequestCount,
             }).ToList(),
         };
 

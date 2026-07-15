@@ -40,6 +40,12 @@ public static class RolePermissionMatrix
                     PermissionNames.OrchestratorManage,
                     PermissionNames.ObservabilityRead,
                     PermissionNames.ObservabilityExport,
+                    PermissionNames.AiProviderRead,
+                    PermissionNames.AiProviderCreate,
+                    PermissionNames.AiProviderUpdate,
+                    PermissionNames.AiProviderDelete,
+                    PermissionNames.RoutingRead,
+                    PermissionNames.RoutingManage,
                 },
             [OrganizationRole.Developer] =
                 new HashSet<string>
@@ -64,6 +70,12 @@ public static class RolePermissionMatrix
                     PermissionNames.OrchestratorRead,
                     PermissionNames.OrchestratorManage,
                     PermissionNames.ObservabilityRead,
+                    PermissionNames.AiProviderRead,
+                    PermissionNames.AiProviderCreate,
+                    PermissionNames.AiProviderUpdate,
+                    PermissionNames.AiProviderDelete,
+                    PermissionNames.RoutingRead,
+                    PermissionNames.RoutingManage,
                 },
             [OrganizationRole.Viewer] =
                 new HashSet<string>
@@ -78,6 +90,8 @@ public static class RolePermissionMatrix
                     PermissionNames.MemberRead,
                     PermissionNames.OrchestratorRead,
                     PermissionNames.ObservabilityRead,
+                    PermissionNames.AiProviderRead,
+                    PermissionNames.RoutingRead,
                 },
         };
 

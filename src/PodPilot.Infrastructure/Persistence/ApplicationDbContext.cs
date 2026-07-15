@@ -159,6 +159,36 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     /// <inheritdoc />
     public DbSet<SystemHealthHistory> SystemHealthHistoryEntries => Set<SystemHealthHistory>();
 
+    /// <inheritdoc />
+    public DbSet<AiInferenceProvider> AiInferenceProviders => Set<AiInferenceProvider>();
+
+    /// <inheritdoc />
+    public DbSet<AiProviderCredential> AiProviderCredentials => Set<AiProviderCredential>();
+
+    /// <inheritdoc />
+    public DbSet<AiProviderModel> AiProviderModels => Set<AiProviderModel>();
+
+    /// <inheritdoc />
+    public DbSet<AiProviderHealth> AiProviderHealthSnapshots => Set<AiProviderHealth>();
+
+    /// <inheritdoc />
+    public DbSet<AiRoutingPolicy> AiRoutingPolicies => Set<AiRoutingPolicy>();
+
+    /// <inheritdoc />
+    public DbSet<AiFailoverEvent> AiFailoverEvents => Set<AiFailoverEvent>();
+
+    /// <inheritdoc />
+    public DbSet<ModelScore> ModelScores => Set<ModelScore>();
+
+    /// <inheritdoc />
+    public DbSet<LatencyHistory> LatencyHistories => Set<LatencyHistory>();
+
+    /// <inheritdoc />
+    public DbSet<CostHistory> CostHistories => Set<CostHistory>();
+
+    /// <inheritdoc />
+    public DbSet<RoutingEvent> RoutingEvents => Set<RoutingEvent>();
+
     IQueryable<RefreshToken> IApplicationDbContext.RefreshTokens => RefreshTokens;
 
     IQueryable<Organization> IApplicationDbContext.Organizations => Organizations;
@@ -250,6 +280,26 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     IQueryable<AlertHistory> IApplicationDbContext.AlertHistory => AlertHistoryEntries;
 
     IQueryable<SystemHealthHistory> IApplicationDbContext.SystemHealthHistory => SystemHealthHistoryEntries;
+
+    IQueryable<AiInferenceProvider> IApplicationDbContext.AiInferenceProviders => AiInferenceProviders;
+
+    IQueryable<AiProviderCredential> IApplicationDbContext.AiProviderCredentials => AiProviderCredentials;
+
+    IQueryable<AiProviderModel> IApplicationDbContext.AiProviderModels => AiProviderModels;
+
+    IQueryable<AiProviderHealth> IApplicationDbContext.AiProviderHealthSnapshots => AiProviderHealthSnapshots;
+
+    IQueryable<AiRoutingPolicy> IApplicationDbContext.AiRoutingPolicies => AiRoutingPolicies;
+
+    IQueryable<AiFailoverEvent> IApplicationDbContext.AiFailoverEvents => AiFailoverEvents;
+
+    IQueryable<ModelScore> IApplicationDbContext.ModelScores => ModelScores;
+
+    IQueryable<LatencyHistory> IApplicationDbContext.LatencyHistories => LatencyHistories;
+
+    IQueryable<CostHistory> IApplicationDbContext.CostHistories => CostHistories;
+
+    IQueryable<RoutingEvent> IApplicationDbContext.RoutingEvents => RoutingEvents;
 
     /// <inheritdoc />
     public Task AddAuditLogAsync(AuditLog auditLog, CancellationToken cancellationToken = default) =>
@@ -444,6 +494,70 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     /// <inheritdoc />
     public Task AddSystemHealthHistoryAsync(SystemHealthHistory history, CancellationToken cancellationToken = default) =>
         SystemHealthHistoryEntries.AddAsync(history, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public Task AddAiInferenceProviderAsync(AiInferenceProvider provider, CancellationToken cancellationToken = default) =>
+        AiInferenceProviders.AddAsync(provider, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public Task AddAiProviderCredentialAsync(AiProviderCredential credential, CancellationToken cancellationToken = default) =>
+        AiProviderCredentials.AddAsync(credential, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public Task AddAiProviderModelAsync(AiProviderModel model, CancellationToken cancellationToken = default) =>
+        AiProviderModels.AddAsync(model, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public Task AddAiProviderHealthAsync(AiProviderHealth health, CancellationToken cancellationToken = default) =>
+        AiProviderHealthSnapshots.AddAsync(health, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public Task AddAiRoutingPolicyAsync(AiRoutingPolicy policy, CancellationToken cancellationToken = default) =>
+        AiRoutingPolicies.AddAsync(policy, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public Task AddAiFailoverEventAsync(AiFailoverEvent failoverEvent, CancellationToken cancellationToken = default) =>
+        AiFailoverEvents.AddAsync(failoverEvent, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public Task AddModelScoreAsync(ModelScore score, CancellationToken cancellationToken = default) =>
+        ModelScores.AddAsync(score, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public Task AddLatencyHistoryAsync(LatencyHistory history, CancellationToken cancellationToken = default) =>
+        LatencyHistories.AddAsync(history, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public Task AddCostHistoryAsync(CostHistory history, CancellationToken cancellationToken = default) =>
+        CostHistories.AddAsync(history, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public Task AddRoutingEventAsync(RoutingEvent routingEvent, CancellationToken cancellationToken = default) =>
+        RoutingEvents.AddAsync(routingEvent, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public async Task RemoveAiInferenceProviderAsync(Guid providerId, CancellationToken cancellationToken = default)
+    {
+        var provider = await AiInferenceProviders
+            .FirstOrDefaultAsync(p => p.Id == providerId, cancellationToken);
+
+        if (provider is not null)
+        {
+            AiInferenceProviders.Remove(provider);
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task RemoveAiRoutingPolicyAsync(Guid policyId, CancellationToken cancellationToken = default)
+    {
+        var policy = await AiRoutingPolicies
+            .FirstOrDefaultAsync(p => p.Id == policyId, cancellationToken);
+
+        if (policy is not null)
+        {
+            AiRoutingPolicies.Remove(policy);
+        }
+    }
 
     /// <inheritdoc />
     public async Task RemovePodPoolAsync(Guid poolId, CancellationToken cancellationToken = default)

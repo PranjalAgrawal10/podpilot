@@ -177,6 +177,75 @@ public class CostCalculatorServiceTests
       Times.Once);
   }
 
+  [Fact]
+  public async Task Should_Allocate_Model_Cost_By_Gateway_Request_Share()
+  {
+    var organizationId = Guid.NewGuid();
+    var providerId = Guid.NewGuid();
+    var podId = Guid.NewGuid();
+    var now = new DateTime(2026, 7, 9, 12, 0, 0, DateTimeKind.Utc);
+
+    await using var dbContext = CreateDbContext();
+    await SeedProviderAndPodsAsync(
+      dbContext,
+      organizationId,
+      providerId,
+      podId,
+      podId,
+      now,
+      hourlyCosts: [3.00m],
+      memberCount: 1);
+
+    await dbContext.AddGatewayRequestAsync(
+      new GatewayRequest
+      {
+        OrganizationId = organizationId,
+        GpuPodId = podId,
+        Model = "llama3",
+        Status = GatewayRequestStatus.Completed,
+        HttpMethod = "POST",
+        Path = "/v1/chat/completions",
+        CreatedAt = now.AddHours(-2),
+        StartedAt = now.AddHours(-2),
+      });
+    await dbContext.AddGatewayRequestAsync(
+      new GatewayRequest
+      {
+        OrganizationId = organizationId,
+        GpuPodId = podId,
+        Model = "llama3",
+        Status = GatewayRequestStatus.Completed,
+        HttpMethod = "POST",
+        Path = "/v1/chat/completions",
+        CreatedAt = now.AddHours(-1),
+        StartedAt = now.AddHours(-1),
+      });
+    await dbContext.AddGatewayRequestAsync(
+      new GatewayRequest
+      {
+        OrganizationId = organizationId,
+        GpuPodId = podId,
+        Model = "mistral",
+        Status = GatewayRequestStatus.Completed,
+        HttpMethod = "POST",
+        Path = "/v1/chat/completions",
+        CreatedAt = now.AddMinutes(-30),
+        StartedAt = now.AddMinutes(-30),
+      });
+    await dbContext.SaveChangesAsync();
+
+    var service = CreateService(dbContext, now);
+    var summary = await service.CalculateAsync(organizationId, MetricsPeriod.Hourly);
+
+    Assert.Equal(2, summary.ModelBreakdowns.Count);
+    var llama = Assert.Single(summary.ModelBreakdowns, m => m.ModelName == "llama3");
+    var mistral = Assert.Single(summary.ModelBreakdowns, m => m.ModelName == "mistral");
+    Assert.Equal(2.00m, llama.HourlyCost);
+    Assert.Equal(1.00m, mistral.HourlyCost);
+    Assert.Equal(2, llama.RequestCount);
+    Assert.Equal(1, mistral.RequestCount);
+  }
+
   private static CostCalculatorService CreateService(
     ApplicationDbContext dbContext,
     DateTime utcNow,

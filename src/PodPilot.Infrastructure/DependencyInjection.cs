@@ -190,6 +190,14 @@ public static class DependencyInjection
         services.AddObservability(configuration, environment);
 
     /// <summary>
+    /// Registers AI providers layer services. Call after <see cref="AddObservabilityLayer"/>.
+    /// </summary>
+    public static IServiceCollection AddAiProvidersLayer(
+        this IServiceCollection services,
+        IHostEnvironment environment) =>
+        services.AddAiProviders(environment).AddIntelligentRouting(environment);
+
+    /// <summary>
     /// Registers background services for non-testing environments.
     /// </summary>
     /// <param name="services">The service collection.</param>

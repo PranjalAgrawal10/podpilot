@@ -473,6 +473,12 @@ export const PERMISSIONS = {
   OrchestratorManage: 'Orchestrator.Manage',
   ObservabilityRead: 'Observability.Read',
   ObservabilityExport: 'Observability.Export',
+  AiProviderRead: 'AiProvider.Read',
+  AiProviderCreate: 'AiProvider.Create',
+  AiProviderUpdate: 'AiProvider.Update',
+  AiProviderDelete: 'AiProvider.Delete',
+  RoutingRead: 'Routing.Read',
+  RoutingManage: 'Routing.Manage',
 } as const;
 
 export type Permission = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];
@@ -825,6 +831,10 @@ export interface LiveMetrics {
   runningPods: number;
   healthyPods: number;
   failedPods: number;
+  stoppedPods: number;
+  modelsInstalled: number;
+  gpuMemoryUsedBytes?: number | null;
+  gpuMemoryTotalBytes?: number | null;
   inferenceCountLastHour: number;
   tokensGeneratedLastHour: number;
 }
@@ -843,6 +853,13 @@ export interface ProviderCostBreakdown {
   periodCost: number;
 }
 
+export interface ModelCostBreakdown {
+  modelName: string;
+  hourlyCost: number;
+  periodCost: number;
+  requestCount: number;
+}
+
 export interface CostSummary {
   period: string;
   calculatedAt: string;
@@ -854,6 +871,7 @@ export interface CostSummary {
   autoShutdownSavings: number;
   podBreakdowns: PodCostBreakdown[];
   providerBreakdowns: ProviderCostBreakdown[];
+  modelBreakdowns: ModelCostBreakdown[];
 }
 
 export interface ModelUsageBreakdown {
@@ -964,3 +982,262 @@ export interface ObservabilityFilters {
   to?: string;
   period?: MetricsPeriod;
 }
+
+export type AiProviderKind =
+  | 'Ollama'
+  | 'Vllm'
+  | 'LlamaCpp'
+  | 'OpenAi'
+  | 'Anthropic'
+  | 'OpenRouter'
+  | 'AzureOpenAi'
+  | 'GoogleGemini'
+  | 'Groq'
+  | 'TogetherAi'
+  | 'FireworksAi'
+  | 'DeepInfra';
+
+export type AiFailoverStrategy = 'None' | 'RetryThenFailover' | 'ImmediateFailover';
+
+export interface AiProvider {
+  id: string;
+  organizationId: string;
+  name: string;
+  displayName: string;
+  description?: string | null;
+  providerKind: AiProviderKind | string;
+  baseUrl?: string | null;
+  deploymentName?: string | null;
+  apiVersion?: string | null;
+  isEnabled: boolean;
+  isValidated: boolean;
+  lastValidatedAt?: string | null;
+  priority: number;
+  createdAt: string;
+  updatedAt?: string | null;
+}
+
+export interface CreateAiProviderRequest {
+  name: string;
+  displayName: string;
+  description?: string;
+  providerKind: string;
+  apiKey: string;
+  baseUrl?: string;
+  deploymentName?: string;
+  apiVersion?: string;
+  isEnabled?: boolean;
+  priority?: number;
+}
+
+export interface UpdateAiProviderRequest {
+  name: string;
+  displayName: string;
+  description?: string;
+  apiKey?: string;
+  baseUrl?: string;
+  deploymentName?: string;
+  apiVersion?: string;
+  isEnabled: boolean;
+  priority: number;
+}
+
+export interface AiProviderModel {
+  id: string;
+  organizationId: string;
+  aiProviderId: string;
+  providerKind: string;
+  providerDisplayName: string;
+  modelName: string;
+  displayName?: string | null;
+  contextLength?: number | null;
+  parameters?: string | null;
+  supportsStreaming: boolean;
+  supportsVision: boolean;
+  supportsTools: boolean;
+  supportsEmbeddings: boolean;
+  inputCostPerMillionTokens?: number | null;
+  outputCostPerMillionTokens?: number | null;
+  isEnabled: boolean;
+  syncedAt: string;
+}
+
+export interface AiProviderHealth {
+  providerId: string;
+  status: string;
+  latencyMs?: number | null;
+  errorRate: number;
+  errorMessage?: string | null;
+  lastCheckedAt: string;
+  consecutiveFailures: number;
+}
+
+export interface AiRoutingPolicy {
+  id: string;
+  organizationId: string;
+  name: string;
+  modelName?: string | null;
+  primaryProviderId: string;
+  primaryProviderDisplayName?: string | null;
+  fallbackProviderIds: string[];
+  failoverStrategy: string;
+  maxRetries: number;
+  isEnabled: boolean;
+  isDefault: boolean;
+  createdAt: string;
+  updatedAt?: string | null;
+}
+
+export interface CreateAiRoutingPolicyRequest {
+  name: string;
+  modelName?: string;
+  primaryProviderId: string;
+  fallbackProviderIds?: string[];
+  failoverStrategy?: string;
+  maxRetries?: number;
+  isEnabled?: boolean;
+  isDefault?: boolean;
+}
+
+export interface AiProviderDashboard {
+  connectedProviders: number;
+  totalProviders: number;
+  availableModels: number;
+  unhealthyProviders: number;
+  streamingSessions: number;
+  averageLatencyMs: number;
+  averageErrorRate: number;
+}
+
+export interface AiProviderKindMetadata {
+  providerKind: string;
+  displayName: string;
+  defaultBaseUrl: string;
+  requiresBaseUrl: boolean;
+  requiresApiKey: boolean;
+  isOpenAiCompatible: boolean;
+}
+
+export interface AiProviderValidationResult {
+  isValid: boolean;
+  message?: string | null;
+}
+
+export type RoutingStrategy =
+  | 'LowestCost'
+  | 'LowestLatency'
+  | 'HighestAccuracy'
+  | 'Balanced'
+  | 'ProviderPriority'
+  | 'CustomRules'
+  | 'OrganizationRules';
+
+export interface RoutingDashboard {
+  currentModel?: string | null;
+  currentProvider?: string | null;
+  currentProviderId?: string | null;
+  strategy: string;
+  estimatedCostUsd: number;
+  estimatedLatencyMs: number;
+  fallbackCount: number;
+  mostUsedModels: { modelName: string; count: number }[];
+  providerRanking: {
+    providerId: string;
+    providerName: string;
+    score: number;
+    latencyMs?: number | null;
+    availabilityScore: number;
+  }[];
+}
+
+export interface RoutingPolicySettings {
+  id: string;
+  name: string;
+  strategy: string;
+  costWeight: number;
+  latencyWeight: number;
+  reliabilityWeight: number;
+  contextWeight: number;
+  featuresWeight: number;
+  availabilityWeight: number;
+  maxRetries: number;
+  failoverStrategy: string;
+  isDefault: boolean;
+  primaryProviderId?: string | null;
+  fallbackProviderIds: string[];
+  preferredTaskTypes: string[];
+  customRulesJson?: string | null;
+}
+
+export interface UpdateRoutingPolicySettingsRequest {
+  strategy: string;
+  costWeight: number;
+  latencyWeight: number;
+  reliabilityWeight: number;
+  contextWeight: number;
+  featuresWeight: number;
+  availabilityWeight: number;
+  maxRetries: number;
+  failoverStrategy: string;
+  primaryProviderId?: string | null;
+  fallbackProviderIds?: string[];
+  preferredTaskTypes?: string[];
+  customRulesJson?: string | null;
+}
+
+export interface RankedModel {
+  providerId: string;
+  providerName: string;
+  modelId: string;
+  modelName: string;
+  strategy: string;
+  overallScore: number;
+  costScore: number;
+  latencyScore: number;
+  reliabilityScore: number;
+  contextScore: number;
+  featuresScore: number;
+  availabilityScore: number;
+  scoredAt: string;
+}
+
+export interface RoutingHistoryItem {
+  id: string;
+  taskType: string;
+  complexity: string;
+  strategy: string;
+  selectedProviderId?: string | null;
+  selectedProviderName?: string | null;
+  selectedModelName?: string | null;
+  overallScore?: number | null;
+  estimatedCostUsd: number;
+  estimatedLatencyMs: number;
+  fallbackCount: number;
+  isSimulation: boolean;
+  decisionReason?: string | null;
+  decidedAt: string;
+}
+
+export interface SimulateRoutingRequest {
+  prompt: string;
+  strategy?: string;
+  modelHint?: string;
+  path?: string;
+}
+
+export interface SimulateRoutingResponse {
+  taskType: string;
+  complexity: string;
+  strategy: string;
+  predictedProvider?: string | null;
+  predictedProviderId?: string | null;
+  predictedModel?: string | null;
+  estimatedCostUsd: number;
+  estimatedLatencyMs: number;
+  overallScore?: number | null;
+  estimatedInputTokens: number;
+  estimatedOutputTokens: number;
+  decisionReason: string;
+  rankedAlternatives: RankedModel[];
+}
+

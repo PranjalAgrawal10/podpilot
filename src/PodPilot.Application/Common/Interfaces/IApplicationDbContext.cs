@@ -239,6 +239,56 @@ public interface IApplicationDbContext
     IQueryable<SystemHealthHistory> SystemHealthHistory { get; }
 
     /// <summary>
+    /// Gets the AI inference providers set.
+    /// </summary>
+    IQueryable<AiInferenceProvider> AiInferenceProviders { get; }
+
+    /// <summary>
+    /// Gets the AI provider credentials set.
+    /// </summary>
+    IQueryable<AiProviderCredential> AiProviderCredentials { get; }
+
+    /// <summary>
+    /// Gets the AI provider models set.
+    /// </summary>
+    IQueryable<AiProviderModel> AiProviderModels { get; }
+
+    /// <summary>
+    /// Gets the AI provider health snapshots set.
+    /// </summary>
+    IQueryable<AiProviderHealth> AiProviderHealthSnapshots { get; }
+
+    /// <summary>
+    /// Gets the AI routing policies set.
+    /// </summary>
+    IQueryable<AiRoutingPolicy> AiRoutingPolicies { get; }
+
+    /// <summary>
+    /// Gets the AI failover events set.
+    /// </summary>
+    IQueryable<AiFailoverEvent> AiFailoverEvents { get; }
+
+    /// <summary>
+    /// Gets the model scores set.
+    /// </summary>
+    IQueryable<ModelScore> ModelScores { get; }
+
+    /// <summary>
+    /// Gets the latency history set.
+    /// </summary>
+    IQueryable<LatencyHistory> LatencyHistories { get; }
+
+    /// <summary>
+    /// Gets the cost history set.
+    /// </summary>
+    IQueryable<CostHistory> CostHistories { get; }
+
+    /// <summary>
+    /// Gets the routing events set.
+    /// </summary>
+    IQueryable<RoutingEvent> RoutingEvents { get; }
+
+    /// <summary>
     /// Adds an audit log entry.
     /// </summary>
     Task AddAuditLogAsync(AuditLog auditLog, CancellationToken cancellationToken = default);
@@ -447,6 +497,66 @@ public interface IApplicationDbContext
     /// Adds a system health history entry.
     /// </summary>
     Task AddSystemHealthHistoryAsync(SystemHealthHistory history, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Adds an AI inference provider.
+    /// </summary>
+    Task AddAiInferenceProviderAsync(AiInferenceProvider provider, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Adds an AI provider credential.
+    /// </summary>
+    Task AddAiProviderCredentialAsync(AiProviderCredential credential, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Adds an AI provider model catalog entry.
+    /// </summary>
+    Task AddAiProviderModelAsync(AiProviderModel model, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Adds an AI provider health snapshot.
+    /// </summary>
+    Task AddAiProviderHealthAsync(AiProviderHealth health, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Adds an AI routing policy.
+    /// </summary>
+    Task AddAiRoutingPolicyAsync(AiRoutingPolicy policy, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Adds an AI failover event.
+    /// </summary>
+    Task AddAiFailoverEventAsync(AiFailoverEvent failoverEvent, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Adds a model score.
+    /// </summary>
+    Task AddModelScoreAsync(ModelScore score, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Adds a latency history sample.
+    /// </summary>
+    Task AddLatencyHistoryAsync(LatencyHistory history, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Adds a cost history sample.
+    /// </summary>
+    Task AddCostHistoryAsync(CostHistory history, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Adds a routing event.
+    /// </summary>
+    Task AddRoutingEventAsync(RoutingEvent routingEvent, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Removes an AI inference provider.
+    /// </summary>
+    Task RemoveAiInferenceProviderAsync(Guid providerId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Removes an AI routing policy.
+    /// </summary>
+    Task RemoveAiRoutingPolicyAsync(Guid policyId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Removes a pod pool and its children.

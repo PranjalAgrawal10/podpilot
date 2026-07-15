@@ -52,6 +52,17 @@ export const Sidebar = () => {
     { to: '/observability/costs', label: 'Costs', icon: '💰' },
   ];
 
+  const aiEngineNavItems = [
+    { to: '/ai/providers', label: 'AI Providers', icon: '🧬' },
+    { to: '/ai/models', label: 'Model Registry', icon: '📚' },
+    { to: '/ai/routing', label: 'Fallback Policies', icon: '🔁' },
+    { to: '/ai/health', label: 'AI Health', icon: '🩺' },
+    { to: '/routing', label: 'Smart Routing', icon: '🔀' },
+    { to: '/routing/policies', label: 'Routing Strategy', icon: '🎯' },
+    { to: '/routing/models', label: 'Model Ranking', icon: '🏆' },
+    { to: '/routing/simulate', label: 'Simulate', icon: '🧪' },
+  ];
+
   const accountNavItems = [
     { to: '/members', label: 'Members', icon: '👥' },
     { to: '/profile', label: 'Profile', icon: '👤' },
@@ -82,6 +93,14 @@ export const Sidebar = () => {
           <SidebarSection title="Observability" />
         </NavItem>
         {observabilityNavItems.map((item) => (
+          <NavItem key={item.to}>
+            <SidebarNavLink to={item.to} label={item.label} icon={item.icon} />
+          </NavItem>
+        ))}
+        <NavItem>
+          <SidebarSection title="AI Engine" />
+        </NavItem>
+        {aiEngineNavItems.map((item) => (
           <NavItem key={item.to}>
             <SidebarNavLink to={item.to} label={item.label} icon={item.icon} />
           </NavItem>

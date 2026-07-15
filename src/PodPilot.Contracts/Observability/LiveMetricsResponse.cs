@@ -38,6 +38,18 @@ public sealed class LiveMetricsResponse
     /// <summary>Gets or sets failed pod count.</summary>
     public int FailedPods { get; init; }
 
+    /// <summary>Gets or sets stopped pod count.</summary>
+    public int StoppedPods { get; init; }
+
+    /// <summary>Gets or sets installed model count.</summary>
+    public int ModelsInstalled { get; init; }
+
+    /// <summary>Gets or sets GPU memory used in bytes.</summary>
+    public long? GpuMemoryUsedBytes { get; init; }
+
+    /// <summary>Gets or sets GPU memory total in bytes.</summary>
+    public long? GpuMemoryTotalBytes { get; init; }
+
     /// <summary>Gets or sets inference count in the last hour.</summary>
     public int InferenceCountLastHour { get; init; }
 

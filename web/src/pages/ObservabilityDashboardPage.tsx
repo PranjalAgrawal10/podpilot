@@ -15,6 +15,15 @@ import { PERMISSIONS } from '../types';
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
 
+const formatBytes = (value?: number | null) => {
+  if (value == null || value <= 0) {
+    return '—';
+  }
+
+  const gb = value / (1024 * 1024 * 1024);
+  return `${gb.toFixed(1)} GB`;
+};
+
 export const ObservabilityDashboardPage = () => {
   const { currentOrganization, hasPermission } = useOrganization();
   const canRead = hasPermission(PERMISSIONS.ObservabilityRead);
@@ -56,13 +65,6 @@ export const ObservabilityDashboardPage = () => {
     refetchInterval: 15000,
   });
 
-  const { data: latestMetrics = [] } = useQuery({
-    queryKey: ['metrics', currentOrganization?.id, 'latest'],
-    queryFn: () => observabilityService.getMetrics({ limit: 1 }),
-    enabled: !!currentOrganization?.id && canRead,
-    refetchInterval: 15000,
-  });
-
   if (!currentOrganization) {
     return <Alert color="info">Select an organization to view observability.</Alert>;
   }
@@ -75,8 +77,11 @@ export const ObservabilityDashboardPage = () => {
     return <LoadingSpinner />;
   }
 
-  const latestSnapshot = latestMetrics[0];
   const activeAlertCount = alerts.filter((alert) => alert.isActive).length;
+  const vramLabel =
+    liveMetrics?.gpuMemoryUsedBytes != null && liveMetrics?.gpuMemoryTotalBytes != null
+      ? `${formatBytes(liveMetrics.gpuMemoryUsedBytes)} / ${formatBytes(liveMetrics.gpuMemoryTotalBytes)}`
+      : formatBytes(liveMetrics?.gpuMemoryUsedBytes);
 
   return (
     <div>
@@ -87,71 +92,77 @@ export const ObservabilityDashboardPage = () => {
 
       <Row className="g-4 mb-4">
         <Col md={3} sm={6}>
+          <MetricCard title="Running Pods" value={liveMetrics?.runningPods ?? 0} />
+        </Col>
+        <Col md={3} sm={6}>
+          <MetricCard title="Stopped Pods" value={liveMetrics?.stoppedPods ?? 0} />
+        </Col>
+        <Col md={3} sm={6}>
+          <MetricCard title="Healthy Pods" value={liveMetrics?.healthyPods ?? 0} />
+        </Col>
+        <Col md={3} sm={6}>
+          <MetricCard title="Active Requests" value={liveMetrics?.activeStreams ?? 0} />
+        </Col>
+      </Row>
+
+      <Row className="g-4 mb-4">
+        <Col md={3} sm={6}>
+          <MetricCard title="Queue Size" value={liveMetrics?.queueSize ?? 0} />
+        </Col>
+        <Col md={3} sm={6}>
+          <MetricCard
+            title="Average Latency"
+            value={`${(liveMetrics?.averageLatencyMs ?? 0).toFixed(0)} ms`}
+          />
+        </Col>
+        <Col md={3} sm={6}>
           <MetricCard
             title="GPU Utilization"
             value={`${(liveMetrics?.gpuUtilizationPercent ?? 0).toFixed(1)}%`}
-            icon="🎮"
+          />
+        </Col>
+        <Col md={3} sm={6}>
+          <MetricCard title="VRAM Usage" value={vramLabel} />
+        </Col>
+      </Row>
+
+      <Row className="g-4 mb-4">
+        <Col md={3} sm={6}>
+          <MetricCard title="Today's Cost" value={formatCurrency(cost?.dailyCost ?? 0)} />
+        </Col>
+        <Col md={3} sm={6}>
+          <MetricCard
+            title="Monthly Projection"
+            value={formatCurrency(cost?.projectedMonthlyCost ?? 0)}
           />
         </Col>
         <Col md={3} sm={6}>
           <MetricCard
-            title="CPU Utilization"
-            value={`${(liveMetrics?.cpuUtilizationPercent ?? 0).toFixed(1)}%`}
-            icon="⚙️"
+            title="Auto Shutdown Savings"
+            value={formatCurrency(cost?.autoShutdownSavings ?? 0)}
           />
         </Col>
         <Col md={3} sm={6}>
-          <MetricCard
-            title="Avg Latency"
-            value={`${(liveMetrics?.averageLatencyMs ?? 0).toFixed(0)} ms`}
-            icon="⏱️"
-          />
+          <MetricCard title="Models Installed" value={liveMetrics?.modelsInstalled ?? 0} />
         </Col>
+      </Row>
+
+      <Row className="g-4 mb-4">
         <Col md={3} sm={6}>
           <MetricCard
             title="Error Rate"
             value={`${((liveMetrics?.errorRate ?? 0) * 100).toFixed(2)}%`}
-            icon="⚠️"
           />
         </Col>
-      </Row>
-
-      <Row className="g-4 mb-4">
         <Col md={3} sm={6}>
-          <MetricCard title="Running Pods" value={liveMetrics?.runningPods ?? 0} icon="🖥️" />
-        </Col>
-        <Col md={3} sm={6}>
-          <MetricCard title="Healthy Pods" value={liveMetrics?.healthyPods ?? 0} icon="💚" />
-        </Col>
-        <Col md={3} sm={6}>
-          <MetricCard title="Failed Pods" value={liveMetrics?.failedPods ?? 0} icon="❌" />
+          <MetricCard title="Active Alerts" value={activeAlertCount} />
         </Col>
         <Col md={3} sm={6}>
           <MetricCard
-            title="Today's Cost"
-            value={formatCurrency(cost?.dailyCost ?? 0)}
-            icon="💰"
+            title="Pod Health"
+            value={`${podHealth?.healthyPods ?? 0} / ${podHealth?.totalPods ?? 0}`}
+            subtitle={`${podHealth?.degradedPods ?? 0} degraded · ${podHealth?.unhealthyPods ?? 0} unhealthy`}
           />
-        </Col>
-      </Row>
-
-      <Row className="g-4 mb-4">
-        <Col md={3} sm={6}>
-          <MetricCard
-            title="Inferences (1h)"
-            value={liveMetrics?.inferenceCountLastHour ?? 0}
-            icon="🧠"
-          />
-        </Col>
-        <Col md={3} sm={6}>
-          <MetricCard
-            title="Tokens (1h)"
-            value={(liveMetrics?.tokensGeneratedLastHour ?? 0).toLocaleString()}
-            icon="📝"
-          />
-        </Col>
-        <Col md={3} sm={6}>
-          <MetricCard title="Active Alerts" value={activeAlertCount} icon="🔔" />
         </Col>
         <Col md={3} sm={6}>
           <CardSystemHealth status={systemHealth?.overallStatus ?? 'Unknown'} />
@@ -162,9 +173,8 @@ export const ObservabilityDashboardPage = () => {
         <Col lg={4}>
           <GpuWidget
             utilizationPercent={liveMetrics?.gpuUtilizationPercent ?? 0}
-            memoryUsedBytes={latestSnapshot?.gpuMemoryUsedBytes}
-            memoryTotalBytes={latestSnapshot?.gpuMemoryTotalBytes}
-            temperatureCelsius={latestSnapshot?.temperatureCelsius}
+            memoryUsedBytes={liveMetrics?.gpuMemoryUsedBytes}
+            memoryTotalBytes={liveMetrics?.gpuMemoryTotalBytes}
           />
         </Col>
         <Col lg={4}>
@@ -173,19 +183,6 @@ export const ObservabilityDashboardPage = () => {
             activeStreams={liveMetrics?.activeStreams ?? 0}
             requestsPerSecond={liveMetrics?.requestsPerSecond}
           />
-        </Col>
-        <Col lg={4}>
-          <MetricCard
-            title="Pod Health"
-            value={`${podHealth?.healthyPods ?? 0} / ${podHealth?.totalPods ?? 0}`}
-            subtitle={`${podHealth?.degradedPods ?? 0} degraded · ${podHealth?.unhealthyPods ?? 0} unhealthy`}
-          />
-        </Col>
-      </Row>
-
-      <Row className="g-4">
-        <Col lg={8}>
-          <AlertPanel alerts={alerts} />
         </Col>
         <Col lg={4}>
           <div className="d-flex flex-column gap-3 h-100">
@@ -201,7 +198,16 @@ export const ObservabilityDashboardPage = () => {
             <Link to="/observability/costs" className="btn btn-outline-primary">
               View Costs
             </Link>
+            <Link to="/observability/alerts" className="btn btn-outline-primary">
+              View Alerts
+            </Link>
           </div>
+        </Col>
+      </Row>
+
+      <Row className="g-4">
+        <Col lg={12}>
+          <AlertPanel alerts={alerts} />
         </Col>
       </Row>
     </div>

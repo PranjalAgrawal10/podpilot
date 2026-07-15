@@ -17,6 +17,9 @@ public sealed class MonitoringService : IMonitoringService
     private const int HighQueueThreshold = 20;
     private const int HighLatencyThresholdMs = 5000;
     private const int GatewayErrorThreshold = 10;
+    private const double DiskFullThresholdPercent = 90;
+    private const double MemoryPressureThresholdPercent = 90;
+    private const long BytesPerGigabyte = 1024L * 1024L * 1024L;
 
     private readonly IApplicationDbContext dbContext;
     private readonly IPodOrchestrator orchestrator;
@@ -389,10 +392,118 @@ public sealed class MonitoringService : IMonitoringService
             raisedAlerts.Add(alert);
         }
 
+        var resourceAlerts = await EvaluateResourcePressureAlertsAsync(organizationId, cancellationToken);
+        raisedAlerts.AddRange(resourceAlerts);
+
         await ResolveClearedAlertsAsync(organizationId, raisedAlerts, cancellationToken);
         await dbContext.SaveChangesAsync(cancellationToken);
 
         return raisedAlerts;
+    }
+
+    private async Task<IReadOnlyList<AlertSummary>> EvaluateResourcePressureAlertsAsync(
+        Guid organizationId,
+        CancellationToken cancellationToken)
+    {
+        var alerts = new List<AlertSummary>();
+        var now = dateTimeService.UtcNow;
+        var cutoff = now.AddHours(-1);
+
+        var pods = await dbContext.GpuPods
+            .Where(p => p.OrganizationId == organizationId
+                && p.Status != PodStatus.Deleted
+                && p.Status != PodStatus.Deleting)
+            .ToListAsync(cancellationToken);
+
+        if (pods.Count == 0)
+        {
+            return alerts;
+        }
+
+        var podIds = pods.Select(p => p.Id).ToList();
+        var providerIds = pods.Select(p => p.ProviderId).Distinct().ToList();
+
+        var recentMetrics = await dbContext.PodHealthMetrics
+            .Where(m => m.OrganizationId == organizationId && m.RecordedAt >= cutoff)
+            .ToListAsync(cancellationToken);
+
+        var latestMetrics = recentMetrics
+            .GroupBy(m => m.GpuPodId)
+            .ToDictionary(g => g.Key, g => g.OrderByDescending(m => m.RecordedAt).First());
+
+        var models = await dbContext.AiModels
+            .Where(m => m.OrganizationId == organizationId
+                && podIds.Contains(m.PodId)
+                && m.Status != ModelStatus.Deleted)
+            .ToListAsync(cancellationToken);
+
+        var modelsByPod = models
+            .GroupBy(m => m.PodId)
+            .ToDictionary(g => g.Key, g => g.ToList());
+
+        var gpus = await dbContext.ProviderGpus
+            .Where(g => providerIds.Contains(g.ComputeProviderId))
+            .ToListAsync(cancellationToken);
+
+        foreach (var pod in pods)
+        {
+            latestMetrics.TryGetValue(pod.Id, out var metric);
+            modelsByPod.TryGetValue(pod.Id, out var podModels);
+            podModels ??= [];
+
+            var configuredDiskBytes = (long)(pod.ContainerDisk + pod.VolumeDisk) * BytesPerGigabyte;
+            var diskUsedBytes = metric?.DiskUsedBytes
+                ?? (podModels.Count > 0 ? podModels.Sum(m => m.Size) : null);
+
+            if (configuredDiskBytes > 0 && diskUsedBytes.HasValue && diskUsedBytes.Value > 0)
+            {
+                var diskPercent = diskUsedBytes.Value * 100.0 / configuredDiskBytes;
+                if (diskPercent >= DiskFullThresholdPercent)
+                {
+                    var alert = await RaiseOrUpdateAlertAsync(
+                        organizationId,
+                        AlertType.DiskFull,
+                        AlertSeverity.Critical,
+                        $"Disk full on {pod.Name}",
+                        $"Disk usage is {diskPercent:F1}% of configured capacity",
+                        gpuPodId: pod.Id,
+                        cancellationToken: cancellationToken);
+                    alerts.Add(alert);
+                }
+            }
+
+            var gpuCatalog = gpus.FirstOrDefault(g =>
+                g.ComputeProviderId == pod.ProviderId
+                && (string.IsNullOrEmpty(pod.GpuId)
+                    ? g.GpuType == pod.GpuType
+                    : g.GpuId == pod.GpuId || g.GpuType == pod.GpuType));
+
+            var memoryTotalBytes = gpuCatalog?.MemoryGb is > 0
+                ? gpuCatalog.MemoryGb.Value * BytesPerGigabyte
+                : (long?)null;
+
+            var memoryUsedBytes = metric?.MemoryUsedBytes
+                ?? (podModels.Count > 0 ? podModels.Sum(m => m.Size) : null);
+
+            if (memoryTotalBytes.HasValue && memoryUsedBytes.HasValue && memoryUsedBytes.Value > 0)
+            {
+                var memoryPercent = memoryUsedBytes.Value * 100.0 / memoryTotalBytes.Value;
+                if (memoryPercent >= MemoryPressureThresholdPercent)
+                {
+                    var alert = await RaiseOrUpdateAlertAsync(
+                        organizationId,
+                        AlertType.MemoryPressure,
+                        AlertSeverity.Warning,
+                        $"Memory pressure on {pod.Name}",
+                        $"Memory usage is {memoryPercent:F1}% of GPU capacity",
+                        gpuPodId: pod.Id,
+                        cancellationToken: cancellationToken);
+                    alerts.Add(alert);
+                }
+            }
+        }
+
+        return alerts;
     }
 
     private async Task<AlertSummary> RaiseOrUpdateAlertAsync(

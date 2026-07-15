@@ -63,6 +63,16 @@ export const CostsPage = () => {
     [cost],
   );
 
+  const modelChartData = useMemo(
+    () =>
+      (cost?.modelBreakdowns ?? []).map((item) => ({
+        name: item.modelName,
+        periodCost: Number(item.periodCost),
+        hourlyCost: Number(item.hourlyCost),
+      })),
+    [cost],
+  );
+
   const handleExport = async (format: ObservabilityExportFormat) => {
     if (!canExport) {
       toast.warning('You do not have permission to export observability data.');
@@ -180,6 +190,25 @@ export const CostsPage = () => {
                 <Alert color="info" className="mb-0">No provider cost data.</Alert>
               ) : (
                 <ObservabilityPieChart data={providerPieData} />
+              )}
+            </CardBody>
+          </Card>
+        </Col>
+        <Col lg={6}>
+          <Card>
+            <CardBody>
+              <CardTitle tag="h5">Cost by Model</CardTitle>
+              {modelChartData.length === 0 ? (
+                <Alert color="info" className="mb-0">No model cost breakdown available.</Alert>
+              ) : (
+                <ObservabilityBarChart
+                  data={modelChartData}
+                  xKey="name"
+                  series={[
+                    { key: 'periodCost', name: 'Period Cost', color: '#6610f2' },
+                    { key: 'hourlyCost', name: 'Hourly Cost', color: '#20c997' },
+                  ]}
+                />
               )}
             </CardBody>
           </Card>

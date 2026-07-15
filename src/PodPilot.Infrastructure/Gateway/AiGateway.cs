@@ -1,3 +1,5 @@
+using System.Text;
+using System.Text.Json;
 using PodPilot.Application.Common.Interfaces;
 using PodPilot.Application.Models.Gateway;
 using PodPilot.Application.Models.Scheduler;
@@ -6,18 +8,25 @@ using PodPilot.Domain.Enums;
 namespace PodPilot.Infrastructure.Gateway;
 
 /// <summary>
-/// Orchestrates end-to-end AI gateway request handling via the scheduler.
+/// Orchestrates end-to-end AI gateway request handling via AI providers or the scheduler.
 /// </summary>
 public sealed class AiGateway : IAiGateway
 {
     private readonly IRequestScheduler scheduler;
+    private readonly IAiInferenceRouter inferenceRouter;
+    private readonly IAiInferenceDispatcher inferenceDispatcher;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AiGateway"/> class.
     /// </summary>
-    public AiGateway(IRequestScheduler scheduler)
+    public AiGateway(
+        IRequestScheduler scheduler,
+        IAiInferenceRouter inferenceRouter,
+        IAiInferenceDispatcher inferenceDispatcher)
     {
         this.scheduler = scheduler;
+        this.inferenceRouter = inferenceRouter;
+        this.inferenceDispatcher = inferenceDispatcher;
     }
 
     /// <inheritdoc />
@@ -67,6 +76,68 @@ public sealed class AiGateway : IAiGateway
         await requestBody.CopyToAsync(bufferedBody, cancellationToken);
         bufferedBody.Position = 0;
 
+        var bodyJson = Encoding.UTF8.GetString(bufferedBody.ToArray());
+        bufferedBody.Position = 0;
+
+        var model = TryExtractModel(bodyJson);
+        var route = await inferenceRouter.TryResolveAsync(
+            auth.OrganizationId,
+            model,
+            path,
+            bodyJson,
+            cancellationToken);
+        if (route is not null)
+        {
+            var streamRequested = false;
+            try
+            {
+                using var doc = JsonDocument.Parse(string.IsNullOrWhiteSpace(bodyJson) ? "{}" : bodyJson);
+                streamRequested = doc.RootElement.TryGetProperty("stream", out var streamEl) &&
+                                  streamEl.ValueKind == JsonValueKind.True;
+            }
+            catch (JsonException)
+            {
+                streamRequested = false;
+            }
+
+            if (onResponseHeaders is not null)
+            {
+                await onResponseHeaders(new GatewayProxyResult
+                {
+                    StatusCode = 200,
+                    Headers = new Dictionary<string, string>
+                    {
+                        ["Content-Type"] = streamRequested ? "text/event-stream" : "application/json",
+                    },
+                });
+            }
+
+            var dispatch = await inferenceDispatcher.DispatchAsync(
+                new AiDispatchContext
+                {
+                    OrganizationId = auth.OrganizationId,
+                    Route = route,
+                    Path = path,
+                    Method = method,
+                    BodyJson = bodyJson,
+                    ResponseBody = responseBody,
+                    Stream = streamRequested,
+                },
+                cancellationToken);
+
+            return new GatewayRequestResult
+            {
+                Success = dispatch.Success,
+                StatusCode = dispatch.StatusCode,
+                Headers = new Dictionary<string, string>
+                {
+                    ["Content-Type"] = streamRequested ? "text/event-stream" : "application/json",
+                },
+                ErrorCode = dispatch.Success ? null : "ai_provider_error",
+                ErrorMessage = dispatch.ErrorMessage,
+            };
+        }
+
         var result = await scheduler.ProcessAsync(
             new ScheduleRequestContext
             {
@@ -91,5 +162,25 @@ public sealed class AiGateway : IAiGateway
             ErrorCode = result.ErrorCode,
             ErrorMessage = result.ErrorMessage,
         };
+    }
+
+    private static string? TryExtractModel(string bodyJson)
+    {
+        if (string.IsNullOrWhiteSpace(bodyJson))
+        {
+            return null;
+        }
+
+        try
+        {
+            using var doc = JsonDocument.Parse(bodyJson);
+            return doc.RootElement.TryGetProperty("model", out var modelEl)
+                ? modelEl.GetString()
+                : null;
+        }
+        catch (JsonException)
+        {
+            return null;
+        }
     }
 }

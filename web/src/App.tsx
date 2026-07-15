@@ -43,6 +43,16 @@ import { AnalyticsPage } from './pages/AnalyticsPage';
 import { ObservabilityHealthPage } from './pages/ObservabilityHealthPage';
 import { AlertsPage } from './pages/AlertsPage';
 import { CostsPage } from './pages/CostsPage';
+import { AiProvidersPage } from './pages/AiProvidersPage';
+import { AddAiProviderPage } from './pages/AddAiProviderPage';
+import { AiProviderDetailsPage } from './pages/AiProviderDetailsPage';
+import { ModelRegistryPage } from './pages/ModelRegistryPage';
+import { RoutingPoliciesPage } from './pages/RoutingPoliciesPage';
+import { AiProviderHealthPage } from './pages/AiProviderHealthPage';
+import { RoutingDashboardPage } from './pages/RoutingDashboardPage';
+import { RoutingPolicySettingsPage } from './pages/RoutingPolicySettingsPage';
+import { ModelRankingPage } from './pages/ModelRankingPage';
+import { RoutingSimulatePage } from './pages/RoutingSimulatePage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'react-toastify/dist/ReactToastify.css';
@@ -98,6 +108,16 @@ function App() {
                     <Route path="/observability/health" element={<ObservabilityHealthPage />} />
                     <Route path="/observability/alerts" element={<AlertsPage />} />
                     <Route path="/observability/costs" element={<CostsPage />} />
+                    <Route path="/ai/providers" element={<AiProvidersPage />} />
+                    <Route path="/ai/providers/add" element={<AddAiProviderPage />} />
+                    <Route path="/ai/providers/:id" element={<AiProviderDetailsPage />} />
+                    <Route path="/ai/models" element={<ModelRegistryPage />} />
+                    <Route path="/ai/routing" element={<RoutingPoliciesPage />} />
+                    <Route path="/ai/health" element={<AiProviderHealthPage />} />
+                    <Route path="/routing" element={<RoutingDashboardPage />} />
+                    <Route path="/routing/policies" element={<RoutingPolicySettingsPage />} />
+                    <Route path="/routing/models" element={<ModelRankingPage />} />
+                    <Route path="/routing/simulate" element={<RoutingSimulatePage />} />
                     <Route path="/models" element={<ModelsPage />} />
                     <Route path="/models/pull" element={<PullModelPage />} />
                     <Route path="/models/downloads" element={<ModelDownloadsPage />} />

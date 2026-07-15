@@ -105,6 +105,61 @@ public sealed class MetricsAggregatorService : IMetricsAggregator
             .Where(m => m.GpuPod.OrganizationId == organizationId)
             .SumAsync(m => m.ActiveStreams, cancellationToken);
 
+        var stoppedPods = await dbContext.GpuPods.CountAsync(
+            p => p.OrganizationId == organizationId && p.Status == PodStatus.Stopped,
+            cancellationToken);
+
+        var modelsInstalled = await dbContext.AiModels.CountAsync(
+            m => m.OrganizationId == organizationId && m.Status != ModelStatus.Deleted,
+            cancellationToken);
+
+        var runningPods = await dbContext.GpuPods
+            .Where(p => p.OrganizationId == organizationId
+                && (p.Status == PodStatus.Running
+                    || p.Status == PodStatus.Starting
+                    || p.Status == PodStatus.Restarting))
+            .ToListAsync(cancellationToken);
+
+        var runningPodIds = runningPods.Select(p => p.Id).ToList();
+        var providerIds = runningPods.Select(p => p.ProviderId).Distinct().ToList();
+
+        var installedModelSizes = runningPodIds.Count == 0
+            ? 0L
+            : await dbContext.AiModels
+                .Where(m => runningPodIds.Contains(m.PodId) && m.Status != ModelStatus.Deleted)
+                .SumAsync(m => m.Size, cancellationToken);
+
+        var gpus = providerIds.Count == 0
+            ? []
+            : await dbContext.ProviderGpus
+                .Where(g => providerIds.Contains(g.ComputeProviderId))
+                .ToListAsync(cancellationToken);
+
+        long? gpuMemoryTotal = null;
+        foreach (var pod in runningPods)
+        {
+            var gpu = gpus.FirstOrDefault(g =>
+                g.ComputeProviderId == pod.ProviderId
+                && (string.IsNullOrEmpty(pod.GpuId)
+                    ? g.GpuType == pod.GpuType
+                    : g.GpuId == pod.GpuId || g.GpuType == pod.GpuType));
+
+            if (gpu?.MemoryGb is > 0)
+            {
+                gpuMemoryTotal = (gpuMemoryTotal ?? 0) + (gpu.MemoryGb.Value * 1024L * 1024L * 1024L);
+            }
+        }
+
+        var memoryUsedFromMetrics = recentMetrics
+            .Where(m => m.MemoryUsedBytes.HasValue)
+            .Select(m => m.MemoryUsedBytes!.Value)
+            .DefaultIfEmpty(0)
+            .Sum();
+
+        var gpuMemoryUsed = memoryUsedFromMetrics > 0
+            ? memoryUsedFromMetrics
+            : installedModelSizes > 0 ? installedModelSizes : (long?)null;
+
         return new LiveMetricsSnapshot
         {
             CapturedAt = now,
@@ -118,6 +173,10 @@ public sealed class MetricsAggregatorService : IMetricsAggregator
             RunningPods = orchestratorStatus.RunningPods,
             HealthyPods = orchestratorStatus.HealthyPods,
             FailedPods = orchestratorStatus.FailedPods,
+            StoppedPods = stoppedPods,
+            ModelsInstalled = modelsInstalled,
+            GpuMemoryUsedBytes = gpuMemoryUsed,
+            GpuMemoryTotalBytes = gpuMemoryTotal,
             InferenceCountLastHour = completed.Count,
             TokensGeneratedLastHour = completed.Count * 500L,
         };

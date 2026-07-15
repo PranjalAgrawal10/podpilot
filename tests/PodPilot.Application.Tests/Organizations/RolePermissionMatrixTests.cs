@@ -34,6 +34,19 @@ public class RolePermissionMatrixTests
     [InlineData(OrganizationRole.Developer, PermissionNames.ObservabilityExport, false)]
     [InlineData(OrganizationRole.Viewer, PermissionNames.ObservabilityRead, true)]
     [InlineData(OrganizationRole.Viewer, PermissionNames.ObservabilityExport, false)]
+    [InlineData(OrganizationRole.Admin, PermissionNames.AiProviderRead, true)]
+    [InlineData(OrganizationRole.Admin, PermissionNames.AiProviderCreate, true)]
+    [InlineData(OrganizationRole.Developer, PermissionNames.AiProviderUpdate, true)]
+    [InlineData(OrganizationRole.Developer, PermissionNames.AiProviderDelete, true)]
+    [InlineData(OrganizationRole.Viewer, PermissionNames.AiProviderRead, true)]
+    [InlineData(OrganizationRole.Viewer, PermissionNames.AiProviderCreate, false)]
+    [InlineData(OrganizationRole.Viewer, PermissionNames.AiProviderUpdate, false)]
+    [InlineData(OrganizationRole.Viewer, PermissionNames.AiProviderDelete, false)]
+    [InlineData(OrganizationRole.Admin, PermissionNames.RoutingRead, true)]
+    [InlineData(OrganizationRole.Admin, PermissionNames.RoutingManage, true)]
+    [InlineData(OrganizationRole.Developer, PermissionNames.RoutingManage, true)]
+    [InlineData(OrganizationRole.Viewer, PermissionNames.RoutingRead, true)]
+    [InlineData(OrganizationRole.Viewer, PermissionNames.RoutingManage, false)]
     public void HasPermission_ReturnsExpectedResult(
         OrganizationRole role,
         string permission,

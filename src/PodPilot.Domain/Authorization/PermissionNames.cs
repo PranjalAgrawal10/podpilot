@@ -86,6 +86,24 @@ public static class PermissionNames
     /// <summary>Export observability data.</summary>
     public const string ObservabilityExport = "Observability.Export";
 
+    /// <summary>Read AI inference providers and model catalog.</summary>
+    public const string AiProviderRead = "AiProvider.Read";
+
+    /// <summary>Create AI inference providers and routing policies.</summary>
+    public const string AiProviderCreate = "AiProvider.Create";
+
+    /// <summary>Update AI inference providers and routing policies.</summary>
+    public const string AiProviderUpdate = "AiProvider.Update";
+
+    /// <summary>Delete AI inference providers and routing policies.</summary>
+    public const string AiProviderDelete = "AiProvider.Delete";
+
+    /// <summary>Read intelligent routing dashboard, rankings, and history.</summary>
+    public const string RoutingRead = "Routing.Read";
+
+    /// <summary>Manage intelligent routing policy settings and simulations.</summary>
+    public const string RoutingManage = "Routing.Manage";
+
     /// <summary>All defined permissions.</summary>
     public static readonly IReadOnlyList<string> All =
     [
@@ -116,5 +134,11 @@ public static class PermissionNames
         OrchestratorManage,
         ObservabilityRead,
         ObservabilityExport,
+        AiProviderRead,
+        AiProviderCreate,
+        AiProviderUpdate,
+        AiProviderDelete,
+        RoutingRead,
+        RoutingManage,
     ];
 }

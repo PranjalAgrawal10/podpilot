@@ -34,6 +34,9 @@ public sealed class CostResponse
 
     /// <summary>Gets or sets per-provider cost breakdowns.</summary>
     public IReadOnlyList<ProviderCostBreakdownResponse> ProviderBreakdowns { get; init; } = [];
+
+    /// <summary>Gets or sets per-model cost breakdowns.</summary>
+    public IReadOnlyList<ModelCostBreakdownResponse> ModelBreakdowns { get; init; } = [];
 }
 
 /// <summary>
@@ -70,4 +73,22 @@ public sealed class ProviderCostBreakdownResponse
 
     /// <summary>Gets or sets period cost.</summary>
     public decimal PeriodCost { get; init; }
+}
+
+/// <summary>
+/// Per-model cost breakdown response.
+/// </summary>
+public sealed class ModelCostBreakdownResponse
+{
+    /// <summary>Gets or sets the model name.</summary>
+    public string ModelName { get; init; } = string.Empty;
+
+    /// <summary>Gets or sets hourly cost allocated to the model.</summary>
+    public decimal HourlyCost { get; init; }
+
+    /// <summary>Gets or sets period cost allocated to the model.</summary>
+    public decimal PeriodCost { get; init; }
+
+    /// <summary>Gets or sets request count used for allocation.</summary>
+    public int RequestCount { get; init; }
 }

@@ -228,6 +228,113 @@ public class MonitoringServiceTests
     Assert.Contains(alerts, a => a.AlertType == AlertType.ModelFailure && a.GpuPodId == podId);
   }
 
+  [Fact]
+  public async Task Should_Raise_DiskFull_Alert_When_Model_Sizes_Exceed_Disk_Capacity()
+  {
+    var organizationId = Guid.NewGuid();
+    var providerId = Guid.NewGuid();
+    var podId = Guid.NewGuid();
+    var now = new DateTime(2026, 7, 9, 12, 0, 0, DateTimeKind.Utc);
+
+    await using var dbContext = CreateDbContext();
+    await SeedProviderAsync(dbContext, organizationId, providerId, now);
+
+    await dbContext.AddGpuPodAsync(
+      new GpuPod
+      {
+        Id = podId,
+        OrganizationId = organizationId,
+        ProviderId = providerId,
+        Name = "disk-full-pod",
+        Endpoint = "http://127.0.0.1:11434",
+        Status = PodStatus.Running,
+        GpuId = "gpu-1",
+        Region = "US",
+        ContainerDisk = 10,
+        VolumeDisk = 0,
+        CreatedAt = now,
+      });
+
+    await dbContext.AddAiModelAsync(
+      new AiModel
+      {
+        OrganizationId = organizationId,
+        PodId = podId,
+        Name = "huge-model",
+        Tag = "latest",
+        Size = 10L * 1024L * 1024L * 1024L,
+        Status = ModelStatus.Available,
+        CreatedAt = now,
+      });
+
+    await dbContext.SaveChangesAsync();
+
+    var service = CreateService(dbContext, CreateDefaultOrchestrator(organizationId), CreateDefaultQueue(organizationId), now);
+    var alerts = await service.EvaluateAlertsAsync(organizationId);
+
+    Assert.Contains(alerts, a => a.AlertType == AlertType.DiskFull && a.GpuPodId == podId);
+  }
+
+  [Fact]
+  public async Task Should_Raise_MemoryPressure_Alert_When_Model_Sizes_Exceed_Gpu_Memory()
+  {
+    var organizationId = Guid.NewGuid();
+    var providerId = Guid.NewGuid();
+    var podId = Guid.NewGuid();
+    var now = new DateTime(2026, 7, 9, 12, 0, 0, DateTimeKind.Utc);
+
+    await using var dbContext = CreateDbContext();
+    await SeedProviderAsync(dbContext, organizationId, providerId, now);
+
+    await dbContext.AddProviderGpuAsync(
+      new ProviderGpu
+      {
+        ComputeProviderId = providerId,
+        GpuType = GpuType.RTX4090,
+        GpuId = "gpu-1",
+        Name = "RTX 4090",
+        MemoryGb = 24,
+        IsAvailable = true,
+        SyncedAt = now,
+      });
+
+    await dbContext.AddGpuPodAsync(
+      new GpuPod
+      {
+        Id = podId,
+        OrganizationId = organizationId,
+        ProviderId = providerId,
+        Name = "memory-pressure-pod",
+        Endpoint = "http://127.0.0.1:11434",
+        Status = PodStatus.Running,
+        GpuType = GpuType.RTX4090,
+        GpuId = "gpu-1",
+        Region = "US",
+        ContainerDisk = 100,
+        VolumeDisk = 100,
+        CreatedAt = now,
+      });
+
+    await dbContext.AddAiModelAsync(
+      new AiModel
+      {
+        OrganizationId = organizationId,
+        PodId = podId,
+        Name = "big-model",
+        Tag = "latest",
+        Size = 23L * 1024L * 1024L * 1024L,
+        Status = ModelStatus.Available,
+        CreatedAt = now,
+      });
+
+    await dbContext.SaveChangesAsync();
+
+    var service = CreateService(dbContext, CreateDefaultOrchestrator(organizationId), CreateDefaultQueue(organizationId), now);
+    var alerts = await service.EvaluateAlertsAsync(organizationId);
+
+    Assert.Contains(alerts, a => a.AlertType == AlertType.MemoryPressure && a.GpuPodId == podId);
+  }
+
   private static MonitoringService CreateService(
     ApplicationDbContext dbContext,
     IPodOrchestrator orchestrator,

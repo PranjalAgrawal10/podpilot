@@ -61,17 +61,32 @@ public sealed class MetricsSnapshotData
     /// <summary>Gets or sets GPU memory used in bytes.</summary>
     public long? GpuMemoryUsedBytes { get; init; }
 
+    /// <summary>Gets or sets GPU memory total in bytes.</summary>
+    public long? GpuMemoryTotalBytes { get; init; }
+
     /// <summary>Gets or sets RAM used in bytes.</summary>
     public long? MemoryUsedBytes { get; init; }
 
+    /// <summary>Gets or sets RAM total in bytes.</summary>
+    public long? MemoryTotalBytes { get; init; }
+
     /// <summary>Gets or sets disk used in bytes.</summary>
     public long? DiskUsedBytes { get; init; }
+
+    /// <summary>Gets or sets disk total in bytes.</summary>
+    public long? DiskTotalBytes { get; init; }
 
     /// <summary>Gets or sets network inbound bytes.</summary>
     public long NetworkInBytes { get; init; }
 
     /// <summary>Gets or sets network outbound bytes.</summary>
     public long NetworkOutBytes { get; init; }
+
+    /// <summary>Gets or sets GPU temperature in Celsius when available.</summary>
+    public double? TemperatureCelsius { get; init; }
+
+    /// <summary>Gets or sets power usage in watts when available.</summary>
+    public double? PowerWatts { get; init; }
 
     /// <summary>Gets or sets active stream count.</summary>
     public int ActiveStreams { get; init; }
@@ -130,6 +145,18 @@ public sealed class LiveMetricsSnapshot
     /// <summary>Gets or sets failed pod count.</summary>
     public int FailedPods { get; init; }
 
+    /// <summary>Gets or sets stopped pod count.</summary>
+    public int StoppedPods { get; init; }
+
+    /// <summary>Gets or sets installed model count.</summary>
+    public int ModelsInstalled { get; init; }
+
+    /// <summary>Gets or sets GPU memory used in bytes.</summary>
+    public long? GpuMemoryUsedBytes { get; init; }
+
+    /// <summary>Gets or sets GPU memory total in bytes.</summary>
+    public long? GpuMemoryTotalBytes { get; init; }
+
     /// <summary>Gets or sets inference count in the last hour.</summary>
     public int InferenceCountLastHour { get; init; }
 
@@ -171,6 +198,9 @@ public sealed class CostSummary
 
     /// <summary>Gets or sets per-provider cost breakdowns.</summary>
     public IReadOnlyList<ProviderCostBreakdown> ProviderBreakdowns { get; init; } = [];
+
+    /// <summary>Gets or sets per-model cost breakdowns.</summary>
+    public IReadOnlyList<ModelCostBreakdown> ModelBreakdowns { get; init; } = [];
 }
 
 /// <summary>
@@ -207,6 +237,24 @@ public sealed class ProviderCostBreakdown
 
     /// <summary>Gets or sets period cost.</summary>
     public decimal PeriodCost { get; init; }
+}
+
+/// <summary>
+/// Per-model cost breakdown.
+/// </summary>
+public sealed class ModelCostBreakdown
+{
+    /// <summary>Gets or sets the model name.</summary>
+    public string ModelName { get; init; } = string.Empty;
+
+    /// <summary>Gets or sets hourly cost allocated to the model.</summary>
+    public decimal HourlyCost { get; init; }
+
+    /// <summary>Gets or sets period cost allocated to the model.</summary>
+    public decimal PeriodCost { get; init; }
+
+    /// <summary>Gets or sets request count used for allocation.</summary>
+    public int RequestCount { get; init; }
 }
 
 /// <summary>

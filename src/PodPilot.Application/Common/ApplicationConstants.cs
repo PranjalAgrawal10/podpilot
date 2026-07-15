@@ -54,6 +54,26 @@ public static class ApplicationConstants
     public const int ProviderRegionMaxLength = 100;
 
     /// <summary>
+    /// Maximum AI provider base URL length.
+    /// </summary>
+    public const int AiProviderBaseUrlMaxLength = 500;
+
+    /// <summary>
+    /// Maximum AI provider deployment name length.
+    /// </summary>
+    public const int AiProviderDeploymentNameMaxLength = 200;
+
+    /// <summary>
+    /// Maximum AI provider API version length.
+    /// </summary>
+    public const int AiProviderApiVersionMaxLength = 50;
+
+    /// <summary>
+    /// Maximum AI model name length.
+    /// </summary>
+    public const int AiProviderModelNameMaxLength = 200;
+
+    /// <summary>
     /// Maximum pod name length.
     /// </summary>
     public const int PodNameMaxLength = 191;

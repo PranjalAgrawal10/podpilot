@@ -85,6 +85,13 @@ public sealed class CostCalculatorService : ICostCalculator
             })
             .ToList();
 
+        var modelBreakdowns = await BuildModelCostBreakdownsAsync(
+            organizationId,
+            pods,
+            periodHours,
+            modelName,
+            cancellationToken);
+
         var savingsStart = now.AddDays(-30);
         var shutdownEvents = await dbContext.PodLifecycleEvents
             .Where(e =>
@@ -112,6 +119,7 @@ public sealed class CostCalculatorService : ICostCalculator
             AutoShutdownSavings = autoShutdownSavings,
             PodBreakdowns = podBreakdowns,
             ProviderBreakdowns = providerBreakdowns,
+            ModelBreakdowns = modelBreakdowns,
         };
     }
 
@@ -147,6 +155,133 @@ public sealed class CostCalculatorService : ICostCalculator
             summary.HourlyCost);
 
         return summary;
+    }
+
+    private async Task<IReadOnlyList<ModelCostBreakdown>> BuildModelCostBreakdownsAsync(
+        Guid organizationId,
+        IReadOnlyList<GpuPod> pods,
+        decimal periodHours,
+        string? modelNameFilter,
+        CancellationToken cancellationToken)
+    {
+        if (pods.Count == 0)
+        {
+            return [];
+        }
+
+        var podIds = pods.Select(p => p.Id).ToList();
+        var podCostById = pods.ToDictionary(p => p.Id, p => p.HourlyCost ?? 0m);
+
+        var oneDayAgo = dateTimeService.UtcNow.AddDays(-1);
+        var requestQuery = dbContext.GatewayRequests
+            .Where(r => r.OrganizationId == organizationId
+                && podIds.Contains(r.GpuPodId)
+                && r.CreatedAt >= oneDayAgo
+                && r.Model != null
+                && r.Model != string.Empty);
+
+        if (!string.IsNullOrWhiteSpace(modelNameFilter))
+        {
+            requestQuery = requestQuery.Where(r => r.Model == modelNameFilter);
+        }
+
+        var modelRequests = await requestQuery
+            .GroupBy(r => new { r.GpuPodId, r.Model })
+            .Select(g => new { g.Key.GpuPodId, ModelName = g.Key.Model!, Count = g.Count() })
+            .ToListAsync(cancellationToken);
+
+        if (modelRequests.Count > 0)
+        {
+            var allocations = new Dictionary<string, (decimal Hourly, int Requests)>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (var podGroup in modelRequests.GroupBy(r => r.GpuPodId))
+            {
+                var podHourly = podCostById.GetValueOrDefault(podGroup.Key);
+                var totalRequests = podGroup.Sum(r => r.Count);
+                if (totalRequests == 0 || podHourly == 0m)
+                {
+                    continue;
+                }
+
+                foreach (var entry in podGroup)
+                {
+                    var share = (decimal)entry.Count / totalRequests * podHourly;
+                    if (allocations.TryGetValue(entry.ModelName, out var existing))
+                    {
+                        allocations[entry.ModelName] = (existing.Hourly + share, existing.Requests + entry.Count);
+                    }
+                    else
+                    {
+                        allocations[entry.ModelName] = (share, entry.Count);
+                    }
+                }
+            }
+
+            return allocations
+                .OrderByDescending(a => a.Value.Hourly)
+                .Select(a => new ModelCostBreakdown
+                {
+                    ModelName = a.Key,
+                    HourlyCost = decimal.Round(a.Value.Hourly, 6, MidpointRounding.AwayFromZero),
+                    PeriodCost = decimal.Round(a.Value.Hourly * periodHours, 6, MidpointRounding.AwayFromZero),
+                    RequestCount = a.Value.Requests,
+                })
+                .ToList();
+        }
+
+        var modelsQuery = dbContext.AiModels
+            .Where(m => m.OrganizationId == organizationId
+                && podIds.Contains(m.PodId)
+                && m.Status != ModelStatus.Deleted);
+
+        if (!string.IsNullOrWhiteSpace(modelNameFilter))
+        {
+            modelsQuery = modelsQuery.Where(m =>
+                m.Name == modelNameFilter
+                || (m.Name + ":" + m.Tag) == modelNameFilter);
+        }
+
+        var installedModels = await modelsQuery.ToListAsync(cancellationToken);
+        if (installedModels.Count == 0)
+        {
+            return [];
+        }
+
+        var equalSplit = new Dictionary<string, (decimal Hourly, int Count)>(StringComparer.OrdinalIgnoreCase);
+        foreach (var podGroup in installedModels.GroupBy(m => m.PodId))
+        {
+            var podHourly = podCostById.GetValueOrDefault(podGroup.Key);
+            var modelCount = podGroup.Count();
+            if (modelCount == 0 || podHourly == 0m)
+            {
+                continue;
+            }
+
+            var share = podHourly / modelCount;
+            foreach (var model in podGroup)
+            {
+                var name = model.FullName;
+                if (equalSplit.TryGetValue(name, out var existing))
+                {
+                    equalSplit[name] = (existing.Hourly + share, existing.Count + 1);
+                }
+                else
+                {
+                    equalSplit[name] = (share, 1);
+                }
+            }
+        }
+
+        return equalSplit
+            .OrderByDescending(a => a.Value.Hourly)
+            .Select(a => new ModelCostBreakdown
+            {
+                ModelName = a.Key,
+                HourlyCost = decimal.Round(a.Value.Hourly, 6, MidpointRounding.AwayFromZero),
+                PeriodCost = decimal.Round(a.Value.Hourly * periodHours, 6, MidpointRounding.AwayFromZero),
+                RequestCount = a.Value.Count,
+            })
+            .ToList();
     }
 
     private static decimal GetPeriodHours(MetricsPeriod period) =>
