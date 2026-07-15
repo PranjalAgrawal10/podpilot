@@ -189,6 +189,33 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     /// <inheritdoc />
     public DbSet<RoutingEvent> RoutingEvents => Set<RoutingEvent>();
 
+    /// <inheritdoc />
+    public DbSet<PluginDefinition> PluginDefinitions => Set<PluginDefinition>();
+
+    /// <inheritdoc />
+    public DbSet<PluginInstallation> PluginInstallations => Set<PluginInstallation>();
+
+    /// <inheritdoc />
+    public DbSet<PluginSetting> PluginSettings => Set<PluginSetting>();
+
+    /// <inheritdoc />
+    public DbSet<PluginLog> PluginLogs => Set<PluginLog>();
+
+    /// <inheritdoc />
+    public DbSet<McpServer> McpServers => Set<McpServer>();
+
+    /// <inheritdoc />
+    public DbSet<McpTool> McpTools => Set<McpTool>();
+
+    /// <inheritdoc />
+    public DbSet<McpResource> McpResources => Set<McpResource>();
+
+    /// <inheritdoc />
+    public DbSet<McpPrompt> McpPrompts => Set<McpPrompt>();
+
+    /// <inheritdoc />
+    public DbSet<McpToolExecution> McpToolExecutions => Set<McpToolExecution>();
+
     IQueryable<RefreshToken> IApplicationDbContext.RefreshTokens => RefreshTokens;
 
     IQueryable<Organization> IApplicationDbContext.Organizations => Organizations;
@@ -300,6 +327,24 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     IQueryable<CostHistory> IApplicationDbContext.CostHistories => CostHistories;
 
     IQueryable<RoutingEvent> IApplicationDbContext.RoutingEvents => RoutingEvents;
+
+    IQueryable<PluginDefinition> IApplicationDbContext.PluginDefinitions => PluginDefinitions;
+
+    IQueryable<PluginInstallation> IApplicationDbContext.PluginInstallations => PluginInstallations;
+
+    IQueryable<PluginSetting> IApplicationDbContext.PluginSettings => PluginSettings;
+
+    IQueryable<PluginLog> IApplicationDbContext.PluginLogs => PluginLogs;
+
+    IQueryable<McpServer> IApplicationDbContext.McpServers => McpServers;
+
+    IQueryable<McpTool> IApplicationDbContext.McpTools => McpTools;
+
+    IQueryable<McpResource> IApplicationDbContext.McpResources => McpResources;
+
+    IQueryable<McpPrompt> IApplicationDbContext.McpPrompts => McpPrompts;
+
+    IQueryable<McpToolExecution> IApplicationDbContext.McpToolExecutions => McpToolExecutions;
 
     /// <inheritdoc />
     public Task AddAuditLogAsync(AuditLog auditLog, CancellationToken cancellationToken = default) =>
@@ -534,6 +579,80 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     /// <inheritdoc />
     public Task AddRoutingEventAsync(RoutingEvent routingEvent, CancellationToken cancellationToken = default) =>
         RoutingEvents.AddAsync(routingEvent, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public Task AddPluginDefinitionAsync(PluginDefinition definition, CancellationToken cancellationToken = default) =>
+        PluginDefinitions.AddAsync(definition, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public Task AddPluginInstallationAsync(PluginInstallation installation, CancellationToken cancellationToken = default) =>
+        PluginInstallations.AddAsync(installation, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public Task AddPluginSettingAsync(PluginSetting setting, CancellationToken cancellationToken = default) =>
+        PluginSettings.AddAsync(setting, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public Task AddPluginLogAsync(PluginLog log, CancellationToken cancellationToken = default) =>
+        PluginLogs.AddAsync(log, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public Task AddMcpServerAsync(McpServer server, CancellationToken cancellationToken = default) =>
+        McpServers.AddAsync(server, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public Task AddMcpToolAsync(McpTool tool, CancellationToken cancellationToken = default) =>
+        McpTools.AddAsync(tool, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public Task AddMcpResourceAsync(McpResource resource, CancellationToken cancellationToken = default) =>
+        McpResources.AddAsync(resource, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public Task AddMcpPromptAsync(McpPrompt prompt, CancellationToken cancellationToken = default) =>
+        McpPrompts.AddAsync(prompt, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public Task AddMcpToolExecutionAsync(McpToolExecution execution, CancellationToken cancellationToken = default) =>
+        McpToolExecutions.AddAsync(execution, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public async Task RemovePluginInstallationAsync(Guid installationId, CancellationToken cancellationToken = default)
+    {
+        var installation = await PluginInstallations
+            .Include(i => i.Settings)
+            .Include(i => i.Logs)
+            .FirstOrDefaultAsync(i => i.Id == installationId, cancellationToken);
+        if (installation is not null)
+        {
+            PluginInstallations.Remove(installation);
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task RemoveMcpServerAsync(Guid serverId, CancellationToken cancellationToken = default)
+    {
+        var server = await McpServers
+            .Include(s => s.Tools)
+            .Include(s => s.Resources)
+            .Include(s => s.Prompts)
+            .FirstOrDefaultAsync(s => s.Id == serverId, cancellationToken);
+        if (server is not null)
+        {
+            McpServers.Remove(server);
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task ClearMcpServerCapabilitiesAsync(Guid serverId, CancellationToken cancellationToken = default)
+    {
+        var tools = await McpTools.Where(t => t.McpServerId == serverId).ToListAsync(cancellationToken);
+        var resources = await McpResources.Where(r => r.McpServerId == serverId).ToListAsync(cancellationToken);
+        var prompts = await McpPrompts.Where(p => p.McpServerId == serverId).ToListAsync(cancellationToken);
+        McpTools.RemoveRange(tools);
+        McpResources.RemoveRange(resources);
+        McpPrompts.RemoveRange(prompts);
+    }
 
     /// <inheritdoc />
     public async Task RemoveAiInferenceProviderAsync(Guid providerId, CancellationToken cancellationToken = default)

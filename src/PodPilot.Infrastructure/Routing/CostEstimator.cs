@@ -11,14 +11,19 @@ public sealed class CostEstimator : ICostEstimator
 {
     private readonly IApplicationDbContext dbContext;
     private readonly IDateTimeService dateTimeService;
+    private readonly IProviderCostRateCatalog costRateCatalog;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CostEstimator"/> class.
     /// </summary>
-    public CostEstimator(IApplicationDbContext dbContext, IDateTimeService dateTimeService)
+    public CostEstimator(
+        IApplicationDbContext dbContext,
+        IDateTimeService dateTimeService,
+        IProviderCostRateCatalog costRateCatalog)
     {
         this.dbContext = dbContext;
         this.dateTimeService = dateTimeService;
+        this.costRateCatalog = costRateCatalog;
     }
 
     /// <inheritdoc />
@@ -29,8 +34,10 @@ public sealed class CostEstimator : ICostEstimator
         Guid organizationId,
         CancellationToken cancellationToken = default)
     {
-        var inputRate = candidate.InputCostPerMillionTokens ?? DefaultInputRate(candidate);
-        var outputRate = candidate.OutputCostPerMillionTokens ?? DefaultOutputRate(candidate);
+        var inputRate = candidate.InputCostPerMillionTokens
+                        ?? costRateCatalog.GetInputCostPerMillion(candidate.ProviderKind);
+        var outputRate = candidate.OutputCostPerMillionTokens
+                         ?? costRateCatalog.GetOutputCostPerMillion(candidate.ProviderKind);
 
         var inputCost = inputRate * inputTokens / 1_000_000m;
         var outputCost = outputRate * outputTokens / 1_000_000m;
@@ -56,36 +63,6 @@ public sealed class CostEstimator : ICostEstimator
             MonthlySpendUsd = Round(monthlySpend + inputCost + outputCost),
         };
     }
-
-    private static decimal DefaultInputRate(RoutingCandidate candidate) =>
-        candidate.ProviderKind switch
-        {
-            Domain.Enums.AiProviderKind.Ollama => 0m,
-            Domain.Enums.AiProviderKind.Vllm => 0.1m,
-            Domain.Enums.AiProviderKind.LlamaCpp => 0.1m,
-            Domain.Enums.AiProviderKind.Groq => 0.2m,
-            Domain.Enums.AiProviderKind.OpenRouter => 1.5m,
-            Domain.Enums.AiProviderKind.Anthropic => 3m,
-            Domain.Enums.AiProviderKind.OpenAi => 2.5m,
-            Domain.Enums.AiProviderKind.AzureOpenAi => 2.5m,
-            Domain.Enums.AiProviderKind.GoogleGemini => 1.25m,
-            _ => 1m,
-        };
-
-    private static decimal DefaultOutputRate(RoutingCandidate candidate) =>
-        candidate.ProviderKind switch
-        {
-            Domain.Enums.AiProviderKind.Ollama => 0m,
-            Domain.Enums.AiProviderKind.Vllm => 0.2m,
-            Domain.Enums.AiProviderKind.LlamaCpp => 0.2m,
-            Domain.Enums.AiProviderKind.Groq => 0.5m,
-            Domain.Enums.AiProviderKind.OpenRouter => 4m,
-            Domain.Enums.AiProviderKind.Anthropic => 15m,
-            Domain.Enums.AiProviderKind.OpenAi => 10m,
-            Domain.Enums.AiProviderKind.AzureOpenAi => 10m,
-            Domain.Enums.AiProviderKind.GoogleGemini => 5m,
-            _ => 3m,
-        };
 
     private static int EstimateGpuRuntimeMs(int inputTokens, int outputTokens, double speedScore)
     {

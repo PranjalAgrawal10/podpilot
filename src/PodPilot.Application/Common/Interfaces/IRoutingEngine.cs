@@ -1,8 +1,21 @@
+using PodPilot.Application.Models.AiProviders;
 using PodPilot.Application.Models.Routing;
 using PodPilot.Domain.Entities;
 using PodPilot.Domain.Enums;
 
 namespace PodPilot.Application.Common.Interfaces;
+
+/// <summary>
+/// Scores routing candidates using weighted metrics.
+/// </summary>
+public interface IModelScorer
+{
+    /// <summary>Applies component and overall scores to candidates.</summary>
+    IReadOnlyList<RoutingCandidate> Score(
+        IReadOnlyList<RoutingCandidate> candidates,
+        RoutingRequestAnalysis analysis,
+        RoutingScoreWeights weights);
+}
 
 /// <summary>
 /// Selects the best model from scored candidates.
@@ -30,7 +43,7 @@ public interface IProviderSelector
 }
 
 /// <summary>
-/// Resolves active routing policies and scoring weights.
+/// Looks up the active organization routing policy.
 /// </summary>
 public interface IRoutingPolicy
 {
@@ -39,9 +52,95 @@ public interface IRoutingPolicy
         Guid organizationId,
         string? modelHint,
         CancellationToken cancellationToken = default);
+}
 
+/// <summary>
+/// Resolves scoring weights for a routing strategy (open for new strategies).
+/// </summary>
+public interface IRoutingWeightResolver
+{
     /// <summary>Resolves scoring weights for a policy and strategy.</summary>
-    RoutingScoreWeights GetWeights(AiRoutingPolicy? policy, RoutingStrategy strategy);
+    RoutingScoreWeights Resolve(AiRoutingPolicy? policy, RoutingStrategy strategy);
+}
+
+/// <summary>
+/// Provides default provider pricing when catalog costs are absent.
+/// </summary>
+public interface IProviderCostRateCatalog
+{
+    /// <summary>Gets default input USD per 1M tokens.</summary>
+    decimal GetInputCostPerMillion(AiProviderKind providerKind);
+
+    /// <summary>Gets default output USD per 1M tokens.</summary>
+    decimal GetOutputCostPerMillion(AiProviderKind providerKind);
+}
+
+/// <summary>
+/// Enriches candidates with predicted cost, latency, and availability.
+/// </summary>
+public interface IRoutingCandidateEnricher
+{
+    /// <summary>Enriches a candidate in place.</summary>
+    Task EnrichAsync(
+        Guid organizationId,
+        RoutingCandidate candidate,
+        RoutingRequestAnalysis analysis,
+        CancellationToken cancellationToken = default);
+}
+
+/// <summary>
+/// Plans a routing decision for a supported strategy.
+/// </summary>
+public interface IRoutePlanner
+{
+    /// <summary>Gets a value indicating whether this planner can handle the strategy/policy.</summary>
+    bool CanHandle(RoutingStrategy strategy, AiRoutingPolicy? policy);
+
+    /// <summary>Plans the routing decision.</summary>
+    Task<RoutingDecision> PlanAsync(RoutingPlanContext context, CancellationToken cancellationToken = default);
+}
+
+/// <summary>
+/// Context for route planners.
+/// </summary>
+public sealed class RoutingPlanContext
+{
+    /// <summary>Gets or sets the engine request.</summary>
+    required public RoutingEngineRequest Request { get; init; }
+
+    /// <summary>Gets or sets the request analysis.</summary>
+    required public RoutingRequestAnalysis Analysis { get; init; }
+
+    /// <summary>Gets or sets the active policy.</summary>
+    public AiRoutingPolicy? Policy { get; init; }
+
+    /// <summary>Gets or sets the effective strategy.</summary>
+    required public RoutingStrategy Strategy { get; init; }
+}
+
+/// <summary>
+/// Persists routing decisions and observed outcomes.
+/// </summary>
+public interface IRoutingDecisionStore
+{
+    /// <summary>Persists a routing decision and refreshes model scores.</summary>
+    Task PersistDecisionAsync(
+        Guid organizationId,
+        RoutingDecision decision,
+        Guid? gatewayRequestId = null,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>Records observed latency and cost after execution.</summary>
+    Task RecordOutcomeAsync(
+        Guid organizationId,
+        Guid providerId,
+        string? modelName,
+        int latencyMs,
+        int inputTokens,
+        int outputTokens,
+        decimal? actualCostUsd = null,
+        bool wasColdStart = false,
+        CancellationToken cancellationToken = default);
 }
 
 /// <summary>
@@ -84,7 +183,7 @@ public interface IAvailabilityScorer
 }
 
 /// <summary>
-/// Orchestrates intelligent routing: analyze → score → select → persist.
+/// Orchestrates intelligent routing: analyze → plan → persist.
 /// </summary>
 public interface IRoutingEngine
 {
@@ -125,6 +224,18 @@ public interface ITaskClassifier
 {
     /// <summary>Analyzes a request path, body, and optional prompt.</summary>
     RoutingRequestAnalysis Analyze(string? path, string? bodyJson, string? prompt);
+}
+
+/// <summary>
+/// Legacy static policy/catalog route resolution.
+/// </summary>
+public interface ILegacyAiInferenceRouter
+{
+    /// <summary>Attempts to resolve a route using static policies and catalog priority.</summary>
+    Task<AiInferenceRoute?> TryResolveAsync(
+        Guid organizationId,
+        string? model,
+        CancellationToken cancellationToken = default);
 }
 
 /// <summary>

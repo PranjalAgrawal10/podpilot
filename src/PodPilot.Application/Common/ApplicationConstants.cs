@@ -203,6 +203,24 @@ public static class ApplicationConstants
     /// </summary>
     public const int SchedulerMaxRetryAttempts = 3;
 
+    /// <summary>Maximum plugin package identifier length.</summary>
+    public const int PluginPackageIdMaxLength = 200;
+
+    /// <summary>Maximum plugin name length.</summary>
+    public const int PluginNameMaxLength = 200;
+
+    /// <summary>Maximum plugin version length.</summary>
+    public const int PluginVersionMaxLength = 50;
+
+    /// <summary>Maximum MCP server name length.</summary>
+    public const int McpServerNameMaxLength = 200;
+
+    /// <summary>Maximum MCP endpoint URL length.</summary>
+    public const int McpEndpointMaxLength = 1000;
+
+    /// <summary>Maximum MCP tool name length.</summary>
+    public const int McpToolNameMaxLength = 200;
+
     /// <summary>
     /// Delay between wake health check attempts.
     /// </summary>

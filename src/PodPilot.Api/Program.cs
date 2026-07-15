@@ -29,6 +29,7 @@ builder.Services.AddScheduler(builder.Configuration, builder.Environment);
 builder.Services.AddOrchestratorLayer(builder.Configuration, builder.Environment);
 builder.Services.AddObservabilityLayer(builder.Configuration, builder.Environment);
 builder.Services.AddAiProvidersLayer(builder.Environment);
+builder.Services.AddPluginSystemLayer(builder.Environment);
 builder.Services.AddInfrastructureHostedServices(builder.Environment);
 
 builder.Services.AddControllers();
@@ -113,6 +114,7 @@ app.MapHub<PodPilot.Infrastructure.Hubs.OrchestratorHub>("/hubs/orchestrator");
 app.MapHub<PodPilot.Infrastructure.Hubs.ObservabilityHub>("/hubs/observability");
 app.MapHub<PodPilot.Infrastructure.Hubs.AiProviderHub>("/hubs/ai-providers");
 app.MapHub<PodPilot.Infrastructure.Hubs.RoutingHub>("/hubs/routing");
+app.MapHub<PodPilot.Infrastructure.Hubs.PluginHub>("/hubs/plugins");
 
 try
 {

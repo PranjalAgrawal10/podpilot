@@ -104,6 +104,18 @@ public static class PermissionNames
     /// <summary>Manage intelligent routing policy settings and simulations.</summary>
     public const string RoutingManage = "Routing.Manage";
 
+    /// <summary>Read plugins and local marketplace catalog.</summary>
+    public const string PluginRead = "Plugin.Read";
+
+    /// <summary>Install and configure plugins.</summary>
+    public const string PluginManage = "Plugin.Manage";
+
+    /// <summary>Read MCP servers, tools, and resources.</summary>
+    public const string McpRead = "Mcp.Read";
+
+    /// <summary>Register and manage MCP servers; execute tools.</summary>
+    public const string McpManage = "Mcp.Manage";
+
     /// <summary>All defined permissions.</summary>
     public static readonly IReadOnlyList<string> All =
     [
@@ -140,5 +152,9 @@ public static class PermissionNames
         AiProviderDelete,
         RoutingRead,
         RoutingManage,
+        PluginRead,
+        PluginManage,
+        McpRead,
+        McpManage,
     ];
 }

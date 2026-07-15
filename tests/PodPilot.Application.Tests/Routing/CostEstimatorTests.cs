@@ -17,7 +17,7 @@ public class CostEstimatorTests
         var clock = new Mock<IDateTimeService>();
         clock.SetupGet(c => c.UtcNow).Returns(new DateTime(2026, 7, 15, 0, 0, 0, DateTimeKind.Utc));
 
-        var estimator = new CostEstimator(db, clock.Object);
+        var estimator = new CostEstimator(db, clock.Object, new ProviderCostRateCatalog());
         var estimate = await estimator.EstimateAsync(
             new RoutingCandidate
             {
@@ -36,6 +36,29 @@ public class CostEstimatorTests
         Assert.Equal(0.60m, estimate.OutputCostUsd);
         Assert.Equal(0.75m, estimate.TotalCostUsd);
         Assert.True(estimate.GpuRuntimeMs > 0);
+    }
+
+    [Fact]
+    public async Task EstimateAsync_Uses_Catalog_When_Model_Rates_Missing()
+    {
+        await using var db = CreateDb();
+        var clock = new Mock<IDateTimeService>();
+        clock.SetupGet(c => c.UtcNow).Returns(new DateTime(2026, 7, 15, 0, 0, 0, DateTimeKind.Utc));
+
+        var estimator = new CostEstimator(db, clock.Object, new ProviderCostRateCatalog());
+        var estimate = await estimator.EstimateAsync(
+            new RoutingCandidate
+            {
+                ProviderId = Guid.NewGuid(),
+                ProviderKind = AiProviderKind.Ollama,
+                ModelName = "llama3",
+                SpeedScore = 50,
+            },
+            inputTokens: 1_000_000,
+            outputTokens: 1_000_000,
+            organizationId: Guid.NewGuid());
+
+        Assert.Equal(0m, estimate.TotalCostUsd);
     }
 
     private static ApplicationDbContext CreateDb()

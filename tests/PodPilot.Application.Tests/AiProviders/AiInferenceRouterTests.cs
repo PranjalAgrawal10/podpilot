@@ -26,11 +26,8 @@ public class AiInferenceRouterTests
                 Strategy = RoutingStrategy.Balanced,
             });
 
-        var router = new AiInferenceRouter(
-            engine.Object,
-            db,
-            service.Object,
-            NullLogger<AiInferenceRouter>.Instance);
+        var legacy = new LegacyAiInferenceRouter(db, service.Object, NullLogger<LegacyAiInferenceRouter>.Instance);
+        var router = new AiInferenceRouter(engine.Object, legacy, db, service.Object);
 
         var route = await router.TryResolveAsync(Guid.NewGuid(), "unknown-model");
         Assert.Null(route);
@@ -87,11 +84,8 @@ public class AiInferenceRouterTests
                 Strategy = RoutingStrategy.ProviderPriority,
             });
 
-        var router = new AiInferenceRouter(
-            engine.Object,
-            db,
-            service.Object,
-            NullLogger<AiInferenceRouter>.Instance);
+        var legacy = new LegacyAiInferenceRouter(db, service.Object, NullLogger<LegacyAiInferenceRouter>.Instance);
+        var router = new AiInferenceRouter(engine.Object, legacy, db, service.Object);
         var route = await router.TryResolveAsync(orgId, "gpt-4o");
 
         Assert.NotNull(route);

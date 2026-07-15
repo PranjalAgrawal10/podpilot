@@ -2,19 +2,21 @@ using System.Text;
 using System.Text.Json;
 using PodPilot.Application.Common.Interfaces;
 using PodPilot.Application.Models.Gateway;
+using PodPilot.Application.Models.Plugins;
 using PodPilot.Application.Models.Scheduler;
 using PodPilot.Domain.Enums;
 
 namespace PodPilot.Infrastructure.Gateway;
 
 /// <summary>
-/// Orchestrates end-to-end AI gateway request handling via AI providers or the scheduler.
+/// Orchestrates end-to-end AI gateway request handling via MCP tools, AI providers, or the scheduler.
 /// </summary>
 public sealed class AiGateway : IAiGateway
 {
     private readonly IRequestScheduler scheduler;
     private readonly IAiInferenceRouter inferenceRouter;
     private readonly IAiInferenceDispatcher inferenceDispatcher;
+    private readonly IMcpProxy mcpProxy;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AiGateway"/> class.
@@ -22,11 +24,13 @@ public sealed class AiGateway : IAiGateway
     public AiGateway(
         IRequestScheduler scheduler,
         IAiInferenceRouter inferenceRouter,
-        IAiInferenceDispatcher inferenceDispatcher)
+        IAiInferenceDispatcher inferenceDispatcher,
+        IMcpProxy mcpProxy)
     {
         this.scheduler = scheduler;
         this.inferenceRouter = inferenceRouter;
         this.inferenceDispatcher = inferenceDispatcher;
+        this.mcpProxy = mcpProxy;
     }
 
     /// <inheritdoc />
@@ -78,6 +82,16 @@ public sealed class AiGateway : IAiGateway
 
         var bodyJson = Encoding.UTF8.GetString(bufferedBody.ToArray());
         bufferedBody.Position = 0;
+
+        if (IsMcpToolPath(path, method))
+        {
+            return await HandleMcpToolAsync(
+                auth,
+                bodyJson,
+                responseBody,
+                onResponseHeaders,
+                cancellationToken);
+        }
 
         var model = TryExtractModel(bodyJson);
         var route = await inferenceRouter.TryResolveAsync(
@@ -162,6 +176,119 @@ public sealed class AiGateway : IAiGateway
             ErrorCode = result.ErrorCode,
             ErrorMessage = result.ErrorMessage,
         };
+    }
+
+    private async Task<GatewayRequestResult> HandleMcpToolAsync(
+        GatewayAuthContext auth,
+        string bodyJson,
+        Stream responseBody,
+        Func<GatewayProxyResult, Task>? onResponseHeaders,
+        CancellationToken cancellationToken)
+    {
+        string toolName;
+        string argumentsJson = "{}";
+        Guid? serverId = null;
+
+        try
+        {
+            using var doc = JsonDocument.Parse(string.IsNullOrWhiteSpace(bodyJson) ? "{}" : bodyJson);
+            var root = doc.RootElement;
+            toolName = root.TryGetProperty("tool", out var toolEl)
+                ? toolEl.GetString() ?? string.Empty
+                : root.TryGetProperty("name", out var nameEl)
+                    ? nameEl.GetString() ?? string.Empty
+                    : string.Empty;
+
+            if (root.TryGetProperty("arguments", out var argsEl))
+            {
+                argumentsJson = argsEl.ValueKind == JsonValueKind.String
+                    ? argsEl.GetString() ?? "{}"
+                    : argsEl.GetRawText();
+            }
+            else if (root.TryGetProperty("argumentsJson", out var argsJsonEl))
+            {
+                argumentsJson = argsJsonEl.GetString() ?? "{}";
+            }
+
+            if (root.TryGetProperty("serverId", out var serverEl) &&
+                serverEl.ValueKind == JsonValueKind.String &&
+                Guid.TryParse(serverEl.GetString(), out var parsed))
+            {
+                serverId = parsed;
+            }
+        }
+        catch (JsonException)
+        {
+            return new GatewayRequestResult
+            {
+                Success = false,
+                StatusCode = 400,
+                ErrorCode = "invalid_mcp_request",
+                ErrorMessage = "Invalid MCP tool request body.",
+            };
+        }
+
+        if (string.IsNullOrWhiteSpace(toolName))
+        {
+            return new GatewayRequestResult
+            {
+                Success = false,
+                StatusCode = 400,
+                ErrorCode = "invalid_mcp_request",
+                ErrorMessage = "tool is required.",
+            };
+        }
+
+        var result = await mcpProxy.ExecuteToolAsync(
+            new McpToolCallRequest
+            {
+                OrganizationId = auth.OrganizationId,
+                ServerId = serverId ?? Guid.Empty,
+                ToolName = toolName.Trim(),
+                ArgumentsJson = argumentsJson,
+            },
+            cancellationToken);
+
+        var payload = JsonSerializer.Serialize(new
+        {
+            succeeded = result.Succeeded,
+            content = result.ContentJson,
+            error = result.ErrorMessage,
+            durationMs = result.DurationMs,
+        });
+
+        if (onResponseHeaders is not null)
+        {
+            await onResponseHeaders(new GatewayProxyResult
+            {
+                StatusCode = result.Succeeded ? 200 : 502,
+                Headers = new Dictionary<string, string> { ["Content-Type"] = "application/json" },
+            });
+        }
+
+        var bytes = Encoding.UTF8.GetBytes(payload);
+        await responseBody.WriteAsync(bytes, cancellationToken);
+
+        return new GatewayRequestResult
+        {
+            Success = result.Succeeded,
+            StatusCode = result.Succeeded ? 200 : 502,
+            Headers = new Dictionary<string, string> { ["Content-Type"] = "application/json" },
+            ErrorCode = result.Succeeded ? null : "mcp_tool_error",
+            ErrorMessage = result.ErrorMessage,
+        };
+    }
+
+    private static bool IsMcpToolPath(string path, string method)
+    {
+        if (!string.Equals(method, "POST", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        var normalized = path.Trim('/').Replace('\\', '/');
+        return normalized.EndsWith("mcp/tools/call", StringComparison.OrdinalIgnoreCase)
+               || normalized.EndsWith("v1/mcp/tools/call", StringComparison.OrdinalIgnoreCase);
     }
 
     private static string? TryExtractModel(string bodyJson)

@@ -33,6 +33,10 @@ const ROLE_PERMISSIONS: Record<OrganizationRole, readonly Permission[]> = {
     PERMISSIONS.AiProviderDelete,
     PERMISSIONS.RoutingRead,
     PERMISSIONS.RoutingManage,
+    PERMISSIONS.PluginRead,
+    PERMISSIONS.PluginManage,
+    PERMISSIONS.McpRead,
+    PERMISSIONS.McpManage,
   ],
   Developer: [
     PERMISSIONS.OrganizationRead,
@@ -57,6 +61,10 @@ const ROLE_PERMISSIONS: Record<OrganizationRole, readonly Permission[]> = {
     PERMISSIONS.AiProviderDelete,
     PERMISSIONS.RoutingRead,
     PERMISSIONS.RoutingManage,
+    PERMISSIONS.PluginRead,
+    PERMISSIONS.PluginManage,
+    PERMISSIONS.McpRead,
+    PERMISSIONS.McpManage,
   ],
   Viewer: [
     PERMISSIONS.OrganizationRead,
@@ -69,6 +77,8 @@ const ROLE_PERMISSIONS: Record<OrganizationRole, readonly Permission[]> = {
     PERMISSIONS.ObservabilityRead,
     PERMISSIONS.AiProviderRead,
     PERMISSIONS.RoutingRead,
+    PERMISSIONS.PluginRead,
+    PERMISSIONS.McpRead,
   ],
 };
 

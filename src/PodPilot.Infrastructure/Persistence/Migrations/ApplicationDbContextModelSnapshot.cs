@@ -1499,6 +1499,297 @@ namespace PodPilot.Infrastructure.Persistence.Migrations
                     b.ToTable("LoadBalancerConfigs", (string)null);
                 });
 
+            modelBuilder.Entity("PodPilot.Domain.Entities.McpPrompt", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("ArgumentsJson")
+                        .HasMaxLength(8000)
+                        .HasColumnType("varchar(8000)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("CreatedBy")
+                        .HasMaxLength(128)
+                        .HasColumnType("varchar(128)");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(2000)
+                        .HasColumnType("varchar(2000)");
+
+                    b.Property<DateTime>("DiscoveredAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<Guid>("McpServerId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(128)
+                        .HasColumnType("varchar(128)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("McpServerId", "Name")
+                        .IsUnique();
+
+                    b.ToTable("McpPrompts", (string)null);
+                });
+
+            modelBuilder.Entity("PodPilot.Domain.Entities.McpResource", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("CreatedBy")
+                        .HasMaxLength(128)
+                        .HasColumnType("varchar(128)");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(2000)
+                        .HasColumnType("varchar(2000)");
+
+                    b.Property<DateTime>("DiscoveredAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<Guid>("McpServerId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("MimeType")
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(128)
+                        .HasColumnType("varchar(128)");
+
+                    b.Property<string>("Uri")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("McpServerId", "Uri")
+                        .IsUnique();
+
+                    b.ToTable("McpResources", (string)null);
+                });
+
+            modelBuilder.Entity("PodPilot.Domain.Entities.McpServer", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("AuthScheme")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("CreatedBy")
+                        .HasMaxLength(128)
+                        .HasColumnType("varchar(128)");
+
+                    b.Property<string>("EncryptedCredential")
+                        .HasMaxLength(8000)
+                        .HasColumnType("varchar(8000)");
+
+                    b.Property<string>("Endpoint")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("varchar(1000)");
+
+                    b.Property<bool>("IsEnabled")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<DateTime?>("LastCheckedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("LastError")
+                        .HasMaxLength(2000)
+                        .HasColumnType("varchar(2000)");
+
+                    b.Property<int>("MaxRetries")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<int>("ServerKind")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("SupportsStreaming")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<int>("TimeoutSeconds")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(128)
+                        .HasColumnType("varchar(128)");
+
+                    b.Property<string>("Version")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrganizationId", "Name")
+                        .IsUnique();
+
+                    b.ToTable("McpServers", (string)null);
+                });
+
+            modelBuilder.Entity("PodPilot.Domain.Entities.McpTool", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("CreatedBy")
+                        .HasMaxLength(128)
+                        .HasColumnType("varchar(128)");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(2000)
+                        .HasColumnType("varchar(2000)");
+
+                    b.Property<DateTime>("DiscoveredAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("InputSchemaJson")
+                        .HasMaxLength(8000)
+                        .HasColumnType("varchar(8000)");
+
+                    b.Property<bool>("IsEnabled")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<Guid>("McpServerId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(128)
+                        .HasColumnType("varchar(128)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("McpServerId", "Name")
+                        .IsUnique();
+
+                    b.ToTable("McpTools", (string)null);
+                });
+
+            modelBuilder.Entity("PodPilot.Domain.Entities.McpToolExecution", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("CreatedBy")
+                        .HasMaxLength(128)
+                        .HasColumnType("varchar(128)");
+
+                    b.Property<int>("DurationMs")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ErrorMessage")
+                        .HasMaxLength(2000)
+                        .HasColumnType("varchar(2000)");
+
+                    b.Property<DateTime>("ExecutedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<Guid>("McpServerId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<bool>("Succeeded")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("ToolName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(128)
+                        .HasColumnType("varchar(128)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("McpServerId");
+
+                    b.HasIndex("OrganizationId", "ExecutedAt");
+
+                    b.ToTable("McpToolExecutions", (string)null);
+                });
+
             modelBuilder.Entity("PodPilot.Domain.Entities.MetricsSnapshot", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1855,6 +2146,245 @@ namespace PodPilot.Infrastructure.Persistence.Migrations
                         .IsUnique();
 
                     b.ToTable("Permissions", (string)null);
+                });
+
+            modelBuilder.Entity("PodPilot.Domain.Entities.PluginDefinition", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("CreatedBy")
+                        .HasMaxLength(128)
+                        .HasColumnType("varchar(128)");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(2000)
+                        .HasColumnType("varchar(2000)");
+
+                    b.Property<string>("EntryAssembly")
+                        .HasMaxLength(300)
+                        .HasColumnType("varchar(300)");
+
+                    b.Property<string>("EntryType")
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
+
+                    b.Property<bool>("IsFirstParty")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("IsListed")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<string>("PackageId")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<int>("PluginType")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Publisher")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<string>("RequiredPermissionsJson")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("varchar(4000)");
+
+                    b.Property<string>("SettingsSchemaJson")
+                        .HasMaxLength(8000)
+                        .HasColumnType("varchar(8000)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(128)
+                        .HasColumnType("varchar(128)");
+
+                    b.Property<string>("Version")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PackageId")
+                        .IsUnique();
+
+                    b.ToTable("Plugins", (string)null);
+                });
+
+            modelBuilder.Entity("PodPilot.Domain.Entities.PluginInstallation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("CreatedBy")
+                        .HasMaxLength(128)
+                        .HasColumnType("varchar(128)");
+
+                    b.Property<DateTime?>("EnabledAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("GrantedPermissionsJson")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("varchar(4000)");
+
+                    b.Property<string>("HealthMessage")
+                        .HasMaxLength(1000)
+                        .HasColumnType("varchar(1000)");
+
+                    b.Property<bool>("IsHealthy")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<DateTime?>("LastHealthCheckAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid>("PluginDefinitionId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(128)
+                        .HasColumnType("varchar(128)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PluginDefinitionId");
+
+                    b.HasIndex("OrganizationId", "PluginDefinitionId")
+                        .IsUnique();
+
+                    b.ToTable("PluginInstallations", (string)null);
+                });
+
+            modelBuilder.Entity("PodPilot.Domain.Entities.PluginLog", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("CreatedBy")
+                        .HasMaxLength(128)
+                        .HasColumnType("varchar(128)");
+
+                    b.Property<string>("DetailsJson")
+                        .HasMaxLength(8000)
+                        .HasColumnType("varchar(8000)");
+
+                    b.Property<string>("Level")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("varchar(2000)");
+
+                    b.Property<DateTime>("OccurredAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid?>("PluginInstallationId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(128)
+                        .HasColumnType("varchar(128)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PluginInstallationId");
+
+                    b.HasIndex("OrganizationId", "OccurredAt");
+
+                    b.ToTable("PluginLogs", (string)null);
+                });
+
+            modelBuilder.Entity("PodPilot.Domain.Entities.PluginSetting", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("CreatedBy")
+                        .HasMaxLength(128)
+                        .HasColumnType("varchar(128)");
+
+                    b.Property<bool>("IsSecret")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid>("PluginInstallationId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(128)
+                        .HasColumnType("varchar(128)");
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasMaxLength(8000)
+                        .HasColumnType("varchar(8000)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PluginInstallationId", "Key")
+                        .IsUnique();
+
+                    b.ToTable("PluginSettings", (string)null);
                 });
 
             modelBuilder.Entity("PodPilot.Domain.Entities.PodActivity", b =>
@@ -3441,6 +3971,50 @@ namespace PodPilot.Infrastructure.Persistence.Migrations
                     b.Navigation("Organization");
                 });
 
+            modelBuilder.Entity("PodPilot.Domain.Entities.McpPrompt", b =>
+                {
+                    b.HasOne("PodPilot.Domain.Entities.McpServer", "McpServer")
+                        .WithMany("Prompts")
+                        .HasForeignKey("McpServerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("McpServer");
+                });
+
+            modelBuilder.Entity("PodPilot.Domain.Entities.McpResource", b =>
+                {
+                    b.HasOne("PodPilot.Domain.Entities.McpServer", "McpServer")
+                        .WithMany("Resources")
+                        .HasForeignKey("McpServerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("McpServer");
+                });
+
+            modelBuilder.Entity("PodPilot.Domain.Entities.McpTool", b =>
+                {
+                    b.HasOne("PodPilot.Domain.Entities.McpServer", "McpServer")
+                        .WithMany("Tools")
+                        .HasForeignKey("McpServerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("McpServer");
+                });
+
+            modelBuilder.Entity("PodPilot.Domain.Entities.McpToolExecution", b =>
+                {
+                    b.HasOne("PodPilot.Domain.Entities.McpServer", "McpServer")
+                        .WithMany()
+                        .HasForeignKey("McpServerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("McpServer");
+                });
+
             modelBuilder.Entity("PodPilot.Domain.Entities.ModelDownload", b =>
                 {
                     b.HasOne("PodPilot.Domain.Entities.AiModel", "Model")
@@ -3497,6 +4071,38 @@ namespace PodPilot.Infrastructure.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("Organization");
+                });
+
+            modelBuilder.Entity("PodPilot.Domain.Entities.PluginInstallation", b =>
+                {
+                    b.HasOne("PodPilot.Domain.Entities.PluginDefinition", "PluginDefinition")
+                        .WithMany("Installations")
+                        .HasForeignKey("PluginDefinitionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("PluginDefinition");
+                });
+
+            modelBuilder.Entity("PodPilot.Domain.Entities.PluginLog", b =>
+                {
+                    b.HasOne("PodPilot.Domain.Entities.PluginInstallation", "PluginInstallation")
+                        .WithMany("Logs")
+                        .HasForeignKey("PluginInstallationId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("PluginInstallation");
+                });
+
+            modelBuilder.Entity("PodPilot.Domain.Entities.PluginSetting", b =>
+                {
+                    b.HasOne("PodPilot.Domain.Entities.PluginInstallation", "PluginInstallation")
+                        .WithMany("Settings")
+                        .HasForeignKey("PluginInstallationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("PluginInstallation");
                 });
 
             modelBuilder.Entity("PodPilot.Domain.Entities.PodActivity", b =>
@@ -3799,6 +4405,15 @@ namespace PodPilot.Infrastructure.Persistence.Migrations
                     b.Navigation("StatusHistory");
                 });
 
+            modelBuilder.Entity("PodPilot.Domain.Entities.McpServer", b =>
+                {
+                    b.Navigation("Prompts");
+
+                    b.Navigation("Resources");
+
+                    b.Navigation("Tools");
+                });
+
             modelBuilder.Entity("PodPilot.Domain.Entities.Organization", b =>
                 {
                     b.Navigation("AiInferenceProviders");
@@ -3813,6 +4428,18 @@ namespace PodPilot.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("PodPilot.Domain.Entities.Permission", b =>
                 {
                     b.Navigation("RolePermissions");
+                });
+
+            modelBuilder.Entity("PodPilot.Domain.Entities.PluginDefinition", b =>
+                {
+                    b.Navigation("Installations");
+                });
+
+            modelBuilder.Entity("PodPilot.Domain.Entities.PluginInstallation", b =>
+                {
+                    b.Navigation("Logs");
+
+                    b.Navigation("Settings");
                 });
 
             modelBuilder.Entity("PodPilot.Domain.Entities.PodPool", b =>

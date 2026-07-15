@@ -1318,12 +1318,17 @@ flowchart TD
 |-----------|------|
 | `ITaskClassifier` | Classify Coding / Reasoning / Chat / Translation / Summarization / Vision / Embeddings / Planning / General |
 | `ICostEstimator` | Estimate input/output token cost, GPU runtime, and monthly spend projection |
+| `IProviderCostRateCatalog` | Default provider pricing (open for new kinds without changing the estimator) |
 | `ILatencyPredictor` | Combine latency history, queue depth, health, warm pods, and cold starts |
 | `IAvailabilityScorer` | Score provider availability from health and consecutive failures |
 | `IProviderSelector` | Load catalog candidates filtered by required capabilities |
-| `IModelRouter` | Weighted scoring and model selection |
-| `IRoutingPolicy` | Resolve org policy + strategy weights |
-| `IRoutingEngine` | Orchestrate route / simulate / persist / record outcomes |
+| `IRoutingCandidateEnricher` | Attach predicted cost/latency/availability to candidates |
+| `IModelScorer` / `IModelRouter` | Weighted scoring vs top-model selection (SRP) |
+| `IRoutingWeightResolver` | Strategy-pattern weight resolution (OCP for new strategies) |
+| `IRoutePlanner` | ProviderPriority vs scored planners (OCP) |
+| `IRoutingPolicy` | Resolve active org policy |
+| `IRoutingDecisionStore` | Persist decisions, scores, and outcomes |
+| `IRoutingEngine` | Thin orchestrator: classify → plan → persist → notify |
 
 ### Scoring algorithm
 
@@ -1369,13 +1374,92 @@ Permissions: `Routing.Read`, `Routing.Manage`. SignalR hub: `/hubs/routing` (`Ro
 
 ---
 
-## What's Next (Part 13+)
+## Part 13 — Plugin System & MCP Ecosystem
 
-Intentionally excluded from Parts 11–12:
+Part 13 turns PodPilot into an extensible AI infrastructure platform. Organizations install and configure plugins, register MCP (Model Context Protocol) servers, discover tools/resources/prompts, and execute tools through a proxied registry — without embedding third-party logic in the core application.
+
+### Plugin architecture
+
+| Interface | Role |
+|-----------|------|
+| `IPlugin` | Isolated plugin contract (initialize / start / stop / health) |
+| `IPluginLoader` | Loads first-party DI plugins + hot-loads `{ContentRoot}/plugins/**/*.dll` via collectible ALC |
+| `IPluginRegistry` | In-memory registry of loaded instances |
+| `IPluginInstaller` | Catalog sync, org install/uninstall, permission sandbox |
+| `IPluginManager` | Enable/disable, settings (encrypted secrets), health, dashboard |
+
+Plugin types (`AiProvider`, `Storage`, `Notification`, `Authentication`, `Monitoring`, `Database`, `DeveloperTool`, `Utility`, `McpBridge`) are enum values today; loaders and the catalog treat packages by `PackageId` so new kinds need no core business-handler changes.
+
+**Lifecycle:** sync catalog → install (grant required permissions) → enable (Start) → configure settings → health checks → disable (Stop) → uninstall.
+
+### How to build a plugin
+
+1. Reference Application interfaces only (`IPlugin`, `PluginContext`).
+2. Implement `IPlugin` with a unique `PackageId`, `PluginType`, and `RequiredPermissions`.
+3. Ship a DLL under the API host’s `plugins/` folder (always-hot-loaded on next `LoadAsync` / catalog sync), or register a first-party type in DI via `AddPluginSystem`.
+4. Communicate only through PodPilot interfaces — never call Infrastructure types from the plugin package.
+
+### MCP integration
+
+| Interface | Role |
+|-----------|------|
+| `IMcpConnection` | JSON-RPC session (initialize, lists, tools/call, ping) |
+| `IMcpConnectionFactory` | Builds authenticated HTTP MCP clients |
+| `IMcpRegistry` | Discover capabilities; resolve tools by name (org-scoped) |
+| `IMcpProxy` | Execute with timeout/retry, audit `McpToolExecutions`, SignalR notify |
+
+Built-in MCP kinds: Filesystem, GitHub, GitLab, Docker, PostgreSQL, MySQL, Redis, Azure, AWS, Kubernetes, Slack, Discord, Jira, Confluence, Playwright, Browser, Git, Shell (+ Custom).
+
+**Tool flow:** AI / API request → gateway or MCP API → `IMcpRegistry.ResolveToolAsync` → `IMcpProxy.ExecuteToolAsync` → connection `tools/call` → result.
+
+Gateway path for IDE/tool routing: `POST …/mcp/tools/call` with body `{ "tool", "arguments", "serverId?" }`.
+
+### How to register an MCP server
+
+1. `POST /api/v1/mcp/servers` with name, kind, endpoint, auth scheme, optional encrypted credential.
+2. Optionally discover on create (`DiscoverOnCreate`) to populate tools, resources, and prompts.
+3. Execute with `POST /api/v1/mcp/tools/execute` or via the AI gateway MCP path.
+
+### API
+
+| Method | Route |
+|--------|-------|
+| GET/POST | `/api/v1/plugins` |
+| GET/PUT/DELETE | `/api/v1/plugins/{id}` |
+| GET/PUT | `/api/v1/plugins/{id}/settings` |
+| POST | `/api/v1/plugins/{id}/enable` / `disable` |
+| GET | `/api/v1/plugins/dashboard` |
+| GET/POST | `/api/v1/mcp/servers` |
+| DELETE | `/api/v1/mcp/servers/{id}` |
+| GET | `/api/v1/mcp/kinds`, `/tools`, `/resources` |
+| POST | `/api/v1/mcp/tools/execute` |
+
+Permissions: `Plugin.Read` / `Plugin.Manage`, `Mcp.Read` / `Mcp.Manage`. SignalR hub: `/hubs/plugins` (`PluginInstalled`, `PluginRemoved`, `PluginUpdated`, `McpConnected`, `McpDisconnected`, `ToolExecuted`).
+
+### UI
+
+- **Plugins** — installed count, health, enable/disable shortcuts
+- **Plugin Marketplace** — local first-party catalog install
+- **Plugin Details / Settings** — permissions, secrets (never returned), configuration
+- **MCP Servers** — register/disconnect servers by kind
+- **MCP Tools** — browse discovered tools and invoke them
+
+### Security
+
+- Org isolation on every query (`organizationId` from JWT)
+- Plugin permission grants must cover `RequiredPermissions`
+- MCP credentials encrypted at rest; never returned in API payloads
+- Audit logs on install/remove/register/delete; execution history for tools
+
+---
+
+## What's Next (Part 14+)
+
+Intentionally excluded from Parts 11–13:
 
 - Billing & payments
-- Marketplace
-- Kubernetes support
+- External marketplace
+- Kubernetes cluster management
 - Provider cost invoicing integrations
 
 ---

@@ -3,6 +3,7 @@ using PodPilot.Domain.Entities;
 using PodPilot.Domain.Enums;
 using PodPilot.Infrastructure.Persistence;
 using PodPilot.Infrastructure.Routing;
+using PodPilot.Infrastructure.Routing.Strategies;
 
 namespace PodPilot.Application.Tests.Routing;
 
@@ -33,10 +34,17 @@ public class RoutingPolicyServiceTests
     }
 
     [Fact]
-    public void GetWeights_Uses_LowestCost_Preset()
+    public void WeightResolver_Uses_LowestCost_Preset()
     {
-        var service = new RoutingPolicyService(CreateDb());
-        var weights = service.GetWeights(null, RoutingStrategy.LowestCost);
+        var resolver = new RoutingWeightResolver(
+        [
+            new LowestCostWeightStrategy(),
+            new LowestLatencyWeightStrategy(),
+            new HighestAccuracyWeightStrategy(),
+            new PolicyConfiguredWeightStrategy(),
+        ]);
+
+        var weights = resolver.Resolve(null, RoutingStrategy.LowestCost);
         Assert.True(weights.Cost > weights.Latency);
     }
 

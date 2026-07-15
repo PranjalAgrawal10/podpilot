@@ -7,6 +7,8 @@ using PodPilot.Domain.Entities;
 using PodPilot.Domain.Enums;
 using PodPilot.Infrastructure.Persistence;
 using PodPilot.Infrastructure.Routing;
+using PodPilot.Infrastructure.Routing.Planners;
+using PodPilot.Infrastructure.Routing.Strategies;
 
 namespace PodPilot.Application.Tests.Routing;
 
@@ -44,12 +46,10 @@ public class RoutingEngineFallbackTests
                 Priority = 2,
             });
 
-        var primaryModel = Guid.NewGuid();
-        var fallbackModel = Guid.NewGuid();
         db.AiProviderModels.AddRange(
             new AiProviderModel
             {
-                Id = primaryModel,
+                Id = Guid.NewGuid(),
                 OrganizationId = orgId,
                 AiProviderId = primaryId,
                 ModelName = "model-a",
@@ -61,7 +61,7 @@ public class RoutingEngineFallbackTests
             },
             new AiProviderModel
             {
-                Id = fallbackModel,
+                Id = Guid.NewGuid(),
                 OrganizationId = orgId,
                 AiProviderId = fallbackId,
                 ModelName = "model-b",
@@ -90,16 +90,35 @@ public class RoutingEngineFallbackTests
         var clock = new Mock<IDateTimeService>();
         clock.SetupGet(c => c.UtcNow).Returns(DateTime.UtcNow);
 
+        var scorer = new ModelScorer();
+        var weightResolver = new RoutingWeightResolver(
+        [
+            new LowestCostWeightStrategy(),
+            new LowestLatencyWeightStrategy(),
+            new HighestAccuracyWeightStrategy(),
+            new PolicyConfiguredWeightStrategy(),
+        ]);
+        var enricher = new RoutingCandidateEnricher(
+            new CostEstimator(db, clock.Object, new ProviderCostRateCatalog()),
+            new LatencyPredictor(db),
+            new AvailabilityScorer(db));
+        var providerSelector = new ProviderSelector(db);
+        var planners = new IRoutePlanner[]
+        {
+            new ProviderPriorityRoutePlanner(providerSelector, enricher),
+            new ScoredRoutePlanner(
+                providerSelector,
+                enricher,
+                weightResolver,
+                scorer,
+                new ModelRouter(scorer)),
+        };
+
         var engine = new RoutingEngine(
             new TaskClassifier(),
-            new ProviderSelector(db),
-            new ModelRouter(),
             new RoutingPolicyService(db),
-            new CostEstimator(db, clock.Object),
-            new LatencyPredictor(db),
-            new AvailabilityScorer(db),
-            db,
-            clock.Object,
+            planners,
+            new RoutingDecisionStore(db, clock.Object),
             new NoOpRoutingNotificationService(),
             NullLogger<RoutingEngine>.Instance);
 

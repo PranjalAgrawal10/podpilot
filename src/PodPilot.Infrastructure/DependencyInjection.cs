@@ -198,6 +198,14 @@ public static class DependencyInjection
         services.AddAiProviders(environment).AddIntelligentRouting(environment);
 
     /// <summary>
+    /// Registers plugin system and MCP ecosystem services.
+    /// </summary>
+    public static IServiceCollection AddPluginSystemLayer(
+        this IServiceCollection services,
+        IHostEnvironment environment) =>
+        services.AddPluginSystem(environment);
+
+    /// <summary>
     /// Registers background services for non-testing environments.
     /// </summary>
     /// <param name="services">The service collection.</param>

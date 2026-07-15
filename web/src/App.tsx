@@ -53,6 +53,12 @@ import { RoutingDashboardPage } from './pages/RoutingDashboardPage';
 import { RoutingPolicySettingsPage } from './pages/RoutingPolicySettingsPage';
 import { ModelRankingPage } from './pages/ModelRankingPage';
 import { RoutingSimulatePage } from './pages/RoutingSimulatePage';
+import { PluginsPage } from './pages/PluginsPage';
+import { PluginMarketplacePage } from './pages/PluginMarketplacePage';
+import { PluginDetailsPage } from './pages/PluginDetailsPage';
+import { PluginSettingsPage } from './pages/PluginSettingsPage';
+import { McpServersPage } from './pages/McpServersPage';
+import { McpToolsPage } from './pages/McpToolsPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'react-toastify/dist/ReactToastify.css';
@@ -118,6 +124,12 @@ function App() {
                     <Route path="/routing/policies" element={<RoutingPolicySettingsPage />} />
                     <Route path="/routing/models" element={<ModelRankingPage />} />
                     <Route path="/routing/simulate" element={<RoutingSimulatePage />} />
+                    <Route path="/plugins" element={<PluginsPage />} />
+                    <Route path="/plugins/marketplace" element={<PluginMarketplacePage />} />
+                    <Route path="/plugins/:id/settings" element={<PluginSettingsPage />} />
+                    <Route path="/plugins/:id" element={<PluginDetailsPage />} />
+                    <Route path="/mcp/servers" element={<McpServersPage />} />
+                    <Route path="/mcp/tools" element={<McpToolsPage />} />
                     <Route path="/models" element={<ModelsPage />} />
                     <Route path="/models/pull" element={<PullModelPage />} />
                     <Route path="/models/downloads" element={<ModelDownloadsPage />} />

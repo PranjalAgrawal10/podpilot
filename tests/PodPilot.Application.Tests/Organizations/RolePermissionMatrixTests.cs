@@ -47,6 +47,16 @@ public class RolePermissionMatrixTests
     [InlineData(OrganizationRole.Developer, PermissionNames.RoutingManage, true)]
     [InlineData(OrganizationRole.Viewer, PermissionNames.RoutingRead, true)]
     [InlineData(OrganizationRole.Viewer, PermissionNames.RoutingManage, false)]
+    [InlineData(OrganizationRole.Admin, PermissionNames.PluginRead, true)]
+    [InlineData(OrganizationRole.Admin, PermissionNames.PluginManage, true)]
+    [InlineData(OrganizationRole.Admin, PermissionNames.McpRead, true)]
+    [InlineData(OrganizationRole.Admin, PermissionNames.McpManage, true)]
+    [InlineData(OrganizationRole.Developer, PermissionNames.PluginManage, true)]
+    [InlineData(OrganizationRole.Developer, PermissionNames.McpManage, true)]
+    [InlineData(OrganizationRole.Viewer, PermissionNames.PluginRead, true)]
+    [InlineData(OrganizationRole.Viewer, PermissionNames.PluginManage, false)]
+    [InlineData(OrganizationRole.Viewer, PermissionNames.McpRead, true)]
+    [InlineData(OrganizationRole.Viewer, PermissionNames.McpManage, false)]
     public void HasPermission_ReturnsExpectedResult(
         OrganizationRole role,
         string permission,

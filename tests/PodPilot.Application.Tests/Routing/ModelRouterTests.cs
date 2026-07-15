@@ -41,7 +41,7 @@ public class ModelRouterTests
             },
         };
 
-        var router = new ModelRouter();
+        var router = new ModelRouter(new ModelScorer());
         var selected = await router.SelectModelAsync(
             candidates,
             new RoutingRequestAnalysis { TaskType = AiTaskType.Chat, Complexity = TaskComplexity.Low },
@@ -54,7 +54,7 @@ public class ModelRouterTests
     [Fact]
     public async Task SelectModelAsync_Returns_Null_When_Empty()
     {
-        var router = new ModelRouter();
+        var router = new ModelRouter(new ModelScorer());
         var selected = await router.SelectModelAsync(
             [],
             new RoutingRequestAnalysis(),

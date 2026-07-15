@@ -63,6 +63,13 @@ export const Sidebar = () => {
     { to: '/routing/simulate', label: 'Simulate', icon: '🧪' },
   ];
 
+  const extensibilityNavItems = [
+    { to: '/plugins', label: 'Plugins', icon: '🧩' },
+    { to: '/plugins/marketplace', label: 'Marketplace', icon: '🛒' },
+    { to: '/mcp/servers', label: 'MCP Servers', icon: '🔗' },
+    { to: '/mcp/tools', label: 'MCP Tools', icon: '🛠️' },
+  ];
+
   const accountNavItems = [
     { to: '/members', label: 'Members', icon: '👥' },
     { to: '/profile', label: 'Profile', icon: '👤' },
@@ -101,6 +108,14 @@ export const Sidebar = () => {
           <SidebarSection title="AI Engine" />
         </NavItem>
         {aiEngineNavItems.map((item) => (
+          <NavItem key={item.to}>
+            <SidebarNavLink to={item.to} label={item.label} icon={item.icon} />
+          </NavItem>
+        ))}
+        <NavItem>
+          <SidebarSection title="Extensibility" />
+        </NavItem>
+        {extensibilityNavItems.map((item) => (
           <NavItem key={item.to}>
             <SidebarNavLink to={item.to} label={item.label} icon={item.icon} />
           </NavItem>

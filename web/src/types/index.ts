@@ -479,6 +479,10 @@ export const PERMISSIONS = {
   AiProviderDelete: 'AiProvider.Delete',
   RoutingRead: 'Routing.Read',
   RoutingManage: 'Routing.Manage',
+  PluginRead: 'Plugin.Read',
+  PluginManage: 'Plugin.Manage',
+  McpRead: 'Mcp.Read',
+  McpManage: 'Mcp.Manage',
 } as const;
 
 export type Permission = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];
@@ -1239,5 +1243,132 @@ export interface SimulateRoutingResponse {
   estimatedOutputTokens: number;
   decisionReason: string;
   rankedAlternatives: RankedModel[];
+}
+
+export interface Plugin {
+  id: string;
+  installationId?: string | null;
+  packageId: string;
+  name: string;
+  version: string;
+  pluginType: string;
+  description?: string | null;
+  publisher: string;
+  isFirstParty: boolean;
+  status?: string | null;
+  isHealthy?: boolean | null;
+  healthMessage?: string | null;
+  requiredPermissions: string[];
+  grantedPermissions: string[];
+  enabledAt?: string | null;
+  createdAt: string;
+}
+
+export interface InstallPluginRequest {
+  packageId: string;
+  grantedPermissions?: string[];
+}
+
+export interface UpdatePluginRequest {
+  grantedPermissions?: string[];
+}
+
+export interface PluginSetting {
+  key: string;
+  value?: string | null;
+  isSecret: boolean;
+  hasValue: boolean;
+}
+
+export interface UpdatePluginSettingsRequest {
+  settings: Record<string, string>;
+  secretKeys?: string[];
+}
+
+export interface PluginDashboard {
+  installedPlugins: number;
+  enabledPlugins: number;
+  connectedMcpServers: number;
+  availableTools: number;
+  unhealthyPlugins: number;
+  recentExecutions: number;
+}
+
+export interface McpServer {
+  id: string;
+  organizationId: string;
+  name: string;
+  version: string;
+  serverKind: string;
+  endpoint: string;
+  authScheme: string;
+  hasCredential: boolean;
+  status: string;
+  isEnabled: boolean;
+  timeoutSeconds: number;
+  maxRetries: number;
+  supportsStreaming: boolean;
+  lastCheckedAt?: string | null;
+  lastError?: string | null;
+  toolCount: number;
+  resourceCount: number;
+  createdAt: string;
+}
+
+export interface CreateMcpServerRequest {
+  name: string;
+  version?: string;
+  serverKind: string;
+  endpoint: string;
+  authScheme?: string;
+  credential?: string | null;
+  timeoutSeconds?: number;
+  maxRetries?: number;
+  supportsStreaming?: boolean;
+  discoverOnCreate?: boolean;
+}
+
+export interface McpTool {
+  id: string;
+  mcpServerId: string;
+  serverName: string;
+  name: string;
+  description?: string | null;
+  inputSchemaJson?: string | null;
+  isEnabled: boolean;
+  discoveredAt: string;
+}
+
+export interface McpResource {
+  id: string;
+  mcpServerId: string;
+  serverName: string;
+  uri: string;
+  name: string;
+  mimeType?: string | null;
+  description?: string | null;
+  discoveredAt: string;
+}
+
+export interface McpServerKind {
+  serverKind: string;
+  displayName: string;
+  description: string;
+  defaultEndpoint?: string | null;
+  defaultAuthScheme: string;
+  requiresCredential: boolean;
+}
+
+export interface ExecuteMcpToolRequest {
+  serverId?: string | null;
+  toolName: string;
+  argumentsJson?: string;
+}
+
+export interface ExecuteMcpToolResponse {
+  succeeded: boolean;
+  contentJson: string;
+  errorMessage?: string | null;
+  durationMs: number;
 }
 

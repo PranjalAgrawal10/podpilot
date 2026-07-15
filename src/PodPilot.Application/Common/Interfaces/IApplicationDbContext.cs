@@ -288,6 +288,33 @@ public interface IApplicationDbContext
     /// </summary>
     IQueryable<RoutingEvent> RoutingEvents { get; }
 
+    /// <summary>Gets plugin definitions.</summary>
+    IQueryable<PluginDefinition> PluginDefinitions { get; }
+
+    /// <summary>Gets plugin installations.</summary>
+    IQueryable<PluginInstallation> PluginInstallations { get; }
+
+    /// <summary>Gets plugin settings.</summary>
+    IQueryable<PluginSetting> PluginSettings { get; }
+
+    /// <summary>Gets plugin logs.</summary>
+    IQueryable<PluginLog> PluginLogs { get; }
+
+    /// <summary>Gets MCP servers.</summary>
+    IQueryable<McpServer> McpServers { get; }
+
+    /// <summary>Gets MCP tools.</summary>
+    IQueryable<McpTool> McpTools { get; }
+
+    /// <summary>Gets MCP resources.</summary>
+    IQueryable<McpResource> McpResources { get; }
+
+    /// <summary>Gets MCP prompts.</summary>
+    IQueryable<McpPrompt> McpPrompts { get; }
+
+    /// <summary>Gets MCP tool executions.</summary>
+    IQueryable<McpToolExecution> McpToolExecutions { get; }
+
     /// <summary>
     /// Adds an audit log entry.
     /// </summary>
@@ -547,6 +574,42 @@ public interface IApplicationDbContext
     /// Adds a routing event.
     /// </summary>
     Task AddRoutingEventAsync(RoutingEvent routingEvent, CancellationToken cancellationToken = default);
+
+    /// <summary>Adds a plugin definition.</summary>
+    Task AddPluginDefinitionAsync(PluginDefinition definition, CancellationToken cancellationToken = default);
+
+    /// <summary>Adds a plugin installation.</summary>
+    Task AddPluginInstallationAsync(PluginInstallation installation, CancellationToken cancellationToken = default);
+
+    /// <summary>Adds a plugin setting.</summary>
+    Task AddPluginSettingAsync(PluginSetting setting, CancellationToken cancellationToken = default);
+
+    /// <summary>Adds a plugin log.</summary>
+    Task AddPluginLogAsync(PluginLog log, CancellationToken cancellationToken = default);
+
+    /// <summary>Adds an MCP server.</summary>
+    Task AddMcpServerAsync(McpServer server, CancellationToken cancellationToken = default);
+
+    /// <summary>Adds an MCP tool.</summary>
+    Task AddMcpToolAsync(McpTool tool, CancellationToken cancellationToken = default);
+
+    /// <summary>Adds an MCP resource.</summary>
+    Task AddMcpResourceAsync(McpResource resource, CancellationToken cancellationToken = default);
+
+    /// <summary>Adds an MCP prompt.</summary>
+    Task AddMcpPromptAsync(McpPrompt prompt, CancellationToken cancellationToken = default);
+
+    /// <summary>Adds an MCP tool execution.</summary>
+    Task AddMcpToolExecutionAsync(McpToolExecution execution, CancellationToken cancellationToken = default);
+
+    /// <summary>Removes a plugin installation.</summary>
+    Task RemovePluginInstallationAsync(Guid installationId, CancellationToken cancellationToken = default);
+
+    /// <summary>Removes an MCP server.</summary>
+    Task RemoveMcpServerAsync(Guid serverId, CancellationToken cancellationToken = default);
+
+    /// <summary>Clears discovered MCP tools/resources/prompts for a server.</summary>
+    Task ClearMcpServerCapabilitiesAsync(Guid serverId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Removes an AI inference provider.
