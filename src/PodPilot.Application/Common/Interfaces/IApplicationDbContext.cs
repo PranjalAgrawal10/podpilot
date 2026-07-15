@@ -348,6 +348,36 @@ public interface IApplicationDbContext
     /// <summary>Gets user MFA enrollments.</summary>
     IQueryable<UserMfaEnrollment> UserMfaEnrollments { get; }
 
+    /// <summary>Gets subscription plans.</summary>
+    IQueryable<SubscriptionPlan> SubscriptionPlans { get; }
+
+    /// <summary>Gets plan quotas.</summary>
+    IQueryable<PlanQuota> PlanQuotas { get; }
+
+    /// <summary>Gets organization subscriptions.</summary>
+    IQueryable<OrganizationSubscription> OrganizationSubscriptions { get; }
+
+    /// <summary>Gets usage records.</summary>
+    IQueryable<UsageRecord> UsageRecords { get; }
+
+    /// <summary>Gets invoices.</summary>
+    IQueryable<Invoice> Invoices { get; }
+
+    /// <summary>Gets product licenses.</summary>
+    IQueryable<ProductLicense> ProductLicenses { get; }
+
+    /// <summary>Gets onboarding progress rows.</summary>
+    IQueryable<OnboardingProgress> OnboardingProgressRecords { get; }
+
+    /// <summary>Gets telemetry preferences.</summary>
+    IQueryable<TelemetryPreference> TelemetryPreferences { get; }
+
+    /// <summary>Gets backup jobs.</summary>
+    IQueryable<BackupJob> BackupJobs { get; }
+
+    /// <summary>Gets platform releases.</summary>
+    IQueryable<PlatformRelease> PlatformReleases { get; }
+
     /// <summary>
     /// Adds an audit log entry.
     /// </summary>
@@ -676,6 +706,36 @@ public interface IApplicationDbContext
 
     /// <summary>Adds a user MFA enrollment.</summary>
     Task AddUserMfaEnrollmentAsync(UserMfaEnrollment enrollment, CancellationToken cancellationToken = default);
+
+    /// <summary>Adds a subscription plan.</summary>
+    Task AddSubscriptionPlanAsync(SubscriptionPlan plan, CancellationToken cancellationToken = default);
+
+    /// <summary>Adds a plan quota.</summary>
+    Task AddPlanQuotaAsync(PlanQuota quota, CancellationToken cancellationToken = default);
+
+    /// <summary>Adds an organization subscription.</summary>
+    Task AddOrganizationSubscriptionAsync(OrganizationSubscription subscription, CancellationToken cancellationToken = default);
+
+    /// <summary>Adds a usage record.</summary>
+    Task AddUsageRecordAsync(UsageRecord record, CancellationToken cancellationToken = default);
+
+    /// <summary>Adds an invoice.</summary>
+    Task AddInvoiceAsync(Invoice invoice, CancellationToken cancellationToken = default);
+
+    /// <summary>Adds a product license.</summary>
+    Task AddProductLicenseAsync(ProductLicense license, CancellationToken cancellationToken = default);
+
+    /// <summary>Adds onboarding progress.</summary>
+    Task AddOnboardingProgressAsync(OnboardingProgress progress, CancellationToken cancellationToken = default);
+
+    /// <summary>Adds a telemetry preference.</summary>
+    Task AddTelemetryPreferenceAsync(TelemetryPreference preference, CancellationToken cancellationToken = default);
+
+    /// <summary>Adds a backup job.</summary>
+    Task AddBackupJobAsync(BackupJob job, CancellationToken cancellationToken = default);
+
+    /// <summary>Adds a platform release.</summary>
+    Task AddPlatformReleaseAsync(PlatformRelease release, CancellationToken cancellationToken = default);
 
     /// <summary>Removes an identity provider.</summary>
     Task RemoveIdentityProviderAsync(Guid identityProviderId, CancellationToken cancellationToken = default);

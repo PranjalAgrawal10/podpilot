@@ -1,0 +1,35 @@
+name: Security scan
+
+on:
+  schedule:
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+  push:
+    branches: [main, master]
+    paths:
+      - "src/PodPilot.Api/Dockerfile"
+      - "web/Dockerfile"
+      - ".github/workflows/security-scan.yml"
+
+jobs:
+  trivy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build API image for scanning
+        run: docker build -f src/PodPilot.Api/Dockerfile -t podpilot-api:scan .
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: podpilot-api:scan
+          format: table
+          exit-code: "0"
+          severity: CRITICAL,HIGH
+          # Set exit-code to "1" once the baseline is clean and you want PRs to fail.
+
+      - name: Note
+        run: |
+          echo "Trivy scan completed (non-blocking exit-code=0)."
+          echo "Enable fail-on-findings by setting exit-code: '1' in this workflow when ready."

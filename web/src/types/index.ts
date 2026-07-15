@@ -467,6 +467,12 @@ export const PERMISSIONS = {
   GatewayManage: 'Gateway.Manage',
   DashboardView: 'Dashboard.View',
   BillingView: 'Billing.View',
+  BillingRead: 'Billing.Read',
+  BillingManage: 'Billing.Manage',
+  LicenseRead: 'License.Read',
+  LicenseManage: 'License.Manage',
+  BackupRead: 'Backup.Read',
+  BackupManage: 'Backup.Manage',
   MemberRead: 'Member.Read',
   MemberManage: 'Member.Manage',
   MemberRoleUpdate: 'Member.RoleUpdate',
@@ -1578,5 +1584,195 @@ export interface SecurityDashboard {
   mfaCoveragePercent: number;
   complianceStatus: string;
   recentAudits: AuditEvent[];
+}
+
+export interface QuotaInfo {
+  maxPods: number;
+  maxProviders: number;
+  maxModels: number;
+  maxOrganizations: number;
+  maxTeamMembers: number;
+  maxApiRequestsPerMonth: number;
+  maxConcurrentStreams: number;
+  maxStorageGb: number;
+}
+
+export interface Plan {
+  code: string;
+  name: string;
+  tier: string;
+  pricingModel: string;
+  monthlyPriceUsd: number;
+  yearlyPriceUsd: number;
+  seatPriceUsd: number;
+  includedSeats: number;
+  description?: string | null;
+  quotas: QuotaInfo;
+}
+
+export interface Subscription {
+  id: string;
+  planCode: string;
+  planName: string;
+  status: string;
+  billingInterval: string;
+  paymentProvider?: string | null;
+  seatCount: number;
+  currentPeriodStart: string;
+  currentPeriodEnd: string;
+  cancelAtPeriodEnd: boolean;
+  quotas: QuotaInfo;
+}
+
+export interface StartCheckoutRequest {
+  planCode: string;
+  interval?: string;
+  seatCount?: number;
+  provider?: string;
+  successUrl: string;
+  cancelUrl: string;
+}
+
+export interface CheckoutSession {
+  sessionId: string;
+  checkoutUrl: string;
+  provider: string;
+}
+
+export interface CancelSubscriptionRequest {
+  atPeriodEnd?: boolean;
+}
+
+export interface UsageDashboard {
+  periodStart: string;
+  periodEnd: string;
+  gpuHours: number;
+  requests: number;
+  tokens: number;
+  bandwidthGb: number;
+  storageGb: number;
+  organizations: number;
+  models: number;
+  providers: number;
+  estimatedMonthlyCostUsd: number;
+  quotas: QuotaInfo;
+  requestsQuotaPercent: number;
+}
+
+export interface Invoice {
+  id: string;
+  invoiceNumber: string;
+  status: string;
+  subtotalUsd: number;
+  taxUsd: number;
+  totalUsd: number;
+  periodStart: string;
+  periodEnd: string;
+  lineItemsJson: string;
+}
+
+export interface License {
+  id: string;
+  licenseKeyPrefix: string;
+  edition: string;
+  deploymentMode: string;
+  isActivated: boolean;
+  isValid: boolean;
+  expiresAt?: string | null;
+  maxSeats: number;
+  lastValidatedAt?: string | null;
+}
+
+export interface ActivateLicenseRequest {
+  licenseKey: string;
+}
+
+export interface IssueLicenseRequest {
+  organizationId?: string | null;
+  edition?: string;
+  deploymentMode?: string;
+  maxSeats?: number;
+  expiresAt?: string | null;
+}
+
+export interface IssuedLicense {
+  license: License;
+  licenseKey: string;
+}
+
+export type OnboardingStepName =
+  | 'CreateOrganization'
+  | 'ConnectProvider'
+  | 'CreatePod'
+  | 'InstallOllama'
+  | 'PullFirstModel'
+  | 'ConnectClaudeCode'
+  | 'TestAiGateway'
+  | 'Completed';
+
+export interface OnboardingStatus {
+  currentStep: string;
+  completedSteps: string[];
+  isDismissed: boolean;
+  isComplete: boolean;
+}
+
+export interface CompleteOnboardingStepRequest {
+  step: string;
+}
+
+export interface TelemetryPreference {
+  optIn: boolean;
+  crashReports: boolean;
+  performanceMetrics: boolean;
+  featureUsage: boolean;
+  healthReports: boolean;
+}
+
+export interface BackupJob {
+  id: string;
+  backupType: string;
+  status: string;
+  storageLocator?: string | null;
+  sizeBytes?: number | null;
+  startedAt?: string | null;
+  completedAt?: string | null;
+  errorMessage?: string | null;
+  isScheduled: boolean;
+}
+
+export interface StartBackupRequest {
+  backupType?: string;
+  scheduled?: boolean;
+}
+
+export interface ReleaseStatus {
+  currentVersion: string;
+  latestVersion: string;
+  updateAvailable: boolean;
+  releaseNotes?: string | null;
+  downloadUrl?: string | null;
+  channel: string;
+}
+
+export interface CommercialDashboard {
+  subscription: Subscription;
+  usage: UsageDashboard;
+  license: License;
+  release: ReleaseStatus;
+  estimatedMonthlyCostUsd: number;
+  remainingRequestQuotaPercent: number;
+}
+
+export interface SystemComponentStatus {
+  name: string;
+  status: string;
+}
+
+export interface SystemStatus {
+  status: string;
+  version: string;
+  updateAvailable: boolean;
+  components: SystemComponentStatus[];
 }
 

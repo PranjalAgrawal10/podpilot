@@ -81,6 +81,15 @@ export const Sidebar = () => {
     { to: '/security/devices', label: 'Trusted Devices', icon: '📱' },
   ];
 
+  const commercialNavItems = [
+    { to: '/billing', label: 'Billing', icon: '💳' },
+    { to: '/billing/usage', label: 'Usage', icon: '📐' },
+    { to: '/downloads', label: 'Downloads', icon: '⬇️' },
+    { to: '/docs', label: 'Documentation', icon: '📖' },
+    { to: '/system-status', label: 'System Status', icon: '🟢' },
+    { to: '/onboarding', label: 'Onboarding', icon: '🧭' },
+  ];
+
   const accountNavItems = [
     { to: '/members', label: 'Members', icon: '👥' },
     { to: '/profile', label: 'Profile', icon: '👤' },
@@ -135,6 +144,14 @@ export const Sidebar = () => {
           <SidebarSection title="Security" />
         </NavItem>
         {securityNavItems.map((item) => (
+          <NavItem key={item.to}>
+            <SidebarNavLink to={item.to} label={item.label} icon={item.icon} />
+          </NavItem>
+        ))}
+        <NavItem>
+          <SidebarSection title="Commercial" />
+        </NavItem>
+        {commercialNavItems.map((item) => (
           <NavItem key={item.to}>
             <SidebarNavLink to={item.to} label={item.label} icon={item.icon} />
           </NavItem>

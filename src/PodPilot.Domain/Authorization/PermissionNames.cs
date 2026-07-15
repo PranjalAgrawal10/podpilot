@@ -143,6 +143,24 @@ public static class PermissionNames
     /// <summary>Perform compliance actions (export, erasure, retention).</summary>
     public const string ComplianceManage = "Compliance.Manage";
 
+    /// <summary>Read billing, subscriptions, and usage.</summary>
+    public const string BillingRead = "Billing.Read";
+
+    /// <summary>Manage subscriptions, invoices, and payment methods.</summary>
+    public const string BillingManage = "Billing.Manage";
+
+    /// <summary>Manage product licenses and activation.</summary>
+    public const string LicenseManage = "License.Manage";
+
+    /// <summary>Read license status.</summary>
+    public const string LicenseRead = "License.Read";
+
+    /// <summary>Manage backups and restores.</summary>
+    public const string BackupManage = "Backup.Manage";
+
+    /// <summary>Read backups.</summary>
+    public const string BackupRead = "Backup.Read";
+
     /// <summary>All defined permissions.</summary>
     public static readonly IReadOnlyList<string> All =
     [
@@ -192,5 +210,11 @@ public static class PermissionNames
         PolicyManage,
         ComplianceRead,
         ComplianceManage,
+        BillingRead,
+        BillingManage,
+        LicenseRead,
+        LicenseManage,
+        BackupRead,
+        BackupManage,
     ];
 }

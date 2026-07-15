@@ -1,6 +1,7 @@
 <Solution>
   <Folder Name="/src/">
     <Project Path="src/PodPilot.Api/PodPilot.Api.csproj" />
+    <Project Path="src/PodPilot.Cli/PodPilot.Cli.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/PodPilot.Api.Tests/PodPilot.Api.Tests.csproj" />

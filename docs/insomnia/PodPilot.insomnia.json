@@ -1,0 +1,103 @@
+{
+  "_type": "export",
+  "__export_format": 4,
+  "__export_source": "podpilot.manual",
+  "__export_date": "2026-07-15T00:00:00.000Z",
+  "resources": [
+    {
+      "_id": "env_base",
+      "_type": "environment",
+      "name": "PodPilot Local",
+      "data": {
+        "baseUrl": "http://localhost:5000",
+        "accessToken": "",
+        "gatewayApiKey": ""
+      }
+    },
+    {
+      "_id": "wrk_podpilot",
+      "_type": "workspace",
+      "name": "PodPilot",
+      "description": "Auth, pods, gateway"
+    },
+    {
+      "_id": "fld_auth",
+      "_type": "request_group",
+      "parentId": "wrk_podpilot",
+      "name": "Auth"
+    },
+    {
+      "_id": "req_login",
+      "_type": "request",
+      "parentId": "fld_auth",
+      "name": "Login",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/api/v1/auth/login",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"email\": \"you@example.com\",\n  \"password\": \"password\"\n}"
+      },
+      "headers": [
+        { "name": "Content-Type", "value": "application/json" }
+      ]
+    },
+    {
+      "_id": "req_health",
+      "_type": "request",
+      "parentId": "fld_auth",
+      "name": "Health",
+      "method": "GET",
+      "url": "{{ _.baseUrl }}/api/v1/health"
+    },
+    {
+      "_id": "fld_pods",
+      "_type": "request_group",
+      "parentId": "wrk_podpilot",
+      "name": "Pods"
+    },
+    {
+      "_id": "req_list_pods",
+      "_type": "request",
+      "parentId": "fld_pods",
+      "name": "List pods",
+      "method": "GET",
+      "url": "{{ _.baseUrl }}/api/v1/pods",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ _.accessToken }}" }
+      ]
+    },
+    {
+      "_id": "fld_gateway",
+      "_type": "request_group",
+      "parentId": "wrk_podpilot",
+      "name": "Gateway"
+    },
+    {
+      "_id": "req_gw_stats",
+      "_type": "request",
+      "parentId": "fld_gateway",
+      "name": "Gateway stats",
+      "method": "GET",
+      "url": "{{ _.baseUrl }}/api/v1/gateway/stats",
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ _.accessToken }}" }
+      ]
+    },
+    {
+      "_id": "req_chat",
+      "_type": "request",
+      "parentId": "fld_gateway",
+      "name": "Chat completions",
+      "method": "POST",
+      "url": "{{ _.baseUrl }}/v1/chat/completions",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"model\": \"llama3:latest\",\n  \"messages\": [{ \"role\": \"user\", \"content\": \"Hello from PodPilot\" }]\n}"
+      },
+      "headers": [
+        { "name": "Authorization", "value": "Bearer {{ _.gatewayApiKey }}" },
+        { "name": "Content-Type", "value": "application/json" }
+      ]
+    }
+  ]
+}

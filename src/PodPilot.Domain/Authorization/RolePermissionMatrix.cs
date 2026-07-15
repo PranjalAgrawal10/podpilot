@@ -59,6 +59,13 @@ public static class RolePermissionMatrix
                     PermissionNames.PolicyManage,
                     PermissionNames.ComplianceRead,
                     PermissionNames.ComplianceManage,
+                    PermissionNames.BillingView,
+                    PermissionNames.BillingRead,
+                    PermissionNames.BillingManage,
+                    PermissionNames.LicenseRead,
+                    PermissionNames.LicenseManage,
+                    PermissionNames.BackupRead,
+                    PermissionNames.BackupManage,
                 },
             [OrganizationRole.Developer] =
                 new HashSet<string>
@@ -98,6 +105,10 @@ public static class RolePermissionMatrix
                     PermissionNames.SecretsRead,
                     PermissionNames.PolicyRead,
                     PermissionNames.ComplianceRead,
+                    PermissionNames.BillingView,
+                    PermissionNames.BillingRead,
+                    PermissionNames.LicenseRead,
+                    PermissionNames.BackupRead,
                 },
             [OrganizationRole.Viewer] =
                 new HashSet<string>
@@ -120,6 +131,9 @@ public static class RolePermissionMatrix
                     PermissionNames.AuditRead,
                     PermissionNames.PolicyRead,
                     PermissionNames.ComplianceRead,
+                    PermissionNames.BillingRead,
+                    PermissionNames.LicenseRead,
+                    PermissionNames.BackupRead,
                 },
         };
 

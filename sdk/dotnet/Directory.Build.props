@@ -1,0 +1,6 @@
+<Project>
+  <PropertyGroup>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591;SA0001;SA1000;SA1009;SA1010;SA1101;SA1200;SA1204;SA1413;SA1505;SA1508;SA1516;SA1600;SA1611;SA1615;SA1623;SA1625;SA1633;SA1648</NoWarn>
+  </PropertyGroup>
+</Project>

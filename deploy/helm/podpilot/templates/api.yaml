@@ -1,0 +1,84 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ .Release.Name }}-secrets
+  labels:
+    app.kubernetes.io/name: podpilot
+    app.kubernetes.io/instance: {{ .Release.Name }}
+type: Opaque
+stringData:
+  ConnectionStrings__DefaultConnection: {{ required "secrets.mysqlConnection is required" .Values.secrets.mysqlConnection | quote }}
+  ConnectionStrings__Redis: {{ default (printf "%s-redis:%v" .Release.Name .Values.redis.port) .Values.secrets.redisConnection | quote }}
+  Jwt__Secret: {{ required "secrets.jwtSecret is required" .Values.secrets.jwtSecret | quote }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-api
+  labels:
+    app.kubernetes.io/name: podpilot-api
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  replicas: {{ .Values.replicaCount.api }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: podpilot-api
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: podpilot-api
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+      containers:
+        - name: api
+          image: "{{ .Values.image.api.repository }}:{{ .Values.image.api.tag }}"
+          imagePullPolicy: {{ .Values.image.api.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.service.api.port }}
+          env:
+            - name: ASPNETCORE_ENVIRONMENT
+              value: {{ .Values.env.ASPNETCORE_ENVIRONMENT | quote }}
+            - name: ASPNETCORE_URLS
+              value: {{ .Values.env.ASPNETCORE_URLS | quote }}
+            - name: Swagger__Enabled
+              value: {{ .Values.env.Swagger__Enabled | quote }}
+            - name: ConnectionStrings__DefaultConnection
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-secrets
+                  key: ConnectionStrings__DefaultConnection
+            - name: ConnectionStrings__Redis
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-secrets
+                  key: ConnectionStrings__Redis
+            - name: Jwt__Secret
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-secrets
+                  key: Jwt__Secret
+          readinessProbe:
+            httpGet:
+              path: /api/v1/health
+              port: {{ .Values.service.api.port }}
+            initialDelaySeconds: 20
+            periodSeconds: 15
+          resources:
+            {{- toYaml .Values.resources.api | nindent 12 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-api
+  labels:
+    app.kubernetes.io/name: podpilot-api
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  type: {{ .Values.service.api.type }}
+  ports:
+    - port: {{ .Values.service.api.port }}
+      targetPort: {{ .Values.service.api.port }}
+  selector:
+    app.kubernetes.io/name: podpilot-api
+    app.kubernetes.io/instance: {{ .Release.Name }}

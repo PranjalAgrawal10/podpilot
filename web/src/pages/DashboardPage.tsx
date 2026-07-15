@@ -15,6 +15,8 @@ import { usePodStatusHub } from '../hooks/usePodStatusHub';
 import { useOrchestratorHub } from '../hooks/useOrchestratorHub';
 import { useObservabilityHub } from '../hooks/useObservabilityHub';
 import { observabilityService } from '../services/observabilityService';
+import { CommercialDashboardWidgets } from '../components/commercial/CommercialDashboardWidgets';
+import { useCommercialHub } from '../hooks/useCommercialHub';
 import { PERMISSIONS } from '../types';
 
 export const DashboardPage = () => {
@@ -23,10 +25,13 @@ export const DashboardPage = () => {
   const canReadPods = hasPermission(PERMISSIONS.PodRead);
   const canReadOrchestrator = hasPermission(PERMISSIONS.OrchestratorRead);
   const canReadObservability = hasPermission(PERMISSIONS.ObservabilityRead);
+  const canReadBilling =
+    hasPermission(PERMISSIONS.BillingRead) || hasPermission(PERMISSIONS.BillingView);
 
   usePodStatusHub(currentOrganization?.id);
   useOrchestratorHub(currentOrganization?.id);
   useObservabilityHub(currentOrganization?.id);
+  useCommercialHub(currentOrganization?.id);
 
   const { data: health, isLoading: healthLoading } = useQuery({
     queryKey: ['health'],
@@ -94,6 +99,8 @@ export const DashboardPage = () => {
       <p className="text-muted mb-4">
         Welcome back, {user?.firstName}! Monitor and manage your GPU infrastructure.
       </p>
+
+      {canReadBilling && <CommercialDashboardWidgets />}
 
       <Row className="g-4">
         <Col md={3}>

@@ -1,4 +1,4 @@
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ToastContainer } from 'react-toastify';
 import { AuthProvider } from './contexts/AuthContext';
@@ -7,6 +7,7 @@ import { ThemeProvider } from './contexts/ThemeContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { MainLayout } from './layouts/MainLayout';
 import { AuthLayout } from './layouts/AuthLayout';
+import { MarketingLayout } from './layouts/MarketingLayout';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { DashboardPage } from './pages/DashboardPage';
@@ -67,6 +68,21 @@ import { OrganizationPoliciesPage } from './pages/OrganizationPoliciesPage';
 import { CompliancePage } from './pages/CompliancePage';
 import { SessionsPage } from './pages/SessionsPage';
 import { TrustedDevicesPage } from './pages/TrustedDevicesPage';
+import { BillingPage } from './pages/BillingPage';
+import { UsagePage } from './pages/UsagePage';
+import { SubscriptionsPage } from './pages/SubscriptionsPage';
+import { DownloadsPage } from './pages/DownloadsPage';
+import { DocumentationPage } from './pages/DocumentationPage';
+import { SystemStatusPage } from './pages/SystemStatusPage';
+import { OnboardingWizardPage } from './pages/OnboardingWizardPage';
+import { LandingPage } from './pages/marketing/LandingPage';
+import { FeaturesPage } from './pages/marketing/FeaturesPage';
+import { PricingPage } from './pages/marketing/PricingPage';
+import { DocsMarketingPage } from './pages/marketing/DocsMarketingPage';
+import { BlogPage } from './pages/marketing/BlogPage';
+import { RoadmapPage } from './pages/marketing/RoadmapPage';
+import { CommunityPage } from './pages/marketing/CommunityPage';
+import { ContactPage } from './pages/marketing/ContactPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'react-toastify/dist/ReactToastify.css';
@@ -89,6 +105,18 @@ function App() {
           <OrganizationProvider>
             <BrowserRouter>
               <Routes>
+                <Route element={<MarketingLayout />}>
+                  <Route path="/" element={<LandingPage />} />
+                  <Route path="/features" element={<FeaturesPage />} />
+                  <Route path="/pricing" element={<PricingPage />} />
+                  <Route path="/documentation" element={<DocsMarketingPage />} />
+                  <Route path="/blog" element={<BlogPage />} />
+                  <Route path="/roadmap" element={<RoadmapPage />} />
+                  <Route path="/community" element={<CommunityPage />} />
+                  <Route path="/contact" element={<ContactPage />} />
+                  <Route path="/status" element={<SystemStatusPage />} />
+                </Route>
+
                 <Route element={<AuthLayout />}>
                   <Route path="/login" element={<LoginPage />} />
                   <Route path="/register" element={<RegisterPage />} />
@@ -146,6 +174,13 @@ function App() {
                     <Route path="/security/compliance" element={<CompliancePage />} />
                     <Route path="/security/sessions" element={<SessionsPage />} />
                     <Route path="/security/devices" element={<TrustedDevicesPage />} />
+                    <Route path="/billing" element={<BillingPage />} />
+                    <Route path="/billing/usage" element={<UsagePage />} />
+                    <Route path="/billing/subscriptions" element={<SubscriptionsPage />} />
+                    <Route path="/downloads" element={<DownloadsPage />} />
+                    <Route path="/docs" element={<DocumentationPage />} />
+                    <Route path="/system-status" element={<SystemStatusPage />} />
+                    <Route path="/onboarding" element={<OnboardingWizardPage />} />
                     <Route path="/models" element={<ModelsPage />} />
                     <Route path="/models/pull" element={<PullModelPage />} />
                     <Route path="/models/downloads" element={<ModelDownloadsPage />} />
@@ -157,7 +192,6 @@ function App() {
                   </Route>
                 </Route>
 
-                <Route path="/" element={<Navigate to="/dashboard" replace />} />
                 <Route path="*" element={<NotFoundPage />} />
               </Routes>
             </BrowserRouter>

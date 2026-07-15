@@ -24,6 +24,7 @@ public sealed class CreatePodCommandHandler : IRequestHandler<CreatePodCommand, 
     private readonly IAuditService auditService;
     private readonly IHttpContextService httpContextService;
     private readonly IDateTimeService dateTimeService;
+    private readonly IQuotaService quotaService;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CreatePodCommandHandler"/> class.
@@ -37,7 +38,8 @@ public sealed class CreatePodCommandHandler : IRequestHandler<CreatePodCommand, 
         IPodLifecycleService podLifecycleService,
         IAuditService auditService,
         IHttpContextService httpContextService,
-        IDateTimeService dateTimeService)
+        IDateTimeService dateTimeService,
+        IQuotaService quotaService)
     {
         this.currentUserService = currentUserService;
         this.organizationAuthorizationService = organizationAuthorizationService;
@@ -48,6 +50,7 @@ public sealed class CreatePodCommandHandler : IRequestHandler<CreatePodCommand, 
         this.auditService = auditService;
         this.httpContextService = httpContextService;
         this.dateTimeService = dateTimeService;
+        this.quotaService = quotaService;
     }
 
     /// <inheritdoc />
@@ -61,6 +64,8 @@ public sealed class CreatePodCommandHandler : IRequestHandler<CreatePodCommand, 
             userId,
             PermissionNames.PodCreate,
             cancellationToken);
+
+        await quotaService.EnsureCanCreatePodAsync(organizationId, cancellationToken);
 
         var normalizedName = request.Name.Trim();
         var nameExists = await dbContext.GpuPods.AnyAsync(

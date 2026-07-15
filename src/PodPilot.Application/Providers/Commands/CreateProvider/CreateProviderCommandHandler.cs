@@ -22,6 +22,7 @@ public sealed class CreateProviderCommandHandler : IRequestHandler<CreateProvide
     private readonly IAuditService auditService;
     private readonly IHttpContextService httpContextService;
     private readonly IDateTimeService dateTimeService;
+    private readonly IQuotaService quotaService;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CreateProviderCommandHandler"/> class.
@@ -34,7 +35,8 @@ public sealed class CreateProviderCommandHandler : IRequestHandler<CreateProvide
         IEncryptionService encryptionService,
         IAuditService auditService,
         IHttpContextService httpContextService,
-        IDateTimeService dateTimeService)
+        IDateTimeService dateTimeService,
+        IQuotaService quotaService)
     {
         this.currentUserService = currentUserService;
         this.organizationAuthorizationService = organizationAuthorizationService;
@@ -44,6 +46,7 @@ public sealed class CreateProviderCommandHandler : IRequestHandler<CreateProvide
         this.auditService = auditService;
         this.httpContextService = httpContextService;
         this.dateTimeService = dateTimeService;
+        this.quotaService = quotaService;
     }
 
     /// <inheritdoc />
@@ -59,6 +62,8 @@ public sealed class CreateProviderCommandHandler : IRequestHandler<CreateProvide
             userId,
             PermissionNames.ProviderCreate,
             cancellationToken);
+
+        await quotaService.EnsureCanCreateProviderAsync(organizationId, cancellationToken);
 
         var normalizedName = request.Name.Trim();
         var nameExists = await dbContext.ComputeProviders.AnyAsync(

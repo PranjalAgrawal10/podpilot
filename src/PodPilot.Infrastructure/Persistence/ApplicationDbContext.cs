@@ -249,6 +249,36 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     /// <inheritdoc />
     public DbSet<UserMfaEnrollment> UserMfaEnrollments => Set<UserMfaEnrollment>();
 
+    /// <inheritdoc />
+    public DbSet<SubscriptionPlan> SubscriptionPlans => Set<SubscriptionPlan>();
+
+    /// <inheritdoc />
+    public DbSet<PlanQuota> PlanQuotas => Set<PlanQuota>();
+
+    /// <inheritdoc />
+    public DbSet<OrganizationSubscription> OrganizationSubscriptions => Set<OrganizationSubscription>();
+
+    /// <inheritdoc />
+    public DbSet<UsageRecord> UsageRecords => Set<UsageRecord>();
+
+    /// <inheritdoc />
+    public DbSet<Invoice> Invoices => Set<Invoice>();
+
+    /// <inheritdoc />
+    public DbSet<ProductLicense> ProductLicenses => Set<ProductLicense>();
+
+    /// <inheritdoc />
+    public DbSet<OnboardingProgress> OnboardingProgressRecords => Set<OnboardingProgress>();
+
+    /// <inheritdoc />
+    public DbSet<TelemetryPreference> TelemetryPreferences => Set<TelemetryPreference>();
+
+    /// <inheritdoc />
+    public DbSet<BackupJob> BackupJobs => Set<BackupJob>();
+
+    /// <inheritdoc />
+    public DbSet<PlatformRelease> PlatformReleases => Set<PlatformRelease>();
+
     IQueryable<RefreshToken> IApplicationDbContext.RefreshTokens => RefreshTokens;
 
     IQueryable<Organization> IApplicationDbContext.Organizations => Organizations;
@@ -400,6 +430,26 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     IQueryable<OrganizationComplianceSettings> IApplicationDbContext.OrganizationComplianceSettings => OrganizationComplianceSettings;
 
     IQueryable<UserMfaEnrollment> IApplicationDbContext.UserMfaEnrollments => UserMfaEnrollments;
+
+    IQueryable<SubscriptionPlan> IApplicationDbContext.SubscriptionPlans => SubscriptionPlans;
+
+    IQueryable<PlanQuota> IApplicationDbContext.PlanQuotas => PlanQuotas;
+
+    IQueryable<OrganizationSubscription> IApplicationDbContext.OrganizationSubscriptions => OrganizationSubscriptions;
+
+    IQueryable<UsageRecord> IApplicationDbContext.UsageRecords => UsageRecords;
+
+    IQueryable<Invoice> IApplicationDbContext.Invoices => Invoices;
+
+    IQueryable<ProductLicense> IApplicationDbContext.ProductLicenses => ProductLicenses;
+
+    IQueryable<OnboardingProgress> IApplicationDbContext.OnboardingProgressRecords => OnboardingProgressRecords;
+
+    IQueryable<TelemetryPreference> IApplicationDbContext.TelemetryPreferences => TelemetryPreferences;
+
+    IQueryable<BackupJob> IApplicationDbContext.BackupJobs => BackupJobs;
+
+    IQueryable<PlatformRelease> IApplicationDbContext.PlatformReleases => PlatformReleases;
 
     /// <inheritdoc />
     public Task AddAuditLogAsync(AuditLog auditLog, CancellationToken cancellationToken = default) =>
@@ -758,6 +808,50 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     /// <inheritdoc />
     public Task AddUserMfaEnrollmentAsync(UserMfaEnrollment enrollment, CancellationToken cancellationToken = default) =>
         UserMfaEnrollments.AddAsync(enrollment, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public Task AddSubscriptionPlanAsync(SubscriptionPlan plan, CancellationToken cancellationToken = default) =>
+        SubscriptionPlans.AddAsync(plan, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public Task AddPlanQuotaAsync(PlanQuota quota, CancellationToken cancellationToken = default) =>
+        PlanQuotas.AddAsync(quota, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public Task AddOrganizationSubscriptionAsync(
+        OrganizationSubscription subscription,
+        CancellationToken cancellationToken = default) =>
+        OrganizationSubscriptions.AddAsync(subscription, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public Task AddUsageRecordAsync(UsageRecord record, CancellationToken cancellationToken = default) =>
+        UsageRecords.AddAsync(record, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public Task AddInvoiceAsync(Invoice invoice, CancellationToken cancellationToken = default) =>
+        Invoices.AddAsync(invoice, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public Task AddProductLicenseAsync(ProductLicense license, CancellationToken cancellationToken = default) =>
+        ProductLicenses.AddAsync(license, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public Task AddOnboardingProgressAsync(OnboardingProgress progress, CancellationToken cancellationToken = default) =>
+        OnboardingProgressRecords.AddAsync(progress, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public Task AddTelemetryPreferenceAsync(
+        TelemetryPreference preference,
+        CancellationToken cancellationToken = default) =>
+        TelemetryPreferences.AddAsync(preference, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public Task AddBackupJobAsync(BackupJob job, CancellationToken cancellationToken = default) =>
+        BackupJobs.AddAsync(job, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public Task AddPlatformReleaseAsync(PlatformRelease release, CancellationToken cancellationToken = default) =>
+        PlatformReleases.AddAsync(release, cancellationToken).AsTask();
 
     /// <inheritdoc />
     public async Task RemoveIdentityProviderAsync(Guid identityProviderId, CancellationToken cancellationToken = default)

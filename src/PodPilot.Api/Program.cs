@@ -31,6 +31,7 @@ builder.Services.AddObservabilityLayer(builder.Configuration, builder.Environmen
 builder.Services.AddAiProvidersLayer(builder.Environment);
 builder.Services.AddPluginSystemLayer(builder.Environment);
 builder.Services.AddEnterpriseSecurityLayer(builder.Environment);
+builder.Services.AddCommercialPlatformLayer(builder.Environment);
 builder.Services.AddInfrastructureHostedServices(builder.Environment);
 
 builder.Services.AddControllers();
@@ -117,6 +118,7 @@ app.MapHub<PodPilot.Infrastructure.Hubs.AiProviderHub>("/hubs/ai-providers");
 app.MapHub<PodPilot.Infrastructure.Hubs.RoutingHub>("/hubs/routing");
 app.MapHub<PodPilot.Infrastructure.Hubs.PluginHub>("/hubs/plugins");
 app.MapHub<PodPilot.Infrastructure.Hubs.SecurityHub>("/hubs/security");
+app.MapHub<PodPilot.Infrastructure.Hubs.CommercialHub>("/hubs/commercial");
 
 try
 {

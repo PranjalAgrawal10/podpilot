@@ -214,6 +214,14 @@ public static class DependencyInjection
         services.AddEnterpriseSecurity(environment);
 
     /// <summary>
+    /// Registers commercial platform services.
+    /// </summary>
+    public static IServiceCollection AddCommercialPlatformLayer(
+        this IServiceCollection services,
+        IHostEnvironment environment) =>
+        services.AddCommercialPlatform(environment);
+
+    /// <summary>
     /// Registers background services for non-testing environments.
     /// </summary>
     /// <param name="services">The service collection.</param>

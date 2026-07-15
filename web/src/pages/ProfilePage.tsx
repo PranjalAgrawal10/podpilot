@@ -47,6 +47,18 @@ export const ProfilePage = () => {
                 ))}
               </span>
             </ListGroupItem>
+            <ListGroupItem className="d-flex justify-content-between align-items-center">
+              <span>API Keys</span>
+              <Link to="/gateway" className="btn btn-sm btn-outline-primary">
+                Manage on Gateway
+              </Link>
+            </ListGroupItem>
+            <ListGroupItem className="d-flex justify-content-between align-items-center">
+              <span>Billing</span>
+              <Link to="/billing" className="btn btn-sm btn-outline-primary">
+                Open billing
+              </Link>
+            </ListGroupItem>
           </ListGroup>
         </CardBody>
       </Card>

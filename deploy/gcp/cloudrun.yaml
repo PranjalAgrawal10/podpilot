@@ -1,0 +1,52 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: podpilot-api
+  annotations:
+    run.googleapis.com/ingress: all
+spec:
+  template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/minScale: "1"
+        autoscaling.knative.dev/maxScale: "10"
+        run.googleapis.com/cpu: "1"
+        run.googleapis.com/memory: "1Gi"
+        run.googleapis.com/secrets: mysql-connection:latest,jwt-secret:latest
+    spec:
+      containerConcurrency: 80
+      containers:
+        - image: gcr.io/PROJECT_ID/podpilot-api:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: ASPNETCORE_URLS
+              value: http://+:8080
+            - name: ASPNETCORE_ENVIRONMENT
+              value: Production
+            - name: ConnectionStrings__Redis
+              value: REDIS_HOST:6379
+            - name: ConnectionStrings__DefaultConnection
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-connection
+            - name: Jwt__Secret
+              valueFrom:
+                secretKeyRef:
+                  name: jwt-secret
+---
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: podpilot-web
+spec:
+  template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/minScale: "0"
+        autoscaling.knative.dev/maxScale: "5"
+    spec:
+      containers:
+        - image: gcr.io/PROJECT_ID/podpilot-web:latest
+          ports:
+            - containerPort: 80

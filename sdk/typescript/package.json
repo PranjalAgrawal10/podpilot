@@ -1,0 +1,27 @@
+{
+  "name": "@podpilot/sdk",
+  "version": "0.1.0",
+  "description": "PodPilot TypeScript SDK — login, pods, gateway health",
+  "type": "module",
+  "main": "dist/client.js",
+  "types": "dist/client.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/client.d.ts",
+      "import": "./dist/client.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "example": "node --experimental-strip-types examples/example.ts"
+  },
+  "files": [
+    "dist",
+    "src",
+    "README.md"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^5.8.0"
+  }
+}

@@ -1,6 +1,51 @@
 # PodPilot
 
-**PodPilot** is an AI Infrastructure Autopilot that automatically manages GPU pods, AI models, and inference providers. This repository contains **Part 1** (authentication foundation), **Part 2** (multi-tenant organization management), **Part 3** (provider management abstraction), **Part 4** (GPU pod management), **Part 5** (automatic GPU lifecycle management), **Part 6** (AI Gateway), **Part 7** (Ollama model management), **Part 8** (smart request scheduler), **Part 9** (multi-pod orchestration and auto scaling), **Part 10** (observability, monitoring, and cost analytics), and **Part 11** (universal AI provider engine).
+**PodPilot** is an AI Infrastructure Autopilot — a production-ready SaaS and self-hosted platform for GPU pods, model routing, AI gateways, plugins/MCP, and enterprise governance.
+
+It manages providers, pods, Ollama models, inference routing, observability, security, and commercial billing so teams can run AI workloads without babysitting infrastructure.
+
+### Quick links
+
+| | |
+|--|--|
+| **App** | `web/` — React console + marketing site |
+| **API** | `src/PodPilot.Api` — .NET 10 Clean Architecture |
+| **CLI** | `src/PodPilot.Cli` — `podpilot login|status|gateway test` |
+| **SDKs** | `sdk/dotnet`, `sdk/typescript`, `sdk/python`, `sdk/go`, `sdk/java` |
+| **Docs** | [`docs/`](docs/) — architecture, install, billing, security, deploy |
+| **Deploy** | `docker-compose.yml`, `deploy/helm`, Azure / AWS / GCP guides |
+| **Samples** | `samples/` — Claude Code, Cursor, Continue, OpenAI, Anthropic |
+
+### Quick start
+
+```bash
+# API + Redis (+ optional MySQL via your env)
+docker compose up -d
+
+# or local
+dotnet run --project src/PodPilot.Api
+cd web && npm install && npm run dev
+
+# CLI
+dotnet run --project src/PodPilot.Cli -- login --email you@example.com --password '...'
+dotnet run --project src/PodPilot.Cli -- status
+```
+
+Swagger: `/swagger` · Status: `GET /api/v1/status`
+
+### Feature map (Parts 1–15)
+
+| Area | Highlights |
+|------|------------|
+| Identity & tenancy | JWT auth, orgs, RBAC, SSO/OIDC/SAML, SCIM, MFA |
+| Compute | Multi-provider GPUs, pods, auto wake/shutdown |
+| AI | Gateway, Ollama, universal providers, intelligent routing, scheduler |
+| Scale | Multi-pod orchestration, pools, load balancing |
+| Observe | Metrics, costs, alerts |
+| Extend | Plugins, MCP tools/resources |
+| Secure | Secrets backends, immutable audit, policies, compliance |
+| Commercial | Stripe/Razorpay, plans/quotas, licenses, usage, invoices |
+| Ship | CLI, SDKs, Helm/Compose/cloud deploy, CI/CD |
 
 ---
 
@@ -1514,18 +1559,80 @@ Security dashboard, Audit Logs, Secrets, Identity Providers, Organization Polici
 
 ---
 
-## What's Next (Part 15+)
+## Part 15 — Production Launch, Commercial Platform & Developer Ecosystem
 
-Intentionally excluded from Parts 11–14:
+Part 15 makes PodPilot publicly releasable: commercial billing, quotas, licensing, onboarding, DX (CLI/SDKs/docs), multi-cloud deploy, marketing site, CI/CD, telemetry opt-in, and backups.
 
-- Billing & payments
-- External marketplace
-- Mobile apps
-- Kubernetes cluster management
-- Provider cost invoicing integrations
+### Billing & usage
+
+| Capability | Detail |
+|------------|--------|
+| Providers | Stripe + Razorpay (`IPaymentGateway`) — live keys or local checkout simulation in Testing |
+| Plans | Free · Pro · Team · Enterprise (monthly/yearly, seat, usage, hybrid) |
+| Metering | GPU hours, requests, tokens, bandwidth, storage, orgs/models/providers |
+| Quotas | Pods, providers, models, members, API requests, streams, storage |
+| Invoices | Generated from usage + plan period |
+
+### License system
+
+Community / Professional / Enterprise · Online · Offline · Self-hosted — activate, validate, issue (`ILicenseService`).
+
+### Onboarding wizard
+
+Create org → provider → pod → Ollama → model → Claude Code → gateway test (`/onboarding`).
+
+### Developer ecosystem
+
+- **CLI:** `podpilot login|provider add|pod create|model pull|gateway test|status|logs`
+- **SDKs:** .NET, TypeScript, Python, Go, Java under `sdk/`
+- **API docs:** Swagger, Postman (`docs/postman`), Insomnia (`docs/insomnia`)
+- **Samples:** Claude Code, Cursor, Continue, Cline, Roo Code, OpenAI, Anthropic
+
+### Deploy & ops
+
+Docker Compose · Helm · Azure Container Apps · AWS ECS · Google Cloud Run  
+GitHub Actions: CI, release, Trivy security scan  
+Opt-in telemetry · config/database backup jobs · release/version checker
+
+### Commercial UI & marketing
+
+App: Billing, Usage, Downloads, Docs, System Status, Onboarding  
+Public site: `/` landing, features, pricing, documentation, blog, roadmap, community, contact
+
+### API (commercial)
+
+| Area | Routes |
+|------|--------|
+| Billing | `/api/v1/billing/plans|subscription|checkout|usage|invoices` |
+| Licenses | `/api/v1/licenses`, `activate`, `issue` |
+| Onboarding | `/api/v1/onboarding` |
+| Commercial | `/api/v1/commercial/dashboard` |
+| Status | `GET /api/v1/status` (anonymous) |
+| Webhooks | `/api/v1/billing/webhooks/stripe|razorpay` |
+
+SignalR: `/hubs/commercial`
+
+Permissions: `Billing.Read/Manage`, `License.Read/Manage`, `Backup.Read/Manage` (+ legacy `Billing.View`).
+
+### Contribution
+
+1. Fork and branch from `main`
+2. `dotnet test` and `npm run build` must pass (`TreatWarningsAsErrors`)
+3. Follow Clean Architecture boundaries (no Infrastructure types in API/Application handlers)
+4. Org-scope every tenant query via JWT `organization_id`
+5. Open a PR with summary + test plan
+
+### Roadmap (post-v1)
+
+- External plugin marketplace storefront
+- Native mobile clients
+- Deeper Kubernetes cluster management as a first-class provider
+- Expanded marketplace payment partners
 
 ---
 
 ## License
 
 Copyright (c) PodPilot. All rights reserved.
+
+Community Edition source is available for evaluation and self-hosting under your chosen distribution terms. Commercial Professional / Enterprise licenses are available for production SaaS and offline deployments — see Billing in the product or contact sales.
