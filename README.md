@@ -1453,12 +1453,74 @@ Permissions: `Plugin.Read` / `Plugin.Manage`, `Mcp.Read` / `Mcp.Manage`. SignalR
 
 ---
 
-## What's Next (Part 14+)
+## Part 14 — Enterprise Security, Governance & Compliance
 
-Intentionally excluded from Parts 11–13:
+Part 14 hardens PodPilot for regulated AI workloads: SSO/OIDC/SAML, SCIM provisioning, TOTP MFA, multi-backend secrets, immutable enterprise audit events, governance policies, and GDPR/SOC 2/ISO 27001 readiness controls.
+
+### Enterprise architecture
+
+| Capability | Interfaces / storage |
+|------------|----------------------|
+| SSO | `ISsoService` + org `IdentityProviders` (Entra ID, Google, Okta, Auth0, Custom OIDC, SAML) |
+| SCIM 2.0 | `IScimProvisioningService` + `ScimMappings` |
+| Secrets | `ISecretProvider` / `ISecretManager` → Local encrypted, Azure Key Vault, AWS Secrets Manager, HashiCorp Vault |
+| Audit | `IEnterpriseAuditService` → append-only `AuditEvents` (updates/deletes rejected) |
+| Policies | `IPolicyEngine` + `OrganizationSecurityPolicies` / `OrganizationPolicies` |
+| MFA | `IMfaService` (RFC 6238 TOTP) + `UserMfaEnrollments` |
+| Sessions | `ISessionTracker` → `SessionHistory`, `TrustedDevices` |
+| Compliance | `IComplianceService` → export, erasure, retention settings |
+| Alerts | `ISecurityAlertService` + SignalR `/hubs/security` |
+
+### Authentication flow
+
+1. Password login (or SSO begin → IdP → SSO complete)
+2. Security policy checks (IP allow-list when configured)
+3. If MFA enrolled: return `RequiresMfa` + short-lived `MfaToken` (no access token yet)
+4. `POST /api/v1/auth/mfa` with TOTP code issues JWT + refresh tokens
+5. Session/device tracking + immutable audit event
+
+### Security model
+
+- Secrets never returned in API payloads; local values encrypted with Data Protection; vault backends store locators
+- Org-scoped RBAC permissions: `Security.*`, `Audit.Read`, `Secrets.*`, `Policy.*`, `Compliance.*`
+- Governance can allow-list providers, models, plugins, MCP kinds and cap pod/queue/spend
+- Password/MFA/session/API-key controls live on `OrganizationSecurityPolicy`
+
+### Compliance features
+
+- GDPR-ready data export and right-to-erasure workflows
+- Configurable data/log retention with apply-retention jobs
+- SOC 2 / ISO 27001 control checklists on the compliance dashboard
+
+### Secrets architecture
+
+`SecretReferences` hold metadata + backend locator. `LocalEncrypted` stores ciphertext in MySQL; Azure/AWS/Vault providers integrate via configuration and never persist plaintext. Access is audited as `SecretAccessed`.
+
+### API
+
+| Area | Routes |
+|------|--------|
+| Auth | `GET /api/v1/auth/providers`, `POST /auth/sso/begin`, `/auth/sso/complete`, `/auth/mfa` |
+| Secrets | `GET/POST /api/v1/secrets`, `PUT/DELETE /api/v1/secrets/{id}` |
+| Audit | `GET /api/v1/audit`, `GET /api/v1/audit/{id}` |
+| Policies | `GET/PUT /api/v1/policies` |
+| Compliance | `GET /api/v1/compliance`, `POST .../export`, `POST .../erasure` |
+| Security | `GET /api/v1/security/dashboard`, sessions, devices, identity-providers |
+| SCIM | `/api/v1/scim/v2/Users`, `/Groups` |
+
+### UI
+
+Security dashboard, Audit Logs, Secrets, Identity Providers, Organization Policies, Compliance, Sessions, Trusted Devices — plus MFA challenge on login.
+
+---
+
+## What's Next (Part 15+)
+
+Intentionally excluded from Parts 11–14:
 
 - Billing & payments
 - External marketplace
+- Mobile apps
 - Kubernetes cluster management
 - Provider cost invoicing integrations
 

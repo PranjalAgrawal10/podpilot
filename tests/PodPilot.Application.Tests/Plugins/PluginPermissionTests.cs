@@ -31,6 +31,7 @@ public class PluginPermissionTests
             registry,
             Mock.Of<IDateTimeService>(d => d.UtcNow == DateTime.UtcNow),
             Mock.Of<IPluginNotificationService>(),
+            Mock.Of<IPolicyEngine>(),
             NullLogger<PluginInstaller>.Instance);
 
         await installer.SyncCatalogAsync();
@@ -57,6 +58,7 @@ public class PluginPermissionTests
             registry,
             Mock.Of<IDateTimeService>(d => d.UtcNow == DateTime.UtcNow),
             Mock.Of<IPluginNotificationService>(),
+            Mock.Of<IPolicyEngine>(),
             NullLogger<PluginInstaller>.Instance);
 
         var orgId = Guid.NewGuid();

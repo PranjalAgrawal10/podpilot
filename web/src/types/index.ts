@@ -24,6 +24,8 @@ export interface AuthResponse {
   expiresIn: number;
   tokenType: string;
   user: UserSummary;
+  requiresMfa?: boolean;
+  mfaToken?: string | null;
 }
 
 export interface OrganizationSummary {
@@ -483,6 +485,15 @@ export const PERMISSIONS = {
   PluginManage: 'Plugin.Manage',
   McpRead: 'Mcp.Read',
   McpManage: 'Mcp.Manage',
+  SecurityRead: 'Security.Read',
+  SecurityManage: 'Security.Manage',
+  AuditRead: 'Audit.Read',
+  SecretsRead: 'Secrets.Read',
+  SecretsManage: 'Secrets.Manage',
+  PolicyRead: 'Policy.Read',
+  PolicyManage: 'Policy.Manage',
+  ComplianceRead: 'Compliance.Read',
+  ComplianceManage: 'Compliance.Manage',
 } as const;
 
 export type Permission = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];
@@ -1370,5 +1381,202 @@ export interface ExecuteMcpToolResponse {
   contentJson: string;
   errorMessage?: string | null;
   durationMs: number;
+}
+
+export interface IdentityProvider {
+  id: string;
+  name: string;
+  providerKind: string;
+  protocol: string;
+  isEnabled: boolean;
+  issuer?: string | null;
+  clientId?: string | null;
+  hasClientSecret: boolean;
+  scopes: string;
+  createdAt: string;
+}
+
+export interface CreateIdentityProviderRequest {
+  name: string;
+  providerKind?: string;
+  protocol?: string;
+  clientId?: string | null;
+  clientSecret?: string | null;
+  issuer?: string | null;
+  authorizationEndpoint?: string | null;
+  tokenEndpoint?: string | null;
+  jwksUri?: string | null;
+  samlEntityId?: string | null;
+  samlSsoUrl?: string | null;
+  samlCertificate?: string | null;
+  scopes?: string;
+  isEnabled?: boolean;
+}
+
+export interface BeginSsoRequest {
+  organizationId: string;
+  identityProviderId: string;
+  redirectUri: string;
+}
+
+export interface SsoChallengeResponse {
+  authorizationUrl: string;
+  state: string;
+}
+
+export interface CompleteSsoRequest {
+  organizationId: string;
+  identityProviderId: string;
+  code?: string | null;
+  state?: string | null;
+  samlResponse?: string | null;
+  redirectUri: string;
+}
+
+export interface MfaRequest {
+  code?: string | null;
+  mfaToken?: string | null;
+  action?: string;
+}
+
+export interface MfaEnrollmentResponse {
+  sharedSecret: string;
+  otpAuthUri: string;
+}
+
+export interface Secret {
+  id: string;
+  name: string;
+  secretKind: string;
+  backendKind: string;
+  expiresAt?: string | null;
+  lastRotatedAt?: string | null;
+  lastAccessedAt?: string | null;
+  isEnabled: boolean;
+  version: number;
+  createdAt: string;
+}
+
+export interface CreateSecretRequest {
+  name: string;
+  secretKind?: string;
+  backendKind?: string;
+  value: string;
+  expiresAt?: string | null;
+}
+
+export interface UpdateSecretRequest {
+  name?: string | null;
+  value?: string | null;
+  expiresAt?: string | null;
+  isEnabled?: boolean | null;
+}
+
+export interface AuditEvent {
+  id: string;
+  organizationId?: string | null;
+  userId?: string | null;
+  actorEmail?: string | null;
+  category: string;
+  eventType: string;
+  entityType?: string | null;
+  entityId?: string | null;
+  summary: string;
+  ipAddress?: string | null;
+  occurredAt: string;
+}
+
+export interface ListAuditEventsParams {
+  category?: string;
+  eventType?: string;
+  fromUtc?: string;
+  toUtc?: string;
+  take?: number;
+}
+
+export interface SecurityPolicy {
+  minPasswordLength: number;
+  requireUppercase: boolean;
+  requireDigit: boolean;
+  requireNonAlphanumeric: boolean;
+  requireMfa: boolean;
+  sessionTimeoutMinutes: number;
+  maxConcurrentSessions: number;
+  ipAllowList: string[];
+  geoAllowList: string[];
+  apiKeyExpirationDays: number;
+  enforceApiKeyRotation: boolean;
+  failedLoginAlertThreshold: number;
+}
+
+export interface GovernancePolicy {
+  allowedProviders: string[];
+  allowedModels: string[];
+  maximumGpuCostPerHour?: number | null;
+  maximumRunningPods?: number | null;
+  maximumQueueSize?: number | null;
+  maximumDailySpendUsd?: number | null;
+  allowedPlugins: string[];
+  allowedMcpServers: string[];
+  emptyAllowListMeansAllowAll: boolean;
+}
+
+export interface OrganizationPolicies {
+  security: SecurityPolicy;
+  governance: GovernancePolicy;
+}
+
+export interface UpdatePoliciesRequest {
+  security?: SecurityPolicy | null;
+  governance?: GovernancePolicy | null;
+}
+
+export interface ComplianceStatus {
+  gdprEnabled: boolean;
+  soc2Enabled: boolean;
+  iso27001Enabled: boolean;
+  dataRetentionDays: number;
+  logRetentionDays: number;
+  lastExportAt?: string | null;
+  lastErasureAt?: string | null;
+  overallStatus: string;
+  controlChecklist: string[];
+}
+
+export interface ComplianceExportResult {
+  jsonPayload: string;
+  exportedAt: string;
+}
+
+export interface SessionInfo {
+  id: string;
+  userId: string;
+  sessionId: string;
+  ipAddress?: string | null;
+  userAgent?: string | null;
+  startedAt: string;
+  lastSeenAt: string;
+  isActive: boolean;
+}
+
+export interface TrustedDevice {
+  id: string;
+  deviceName: string;
+  lastIpAddress?: string | null;
+  trustedAt: string;
+  lastSeenAt: string;
+  isRevoked: boolean;
+}
+
+export interface SecurityDashboard {
+  securityScore: number;
+  activeSessions: number;
+  failedLogins24h: number;
+  recentAuditEvents: number;
+  secretCount: number;
+  expiringSecrets: number;
+  mfaCoveragePercent: number;
+  complianceStatus: string;
+  recentAudits: AuditEvent[];
 }
 

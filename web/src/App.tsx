@@ -59,6 +59,14 @@ import { PluginDetailsPage } from './pages/PluginDetailsPage';
 import { PluginSettingsPage } from './pages/PluginSettingsPage';
 import { McpServersPage } from './pages/McpServersPage';
 import { McpToolsPage } from './pages/McpToolsPage';
+import { SecurityPage } from './pages/SecurityPage';
+import { AuditLogsPage } from './pages/AuditLogsPage';
+import { SecretsPage } from './pages/SecretsPage';
+import { IdentityProvidersPage } from './pages/IdentityProvidersPage';
+import { OrganizationPoliciesPage } from './pages/OrganizationPoliciesPage';
+import { CompliancePage } from './pages/CompliancePage';
+import { SessionsPage } from './pages/SessionsPage';
+import { TrustedDevicesPage } from './pages/TrustedDevicesPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'react-toastify/dist/ReactToastify.css';
@@ -130,6 +138,14 @@ function App() {
                     <Route path="/plugins/:id" element={<PluginDetailsPage />} />
                     <Route path="/mcp/servers" element={<McpServersPage />} />
                     <Route path="/mcp/tools" element={<McpToolsPage />} />
+                    <Route path="/security" element={<SecurityPage />} />
+                    <Route path="/security/audit" element={<AuditLogsPage />} />
+                    <Route path="/security/secrets" element={<SecretsPage />} />
+                    <Route path="/security/identity-providers" element={<IdentityProvidersPage />} />
+                    <Route path="/security/policies" element={<OrganizationPoliciesPage />} />
+                    <Route path="/security/compliance" element={<CompliancePage />} />
+                    <Route path="/security/sessions" element={<SessionsPage />} />
+                    <Route path="/security/devices" element={<TrustedDevicesPage />} />
                     <Route path="/models" element={<ModelsPage />} />
                     <Route path="/models/pull" element={<PullModelPage />} />
                     <Route path="/models/downloads" element={<ModelDownloadsPage />} />

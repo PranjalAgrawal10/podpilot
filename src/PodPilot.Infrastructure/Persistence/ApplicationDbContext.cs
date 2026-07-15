@@ -216,6 +216,39 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     /// <inheritdoc />
     public DbSet<McpToolExecution> McpToolExecutions => Set<McpToolExecution>();
 
+    /// <inheritdoc />
+    public DbSet<AuditEvent> AuditEvents => Set<AuditEvent>();
+
+    /// <inheritdoc />
+    public DbSet<IdentityProvider> IdentityProviders => Set<IdentityProvider>();
+
+    /// <inheritdoc />
+    public DbSet<ScimMapping> ScimMappings => Set<ScimMapping>();
+
+    /// <inheritdoc />
+    public DbSet<SecretReference> SecretReferences => Set<SecretReference>();
+
+    /// <inheritdoc />
+    public DbSet<ComplianceEvent> ComplianceEvents => Set<ComplianceEvent>();
+
+    /// <inheritdoc />
+    public DbSet<SessionHistory> SessionHistories => Set<SessionHistory>();
+
+    /// <inheritdoc />
+    public DbSet<TrustedDevice> TrustedDevices => Set<TrustedDevice>();
+
+    /// <inheritdoc />
+    public DbSet<OrganizationSecurityPolicy> OrganizationSecurityPolicies => Set<OrganizationSecurityPolicy>();
+
+    /// <inheritdoc />
+    public DbSet<OrganizationGovernancePolicy> OrganizationGovernancePolicies => Set<OrganizationGovernancePolicy>();
+
+    /// <inheritdoc />
+    public DbSet<OrganizationComplianceSettings> OrganizationComplianceSettings => Set<OrganizationComplianceSettings>();
+
+    /// <inheritdoc />
+    public DbSet<UserMfaEnrollment> UserMfaEnrollments => Set<UserMfaEnrollment>();
+
     IQueryable<RefreshToken> IApplicationDbContext.RefreshTokens => RefreshTokens;
 
     IQueryable<Organization> IApplicationDbContext.Organizations => Organizations;
@@ -345,6 +378,28 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     IQueryable<McpPrompt> IApplicationDbContext.McpPrompts => McpPrompts;
 
     IQueryable<McpToolExecution> IApplicationDbContext.McpToolExecutions => McpToolExecutions;
+
+    IQueryable<AuditEvent> IApplicationDbContext.AuditEvents => AuditEvents;
+
+    IQueryable<IdentityProvider> IApplicationDbContext.IdentityProviders => IdentityProviders;
+
+    IQueryable<ScimMapping> IApplicationDbContext.ScimMappings => ScimMappings;
+
+    IQueryable<SecretReference> IApplicationDbContext.SecretReferences => SecretReferences;
+
+    IQueryable<ComplianceEvent> IApplicationDbContext.ComplianceEvents => ComplianceEvents;
+
+    IQueryable<SessionHistory> IApplicationDbContext.SessionHistories => SessionHistories;
+
+    IQueryable<TrustedDevice> IApplicationDbContext.TrustedDevices => TrustedDevices;
+
+    IQueryable<OrganizationSecurityPolicy> IApplicationDbContext.OrganizationSecurityPolicies => OrganizationSecurityPolicies;
+
+    IQueryable<OrganizationGovernancePolicy> IApplicationDbContext.OrganizationGovernancePolicies => OrganizationGovernancePolicies;
+
+    IQueryable<OrganizationComplianceSettings> IApplicationDbContext.OrganizationComplianceSettings => OrganizationComplianceSettings;
+
+    IQueryable<UserMfaEnrollment> IApplicationDbContext.UserMfaEnrollments => UserMfaEnrollments;
 
     /// <inheritdoc />
     public Task AddAuditLogAsync(AuditLog auditLog, CancellationToken cancellationToken = default) =>
@@ -655,6 +710,76 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     }
 
     /// <inheritdoc />
+    public Task AddAuditEventAsync(AuditEvent auditEvent, CancellationToken cancellationToken = default) =>
+        AuditEvents.AddAsync(auditEvent, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public Task AddIdentityProviderAsync(IdentityProvider provider, CancellationToken cancellationToken = default) =>
+        IdentityProviders.AddAsync(provider, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public Task AddScimMappingAsync(ScimMapping mapping, CancellationToken cancellationToken = default) =>
+        ScimMappings.AddAsync(mapping, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public Task AddSecretReferenceAsync(SecretReference secret, CancellationToken cancellationToken = default) =>
+        SecretReferences.AddAsync(secret, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public Task AddComplianceEventAsync(ComplianceEvent complianceEvent, CancellationToken cancellationToken = default) =>
+        ComplianceEvents.AddAsync(complianceEvent, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public Task AddSessionHistoryAsync(SessionHistory session, CancellationToken cancellationToken = default) =>
+        SessionHistories.AddAsync(session, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public Task AddTrustedDeviceAsync(TrustedDevice device, CancellationToken cancellationToken = default) =>
+        TrustedDevices.AddAsync(device, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public Task AddOrganizationSecurityPolicyAsync(
+        OrganizationSecurityPolicy policy,
+        CancellationToken cancellationToken = default) =>
+        OrganizationSecurityPolicies.AddAsync(policy, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public Task AddOrganizationGovernancePolicyAsync(
+        OrganizationGovernancePolicy policy,
+        CancellationToken cancellationToken = default) =>
+        OrganizationGovernancePolicies.AddAsync(policy, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public Task AddOrganizationComplianceSettingsAsync(
+        OrganizationComplianceSettings settings,
+        CancellationToken cancellationToken = default) =>
+        OrganizationComplianceSettings.AddAsync(settings, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public Task AddUserMfaEnrollmentAsync(UserMfaEnrollment enrollment, CancellationToken cancellationToken = default) =>
+        UserMfaEnrollments.AddAsync(enrollment, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public async Task RemoveIdentityProviderAsync(Guid identityProviderId, CancellationToken cancellationToken = default)
+    {
+        var provider = await IdentityProviders.FirstOrDefaultAsync(p => p.Id == identityProviderId, cancellationToken);
+        if (provider is not null)
+        {
+            IdentityProviders.Remove(provider);
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task RemoveSecretReferenceAsync(Guid secretId, CancellationToken cancellationToken = default)
+    {
+        var secret = await SecretReferences.FirstOrDefaultAsync(s => s.Id == secretId, cancellationToken);
+        if (secret is not null)
+        {
+            SecretReferences.Remove(secret);
+        }
+    }
+
+    /// <inheritdoc />
     public async Task RemoveAiInferenceProviderAsync(Guid providerId, CancellationToken cancellationToken = default)
     {
         var provider = await AiInferenceProviders
@@ -776,6 +901,20 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     }
 
     /// <inheritdoc />
+    public override int SaveChanges()
+    {
+        EnsureAuditEventsAreImmutable();
+        return base.SaveChanges();
+    }
+
+    /// <inheritdoc />
+    public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        EnsureAuditEventsAreImmutable();
+        return base.SaveChangesAsync(cancellationToken);
+    }
+
+    /// <inheritdoc />
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
@@ -788,5 +927,16 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
         builder.Entity<IdentityUserLogin<Guid>>().ToTable("UserLogins");
         builder.Entity<IdentityUserToken<Guid>>().ToTable("UserTokens");
         builder.Entity<IdentityRoleClaim<Guid>>().ToTable("RoleClaims");
+    }
+
+    private void EnsureAuditEventsAreImmutable()
+    {
+        var illegal = ChangeTracker.Entries<AuditEvent>()
+            .Where(e => e.State is EntityState.Modified or EntityState.Deleted)
+            .Any();
+        if (illegal)
+        {
+            throw new InvalidOperationException("AuditEvent records are immutable and cannot be updated or deleted.");
+        }
     }
 }

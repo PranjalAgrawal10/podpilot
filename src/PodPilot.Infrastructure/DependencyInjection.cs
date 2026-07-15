@@ -206,6 +206,14 @@ public static class DependencyInjection
         services.AddPluginSystem(environment);
 
     /// <summary>
+    /// Registers enterprise security services.
+    /// </summary>
+    public static IServiceCollection AddEnterpriseSecurityLayer(
+        this IServiceCollection services,
+        IHostEnvironment environment) =>
+        services.AddEnterpriseSecurity(environment);
+
+    /// <summary>
     /// Registers background services for non-testing environments.
     /// </summary>
     /// <param name="services">The service collection.</param>

@@ -5,8 +5,10 @@ using PodPilot.Application.Auth.Commands.Login;
 using PodPilot.Application.Auth.Commands.Logout;
 using PodPilot.Application.Auth.Commands.RefreshToken;
 using PodPilot.Application.Auth.Commands.Register;
+using PodPilot.Application.Security;
 using PodPilot.Contracts.Auth;
 using PodPilot.Contracts.Common;
+using PodPilot.Contracts.Security;
 
 namespace PodPilot.Api.Controllers.V1;
 
@@ -32,9 +34,6 @@ public sealed class AuthController : ControllerBase
     /// <summary>
     /// Registers a new user and organization.
     /// </summary>
-    /// <param name="request">The registration request.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>Authentication tokens and user summary.</returns>
     [HttpPost("register")]
     [AllowAnonymous]
     [ProducesResponseType(typeof(ApiResponse<AuthResponse>), StatusCodes.Status201Created)]
@@ -62,9 +61,6 @@ public sealed class AuthController : ControllerBase
     /// <summary>
     /// Authenticates a user.
     /// </summary>
-    /// <param name="request">The login request.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>Authentication tokens and user summary.</returns>
     [HttpPost("login")]
     [AllowAnonymous]
     [ProducesResponseType(typeof(ApiResponse<AuthResponse>), StatusCodes.Status200OK)]
@@ -85,11 +81,102 @@ public sealed class AuthController : ControllerBase
     }
 
     /// <summary>
+    /// Lists SSO identity providers for an organization (public catalog).
+    /// </summary>
+    [HttpGet("providers")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(ApiResponse<IReadOnlyList<IdentityProviderResponse>>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> ListProviders(
+        [FromQuery] Guid organizationId,
+        CancellationToken cancellationToken)
+    {
+        var result = await mediator.Send(
+            new ListIdentityProvidersQuery
+            {
+                OrganizationId = organizationId,
+                PublicCatalog = true,
+            },
+            cancellationToken);
+        return Ok(ApiResponse<IReadOnlyList<IdentityProviderResponse>>.Ok(result, GetCorrelationId()));
+    }
+
+    /// <summary>
+    /// Begins an SSO challenge.
+    /// </summary>
+    [HttpPost("sso/begin")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(ApiResponse<SsoChallengeResponse>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> BeginSso(
+        [FromBody] BeginSsoRequest request,
+        CancellationToken cancellationToken)
+    {
+        var result = await mediator.Send(
+            new BeginSsoCommand
+            {
+                OrganizationId = request.OrganizationId,
+                IdentityProviderId = request.IdentityProviderId,
+                RedirectUri = request.RedirectUri,
+            },
+            cancellationToken);
+        return Ok(ApiResponse<SsoChallengeResponse>.Ok(result, GetCorrelationId()));
+    }
+
+    /// <summary>
+    /// Completes an SSO login.
+    /// </summary>
+    [HttpPost("sso/complete")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(ApiResponse<AuthResponse>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> CompleteSso(
+        [FromBody] CompleteSsoRequest request,
+        CancellationToken cancellationToken)
+    {
+        var result = await mediator.Send(
+            new CompleteSsoCommand
+            {
+                OrganizationId = request.OrganizationId,
+                IdentityProviderId = request.IdentityProviderId,
+                Code = request.Code,
+                State = request.State,
+                SamlResponse = request.SamlResponse,
+                RedirectUri = request.RedirectUri,
+            },
+            cancellationToken);
+        return Ok(ApiResponse<AuthResponse>.Ok(result, GetCorrelationId()));
+    }
+
+    /// <summary>
+    /// Enrolls, confirms, or verifies MFA.
+    /// </summary>
+    [HttpPost("mfa")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> Mfa(
+        [FromBody] MfaRequest request,
+        CancellationToken cancellationToken)
+    {
+        var action = (request.Action ?? "verify").Trim().ToLowerInvariant();
+        return action switch
+        {
+            "enroll" => Ok(ApiResponse<MfaEnrollmentResponse>.Ok(
+                await mediator.Send(new EnrollMfaCommand(), cancellationToken),
+                GetCorrelationId())),
+            "confirm" => await ConfirmMfaAsync(request, cancellationToken),
+            _ => Ok(ApiResponse<AuthResponse>.Ok(
+                await mediator.Send(
+                    new VerifyMfaCommand
+                    {
+                        Code = request.Code ?? string.Empty,
+                        MfaToken = request.MfaToken ?? string.Empty,
+                    },
+                    cancellationToken),
+                GetCorrelationId())),
+        };
+    }
+
+    /// <summary>
     /// Refreshes an access token using a refresh token.
     /// </summary>
-    /// <param name="request">The refresh token request.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>New authentication tokens.</returns>
     [HttpPost("refresh")]
     [AllowAnonymous]
     [ProducesResponseType(typeof(ApiResponse<AuthResponse>), StatusCodes.Status200OK)]
@@ -108,9 +195,6 @@ public sealed class AuthController : ControllerBase
     /// <summary>
     /// Logs out a user by revoking their refresh token.
     /// </summary>
-    /// <param name="request">The refresh token to revoke.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>No content on success.</returns>
     [HttpPost("logout")]
     [Authorize]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -122,6 +206,12 @@ public sealed class AuthController : ControllerBase
             new LogoutCommand { RefreshToken = request.RefreshToken },
             cancellationToken);
 
+        return NoContent();
+    }
+
+    private async Task<IActionResult> ConfirmMfaAsync(MfaRequest request, CancellationToken cancellationToken)
+    {
+        await mediator.Send(new ConfirmMfaCommand { Code = request.Code ?? string.Empty }, cancellationToken);
         return NoContent();
     }
 

@@ -50,6 +50,15 @@ public static class RolePermissionMatrix
                     PermissionNames.PluginManage,
                     PermissionNames.McpRead,
                     PermissionNames.McpManage,
+                    PermissionNames.SecurityRead,
+                    PermissionNames.SecurityManage,
+                    PermissionNames.AuditRead,
+                    PermissionNames.SecretsRead,
+                    PermissionNames.SecretsManage,
+                    PermissionNames.PolicyRead,
+                    PermissionNames.PolicyManage,
+                    PermissionNames.ComplianceRead,
+                    PermissionNames.ComplianceManage,
                 },
             [OrganizationRole.Developer] =
                 new HashSet<string>
@@ -84,6 +93,11 @@ public static class RolePermissionMatrix
                     PermissionNames.PluginManage,
                     PermissionNames.McpRead,
                     PermissionNames.McpManage,
+                    PermissionNames.SecurityRead,
+                    PermissionNames.AuditRead,
+                    PermissionNames.SecretsRead,
+                    PermissionNames.PolicyRead,
+                    PermissionNames.ComplianceRead,
                 },
             [OrganizationRole.Viewer] =
                 new HashSet<string>
@@ -102,6 +116,10 @@ public static class RolePermissionMatrix
                     PermissionNames.RoutingRead,
                     PermissionNames.PluginRead,
                     PermissionNames.McpRead,
+                    PermissionNames.SecurityRead,
+                    PermissionNames.AuditRead,
+                    PermissionNames.PolicyRead,
+                    PermissionNames.ComplianceRead,
                 },
         };
 

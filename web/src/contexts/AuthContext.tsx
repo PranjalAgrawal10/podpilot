@@ -16,7 +16,7 @@ interface AuthContextValue {
   user: UserResponse | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (data: LoginRequest) => Promise<void>;
+  login: (data: LoginRequest) => Promise<AuthResponse>;
   register: (data: RegisterRequest) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
@@ -77,7 +77,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const login = useCallback(async (data: LoginRequest) => {
     const auth = await authService.login(data);
-    await applyAuthResponse(auth);
+    if (!auth.requiresMfa) {
+      await applyAuthResponse(auth);
+    }
+    return auth;
   }, [applyAuthResponse]);
 
   const register = useCallback(async (data: RegisterRequest) => {

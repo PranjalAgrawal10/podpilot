@@ -29,6 +29,16 @@ public sealed class AuthResponse
     /// Gets or sets the authenticated user.
     /// </summary>
     public UserSummary User { get; set; } = new();
+
+    /// <summary>
+    /// Gets or sets a value indicating whether MFA verification is required before tokens are issued.
+    /// </summary>
+    public bool RequiresMfa { get; set; }
+
+    /// <summary>
+    /// Gets or sets a short-lived MFA challenge token when <see cref="RequiresMfa"/> is true.
+    /// </summary>
+    public string? MfaToken { get; set; }
 }
 
 /// <summary>

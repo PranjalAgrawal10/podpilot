@@ -70,6 +70,17 @@ export const Sidebar = () => {
     { to: '/mcp/tools', label: 'MCP Tools', icon: '🛠️' },
   ];
 
+  const securityNavItems = [
+    { to: '/security', label: 'Overview', icon: '🛡️' },
+    { to: '/security/audit', label: 'Audit Logs', icon: '📋' },
+    { to: '/security/secrets', label: 'Secrets', icon: '🔑' },
+    { to: '/security/identity-providers', label: 'Identity Providers', icon: '🪪' },
+    { to: '/security/policies', label: 'Policies', icon: '📜' },
+    { to: '/security/compliance', label: 'Compliance', icon: '✅' },
+    { to: '/security/sessions', label: 'Sessions', icon: '💻' },
+    { to: '/security/devices', label: 'Trusted Devices', icon: '📱' },
+  ];
+
   const accountNavItems = [
     { to: '/members', label: 'Members', icon: '👥' },
     { to: '/profile', label: 'Profile', icon: '👤' },
@@ -116,6 +127,14 @@ export const Sidebar = () => {
           <SidebarSection title="Extensibility" />
         </NavItem>
         {extensibilityNavItems.map((item) => (
+          <NavItem key={item.to}>
+            <SidebarNavLink to={item.to} label={item.label} icon={item.icon} />
+          </NavItem>
+        ))}
+        <NavItem>
+          <SidebarSection title="Security" />
+        </NavItem>
+        {securityNavItems.map((item) => (
           <NavItem key={item.to}>
             <SidebarNavLink to={item.to} label={item.label} icon={item.icon} />
           </NavItem>

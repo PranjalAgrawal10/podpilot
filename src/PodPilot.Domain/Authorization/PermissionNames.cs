@@ -116,6 +116,33 @@ public static class PermissionNames
     /// <summary>Register and manage MCP servers; execute tools.</summary>
     public const string McpManage = "Mcp.Manage";
 
+    /// <summary>Read security dashboard, sessions, and identity providers.</summary>
+    public const string SecurityRead = "Security.Read";
+
+    /// <summary>Manage SSO, MFA policies, sessions, and trusted devices.</summary>
+    public const string SecurityManage = "Security.Manage";
+
+    /// <summary>Read enterprise audit events.</summary>
+    public const string AuditRead = "Audit.Read";
+
+    /// <summary>Read secret metadata (never plaintext).</summary>
+    public const string SecretsRead = "Secrets.Read";
+
+    /// <summary>Create, rotate, and delete secrets.</summary>
+    public const string SecretsManage = "Secrets.Manage";
+
+    /// <summary>Read organization governance and security policies.</summary>
+    public const string PolicyRead = "Policy.Read";
+
+    /// <summary>Update organization governance and security policies.</summary>
+    public const string PolicyManage = "Policy.Manage";
+
+    /// <summary>Read compliance status and exports.</summary>
+    public const string ComplianceRead = "Compliance.Read";
+
+    /// <summary>Perform compliance actions (export, erasure, retention).</summary>
+    public const string ComplianceManage = "Compliance.Manage";
+
     /// <summary>All defined permissions.</summary>
     public static readonly IReadOnlyList<string> All =
     [
@@ -156,5 +183,14 @@ public static class PermissionNames
         PluginManage,
         McpRead,
         McpManage,
+        SecurityRead,
+        SecurityManage,
+        AuditRead,
+        SecretsRead,
+        SecretsManage,
+        PolicyRead,
+        PolicyManage,
+        ComplianceRead,
+        ComplianceManage,
     ];
 }

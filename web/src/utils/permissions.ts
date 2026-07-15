@@ -37,6 +37,15 @@ const ROLE_PERMISSIONS: Record<OrganizationRole, readonly Permission[]> = {
     PERMISSIONS.PluginManage,
     PERMISSIONS.McpRead,
     PERMISSIONS.McpManage,
+    PERMISSIONS.SecurityRead,
+    PERMISSIONS.SecurityManage,
+    PERMISSIONS.AuditRead,
+    PERMISSIONS.SecretsRead,
+    PERMISSIONS.SecretsManage,
+    PERMISSIONS.PolicyRead,
+    PERMISSIONS.PolicyManage,
+    PERMISSIONS.ComplianceRead,
+    PERMISSIONS.ComplianceManage,
   ],
   Developer: [
     PERMISSIONS.OrganizationRead,
@@ -65,6 +74,11 @@ const ROLE_PERMISSIONS: Record<OrganizationRole, readonly Permission[]> = {
     PERMISSIONS.PluginManage,
     PERMISSIONS.McpRead,
     PERMISSIONS.McpManage,
+    PERMISSIONS.SecurityRead,
+    PERMISSIONS.AuditRead,
+    PERMISSIONS.SecretsRead,
+    PERMISSIONS.PolicyRead,
+    PERMISSIONS.ComplianceRead,
   ],
   Viewer: [
     PERMISSIONS.OrganizationRead,
@@ -79,6 +93,10 @@ const ROLE_PERMISSIONS: Record<OrganizationRole, readonly Permission[]> = {
     PERMISSIONS.RoutingRead,
     PERMISSIONS.PluginRead,
     PERMISSIONS.McpRead,
+    PERMISSIONS.SecurityRead,
+    PERMISSIONS.AuditRead,
+    PERMISSIONS.PolicyRead,
+    PERMISSIONS.ComplianceRead,
   ],
 };
 

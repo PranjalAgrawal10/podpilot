@@ -315,6 +315,39 @@ public interface IApplicationDbContext
     /// <summary>Gets MCP tool executions.</summary>
     IQueryable<McpToolExecution> McpToolExecutions { get; }
 
+    /// <summary>Gets enterprise audit events.</summary>
+    IQueryable<AuditEvent> AuditEvents { get; }
+
+    /// <summary>Gets identity providers.</summary>
+    IQueryable<IdentityProvider> IdentityProviders { get; }
+
+    /// <summary>Gets SCIM mappings.</summary>
+    IQueryable<ScimMapping> ScimMappings { get; }
+
+    /// <summary>Gets secret references.</summary>
+    IQueryable<SecretReference> SecretReferences { get; }
+
+    /// <summary>Gets compliance events.</summary>
+    IQueryable<ComplianceEvent> ComplianceEvents { get; }
+
+    /// <summary>Gets session history.</summary>
+    IQueryable<SessionHistory> SessionHistories { get; }
+
+    /// <summary>Gets trusted devices.</summary>
+    IQueryable<TrustedDevice> TrustedDevices { get; }
+
+    /// <summary>Gets organization security policies.</summary>
+    IQueryable<OrganizationSecurityPolicy> OrganizationSecurityPolicies { get; }
+
+    /// <summary>Gets organization governance policies.</summary>
+    IQueryable<OrganizationGovernancePolicy> OrganizationGovernancePolicies { get; }
+
+    /// <summary>Gets organization compliance settings.</summary>
+    IQueryable<OrganizationComplianceSettings> OrganizationComplianceSettings { get; }
+
+    /// <summary>Gets user MFA enrollments.</summary>
+    IQueryable<UserMfaEnrollment> UserMfaEnrollments { get; }
+
     /// <summary>
     /// Adds an audit log entry.
     /// </summary>
@@ -610,6 +643,45 @@ public interface IApplicationDbContext
 
     /// <summary>Clears discovered MCP tools/resources/prompts for a server.</summary>
     Task ClearMcpServerCapabilitiesAsync(Guid serverId, CancellationToken cancellationToken = default);
+
+    /// <summary>Adds an enterprise audit event.</summary>
+    Task AddAuditEventAsync(AuditEvent auditEvent, CancellationToken cancellationToken = default);
+
+    /// <summary>Adds an identity provider.</summary>
+    Task AddIdentityProviderAsync(IdentityProvider provider, CancellationToken cancellationToken = default);
+
+    /// <summary>Adds a SCIM mapping.</summary>
+    Task AddScimMappingAsync(ScimMapping mapping, CancellationToken cancellationToken = default);
+
+    /// <summary>Adds a secret reference.</summary>
+    Task AddSecretReferenceAsync(SecretReference secret, CancellationToken cancellationToken = default);
+
+    /// <summary>Adds a compliance event.</summary>
+    Task AddComplianceEventAsync(ComplianceEvent complianceEvent, CancellationToken cancellationToken = default);
+
+    /// <summary>Adds a session history row.</summary>
+    Task AddSessionHistoryAsync(SessionHistory session, CancellationToken cancellationToken = default);
+
+    /// <summary>Adds a trusted device.</summary>
+    Task AddTrustedDeviceAsync(TrustedDevice device, CancellationToken cancellationToken = default);
+
+    /// <summary>Adds an organization security policy.</summary>
+    Task AddOrganizationSecurityPolicyAsync(OrganizationSecurityPolicy policy, CancellationToken cancellationToken = default);
+
+    /// <summary>Adds an organization governance policy.</summary>
+    Task AddOrganizationGovernancePolicyAsync(OrganizationGovernancePolicy policy, CancellationToken cancellationToken = default);
+
+    /// <summary>Adds organization compliance settings.</summary>
+    Task AddOrganizationComplianceSettingsAsync(OrganizationComplianceSettings settings, CancellationToken cancellationToken = default);
+
+    /// <summary>Adds a user MFA enrollment.</summary>
+    Task AddUserMfaEnrollmentAsync(UserMfaEnrollment enrollment, CancellationToken cancellationToken = default);
+
+    /// <summary>Removes an identity provider.</summary>
+    Task RemoveIdentityProviderAsync(Guid identityProviderId, CancellationToken cancellationToken = default);
+
+    /// <summary>Removes a secret reference.</summary>
+    Task RemoveSecretReferenceAsync(Guid secretId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Removes an AI inference provider.

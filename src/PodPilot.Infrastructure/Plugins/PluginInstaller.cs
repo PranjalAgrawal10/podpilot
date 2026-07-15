@@ -19,6 +19,7 @@ public sealed class PluginInstaller : IPluginInstaller
     private readonly IPluginRegistry pluginRegistry;
     private readonly IDateTimeService dateTimeService;
     private readonly IPluginNotificationService notificationService;
+    private readonly IPolicyEngine policyEngine;
     private readonly ILogger<PluginInstaller> logger;
 
     /// <summary>
@@ -30,6 +31,7 @@ public sealed class PluginInstaller : IPluginInstaller
         IPluginRegistry pluginRegistry,
         IDateTimeService dateTimeService,
         IPluginNotificationService notificationService,
+        IPolicyEngine policyEngine,
         ILogger<PluginInstaller> logger)
     {
         this.dbContext = dbContext;
@@ -37,6 +39,7 @@ public sealed class PluginInstaller : IPluginInstaller
         this.pluginRegistry = pluginRegistry;
         this.dateTimeService = dateTimeService;
         this.notificationService = notificationService;
+        this.policyEngine = policyEngine;
         this.logger = logger;
     }
 
@@ -88,6 +91,7 @@ public sealed class PluginInstaller : IPluginInstaller
         IReadOnlyList<string>? grantedPermissions = null,
         CancellationToken cancellationToken = default)
     {
+        await policyEngine.EnsurePluginAllowedAsync(organizationId, packageId, cancellationToken);
         await SyncCatalogAsync(cancellationToken);
 
         var definition = await dbContext.PluginDefinitions
