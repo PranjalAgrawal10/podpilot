@@ -1,6 +1,7 @@
 import { NavLink, useLocation } from 'react-router-dom';
 import { Nav, NavItem } from 'reactstrap';
 import { useOrganization } from '../contexts/OrganizationContext';
+import { PERMISSIONS } from '../types';
 
 const SidebarNavLink = ({ to, label, icon }: { to: string; label: string; icon: string }) => {
   const location = useLocation();
@@ -19,7 +20,8 @@ const SidebarSection = ({ title }: { title: string }) => (
 );
 
 export const Sidebar = () => {
-  const { currentOrganization } = useOrganization();
+  const { currentOrganization, hasPermission } = useOrganization();
+  const canReadDeployments = hasPermission(PERMISSIONS.DeploymentRead);
 
   const settingsPath = currentOrganization
     ? `/organizations/${currentOrganization.id}/settings`
@@ -33,6 +35,14 @@ export const Sidebar = () => {
     { to: '/gateway', label: 'AI Gateway', icon: '🤖' },
     { to: '/scheduler', label: 'Scheduler', icon: '⏱️' },
     { to: '/providers', label: 'Providers', icon: '🔌' },
+  ];
+
+  const deployNavItems = [
+    { to: '/deployments', label: 'Deployments', icon: '🚀' },
+    { to: '/deployments/create', label: 'Create', icon: '➕' },
+    { to: '/deployments/templates', label: 'Templates', icon: '📦' },
+    { to: '/deployments/models', label: 'Models', icon: '📚' },
+    { to: '/deployments/gpus', label: 'GPUs', icon: '🎮' },
   ];
 
   const orchestrationNavItems = [
@@ -108,6 +118,18 @@ export const Sidebar = () => {
             <SidebarNavLink to={item.to} label={item.label} icon={item.icon} />
           </NavItem>
         ))}
+        {canReadDeployments && (
+          <>
+            <NavItem>
+              <SidebarSection title="Deployments" />
+            </NavItem>
+            {deployNavItems.map((item) => (
+              <NavItem key={item.to}>
+                <SidebarNavLink to={item.to} label={item.label} icon={item.icon} />
+              </NavItem>
+            ))}
+          </>
+        )}
         <NavItem>
           <SidebarSection title="Orchestration" />
         </NavItem>

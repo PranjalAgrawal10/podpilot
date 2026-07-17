@@ -378,6 +378,33 @@ public interface IApplicationDbContext
     /// <summary>Gets platform releases.</summary>
     IQueryable<PlatformRelease> PlatformReleases { get; }
 
+    /// <summary>Gets AI deployments.</summary>
+    IQueryable<AiDeployment> AiDeployments { get; }
+
+    /// <summary>Gets deployment templates.</summary>
+    IQueryable<DeploymentTemplate> DeploymentTemplates { get; }
+
+    /// <summary>Gets deployment models.</summary>
+    IQueryable<DeploymentModel> DeploymentModels { get; }
+
+    /// <summary>Gets deployment logs.</summary>
+    IQueryable<DeploymentLog> DeploymentLogs { get; }
+
+    /// <summary>Gets runtime versions.</summary>
+    IQueryable<RuntimeVersion> RuntimeVersions { get; }
+
+    /// <summary>Gets GPU catalog.</summary>
+    IQueryable<GpuCatalogEntry> GpuCatalogEntries { get; }
+
+    /// <summary>Gets model catalog.</summary>
+    IQueryable<ModelCatalogEntry> ModelCatalogEntries { get; }
+
+    /// <summary>Gets deployment health snapshots.</summary>
+    IQueryable<DeploymentHealth> DeploymentHealthSnapshots { get; }
+
+    /// <summary>Gets deployment history.</summary>
+    IQueryable<DeploymentHistory> DeploymentHistoryEntries { get; }
+
     /// <summary>
     /// Adds an audit log entry.
     /// </summary>
@@ -736,6 +763,33 @@ public interface IApplicationDbContext
 
     /// <summary>Adds a platform release.</summary>
     Task AddPlatformReleaseAsync(PlatformRelease release, CancellationToken cancellationToken = default);
+
+    /// <summary>Adds an AI deployment.</summary>
+    Task AddAiDeploymentAsync(AiDeployment deployment, CancellationToken cancellationToken = default);
+
+    /// <summary>Adds a deployment template.</summary>
+    Task AddDeploymentTemplateAsync(DeploymentTemplate template, CancellationToken cancellationToken = default);
+
+    /// <summary>Adds a deployment model.</summary>
+    Task AddDeploymentModelAsync(DeploymentModel model, CancellationToken cancellationToken = default);
+
+    /// <summary>Adds a deployment log.</summary>
+    Task AddDeploymentLogAsync(DeploymentLog log, CancellationToken cancellationToken = default);
+
+    /// <summary>Adds a runtime version.</summary>
+    Task AddRuntimeVersionAsync(RuntimeVersion version, CancellationToken cancellationToken = default);
+
+    /// <summary>Adds a GPU catalog entry.</summary>
+    Task AddGpuCatalogEntryAsync(GpuCatalogEntry entry, CancellationToken cancellationToken = default);
+
+    /// <summary>Adds a model catalog entry.</summary>
+    Task AddModelCatalogEntryAsync(ModelCatalogEntry entry, CancellationToken cancellationToken = default);
+
+    /// <summary>Adds a deployment health snapshot.</summary>
+    Task AddDeploymentHealthAsync(DeploymentHealth health, CancellationToken cancellationToken = default);
+
+    /// <summary>Adds a deployment history row.</summary>
+    Task AddDeploymentHistoryAsync(DeploymentHistory history, CancellationToken cancellationToken = default);
 
     /// <summary>Removes an identity provider.</summary>
     Task RemoveIdentityProviderAsync(Guid identityProviderId, CancellationToken cancellationToken = default);

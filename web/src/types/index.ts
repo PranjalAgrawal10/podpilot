@@ -500,6 +500,8 @@ export const PERMISSIONS = {
   PolicyManage: 'Policy.Manage',
   ComplianceRead: 'Compliance.Read',
   ComplianceManage: 'Compliance.Manage',
+  DeploymentRead: 'Deployment.Read',
+  DeploymentManage: 'Deployment.Manage',
 } as const;
 
 export type Permission = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];
@@ -1774,5 +1776,142 @@ export interface SystemStatus {
   version: string;
   updateAvailable: boolean;
   components: SystemComponentStatus[];
+}
+
+export interface DeploymentModel {
+  id: string;
+  modelReference: string;
+  downloadStatus: string;
+  progressPercent: number;
+  isPrimary: boolean;
+  errorMessage?: string | null;
+}
+
+export interface DeploymentLog {
+  id: string;
+  level: string;
+  stage: string;
+  message: string;
+  timestampUtc: string;
+}
+
+export interface DeploymentHealth {
+  state: string;
+  gpuAvailable: boolean;
+  cudaAvailable: boolean;
+  runtimeRunning: boolean;
+  modelAvailable: boolean;
+  gatewayReachable: boolean;
+  streamingWorks: boolean;
+  lastCheckedAt?: string | null;
+}
+
+export interface Deployment {
+  id: string;
+  name: string;
+  status: string;
+  runtime: string;
+  gpuCode: string;
+  region: string;
+  progressPercent: number;
+  statusMessage?: string | null;
+  healthState: string;
+  estimatedHourlyCostUsd: number;
+  createdAt: string;
+  gpuPodId?: string | null;
+  providerId: string;
+  cloudProvider: string;
+  cudaVersion: string;
+  imageName?: string | null;
+  errorMessage?: string | null;
+  gatewayRouteId?: string | null;
+  readyAt?: string | null;
+  models: DeploymentModel[];
+  logs: DeploymentLog[];
+  health?: DeploymentHealth | null;
+}
+
+export interface GpuCatalogEntry {
+  id: string;
+  code: string;
+  name: string;
+  gpuType: string;
+  vramGb: number;
+  cudaCapability: string;
+  estimatedHourlyCostUsd: number;
+  providerAvailability: string[];
+  isCustom: boolean;
+}
+
+export interface ModelCatalogEntry {
+  id: string;
+  code: string;
+  modelReference: string;
+  name: string;
+  provider: string;
+  version: string;
+  family: string;
+  parameters: string;
+  quantization?: string | null;
+  contextLength: number;
+  requiredVramGb: number;
+  recommendedGpuCode: string;
+  minimumGpuCode: string;
+  supportsVision: boolean;
+  supportsTools: boolean;
+  supportsEmbeddings: boolean;
+  license?: string | null;
+  downloadSizeGb: number;
+  preferredRuntime: string;
+}
+
+export interface DeploymentTemplate {
+  id: string;
+  code: string;
+  name: string;
+  kind: string;
+  description?: string | null;
+  runtime: string;
+  containerImage: string;
+  recommendedGpuCode: string;
+  defaultModelCodes: string[];
+}
+
+export interface DeploymentRegion {
+  code: string;
+  name: string;
+  area: string;
+  estimatedLatencyMs?: number | null;
+  priceScore?: number | null;
+  availabilityScore: number;
+}
+
+export interface GpuRecommendation {
+  recommendedGpuCode: string;
+  minimumGpuCode: string;
+  requiredVramGb: number;
+  estimatedPerformance: string;
+  warnings: string[];
+}
+
+export interface DeploymentDashboard {
+  runningDeployments: number;
+  downloadingModels: number;
+  healthyDeployments: number;
+  failedDeployments: number;
+  estimatedMonthlyCostUsd: number;
+  recent: Deployment[];
+}
+
+export interface CreateDeploymentRequest {
+  name: string;
+  providerId: string;
+  region: string;
+  gpuCode: string;
+  providerGpuId?: string | null;
+  runtime: string;
+  models: string[];
+  templateCode?: string | null;
+  environmentVariables?: Record<string, string> | null;
 }
 

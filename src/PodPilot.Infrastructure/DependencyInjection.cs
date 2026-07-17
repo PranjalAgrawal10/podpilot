@@ -222,6 +222,14 @@ public static class DependencyInjection
         services.AddCommercialPlatform(environment);
 
     /// <summary>
+    /// Registers one-click AI pod deployment services.
+    /// </summary>
+    public static IServiceCollection AddDeploymentsLayer(
+        this IServiceCollection services,
+        IHostEnvironment environment) =>
+        services.AddDeployments(environment);
+
+    /// <summary>
     /// Registers background services for non-testing environments.
     /// </summary>
     /// <param name="services">The service collection.</param>

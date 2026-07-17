@@ -161,6 +161,12 @@ public static class PermissionNames
     /// <summary>Read backups.</summary>
     public const string BackupRead = "Backup.Read";
 
+    /// <summary>Read one-click AI deployments and catalogs.</summary>
+    public const string DeploymentRead = "Deployment.Read";
+
+    /// <summary>Create and manage one-click AI deployments.</summary>
+    public const string DeploymentManage = "Deployment.Manage";
+
     /// <summary>All defined permissions.</summary>
     public static readonly IReadOnlyList<string> All =
     [
@@ -216,5 +222,7 @@ public static class PermissionNames
         LicenseManage,
         BackupRead,
         BackupManage,
+        DeploymentRead,
+        DeploymentManage,
     ];
 }

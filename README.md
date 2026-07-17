@@ -33,12 +33,13 @@ dotnet run --project src/PodPilot.Cli -- status
 
 Swagger: `/swagger` · Status: `GET /api/v1/status`
 
-### Feature map (Parts 1–15)
+### Feature map (Parts 1–17)
 
 | Area | Highlights |
 |------|------------|
 | Identity & tenancy | JWT auth, orgs, RBAC, SSO/OIDC/SAML, SCIM, MFA |
 | Compute | Multi-provider GPUs, pods, auto wake/shutdown |
+| Deploy | One-click AI pods (Ollama / vLLM / llama.cpp), GPU & model catalogs |
 | AI | Gateway, Ollama, universal providers, intelligent routing, scheduler |
 | Scale | Multi-pod orchestration, pools, load balancing |
 | Observe | Metrics, costs, alerts |
@@ -1628,6 +1629,96 @@ Permissions: `Billing.Read/Manage`, `License.Read/Manage`, `Backup.Read/Manage` 
 - Native mobile clients
 - Deeper Kubernetes cluster management as a first-class provider
 - Expanded marketplace payment partners
+
+---
+
+## One-Click AI Pod Deployment
+
+Part 17 adds **one-click AI pod deployment**: pick a provider, region, GPU, runtime, and model(s), then PodPilot provisions the pod, installs the runtime, downloads models, wires the gateway, and streams progress over SignalR.
+
+### Architecture
+
+```mermaid
+flowchart LR
+  UI[React wizard] --> API[DeploymentsController]
+  API --> CQRS[MediatR commands/queries]
+  CQRS --> DS[IDeploymentService]
+  DS --> RT[IRuntimeProviderFactory]
+  RT --> Ollama & vLLM & llama.cpp
+  DS --> Cloud[IDeploymentCloudAdapterFactory]
+  Cloud --> RunPod & others
+  DS --> Catalog[IDeploymentCatalogService]
+  Workers[Background workers] --> DS
+  DS --> Hub[/hubs/deployments]
+```
+
+| Abstraction | Role |
+|-------------|------|
+| `IDeploymentService` | Create/list/restart/delete, lifecycle orchestration, health |
+| `IDeploymentCatalogService` | GPU / model / template catalogs + GPU recommendation |
+| `IRuntimeProvider` | Image, ports, health path, model pull semantics per runtime |
+| `IRuntimeProviderFactory` | Resolve `Ollama` / `Vllm` / `LlamaCpp` |
+| `IDeploymentCloudAdapter` | Map catalog GPU + region to a compute provider provision request |
+| `IDeploymentCloudAdapterFactory` | Resolve RunPod (and stub adapters for Vast/Lambda/Azure/AWS/GCP/K8s) |
+
+### Flow
+
+1. User selects optional template → provider → region → GPU (recommend from models) → runtime → models → review
+2. `POST /api/v1/deployments` creates an `AiDeployment` in `Pending` and audits the create
+3. Workers advance: Provisioning → Starting → InstallingRuntime → DownloadingModels → Configuring → HealthCheck → Ready
+4. SignalR broadcasts progress; failures transition to `Failed` with logs retained
+5. Ready deployments expose links to the GPU pod and AI gateway route
+
+### APIs
+
+| Method | Route | Permission |
+|--------|-------|------------|
+| GET/POST | `/api/v1/deployments` | Read / Manage |
+| GET | `/api/v1/deployments/dashboard` | Read |
+| GET/DELETE | `/api/v1/deployments/{id}` | Read / Manage |
+| POST | `/api/v1/deployments/{id}/restart` | Manage |
+| POST | `/api/v1/deployments/{id}/health` | Manage |
+| GET | `/api/v1/gpus` | Read |
+| POST | `/api/v1/gpus/recommend` | Read |
+| GET | `/api/v1/models/catalog` | Read |
+| GET | `/api/v1/regions?providerId=` | Read |
+| GET | `/api/v1/templates` | Read |
+
+### SignalR (`/hubs/deployments`)
+
+Events (org group `org-{organizationId}`):
+
+- `DeploymentStarted`
+- `DeploymentProgress`
+- `DeploymentModelProgress`
+- `DeploymentHealth`
+- `DeploymentReady`
+- `DeploymentFailed`
+
+UI hook: `useDeploymentHub` (override URL with `VITE_DEPLOYMENT_HUB_URL`).
+
+### Permissions
+
+`Deployment.Read` — Admin, Developer, Viewer  
+`Deployment.Manage` — Admin, Developer (and Owner)
+
+### UI
+
+`/deployments`, `/deployments/create` (6-step wizard), `/deployments/templates`, `/deployments/models`, `/deployments/gpus`, `/deployments/:id`, `/deployments/:id/logs`
+
+### Adding a new runtime
+
+1. Implement `IRuntimeProvider` in `Infrastructure/Deployments/Runtimes/` (`Kind`, image, validate, pull/health helpers)
+2. Register `services.AddScoped<IRuntimeProvider, YourRuntimeProvider>()` in `AddDeployments`
+3. Seed a `RuntimeVersion` row in `DeploymentCatalogSeeder` if needed
+4. Expose the kind string in the Create Deployment wizard `RUNTIMES` list
+
+### Adding a new cloud provider
+
+1. Implement `IDeploymentCloudAdapter` for `DeploymentCloudProviderKind`
+2. Register as singleton in `AddDeployments`
+3. Ensure the org has a matching `ComputeProvider` + `IComputeProvider` / `IPodProvider` implementation
+4. GPU catalog `ProviderAvailabilityJson` should include the provider name
 
 ---
 

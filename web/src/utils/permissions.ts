@@ -52,6 +52,8 @@ const ROLE_PERMISSIONS: Record<OrganizationRole, readonly Permission[]> = {
     PERMISSIONS.PolicyManage,
     PERMISSIONS.ComplianceRead,
     PERMISSIONS.ComplianceManage,
+    PERMISSIONS.DeploymentRead,
+    PERMISSIONS.DeploymentManage,
   ],
   Developer: [
     PERMISSIONS.OrganizationRead,
@@ -89,6 +91,8 @@ const ROLE_PERMISSIONS: Record<OrganizationRole, readonly Permission[]> = {
     PERMISSIONS.SecretsRead,
     PERMISSIONS.PolicyRead,
     PERMISSIONS.ComplianceRead,
+    PERMISSIONS.DeploymentRead,
+    PERMISSIONS.DeploymentManage,
   ],
   Viewer: [
     PERMISSIONS.OrganizationRead,
@@ -110,6 +114,7 @@ const ROLE_PERMISSIONS: Record<OrganizationRole, readonly Permission[]> = {
     PERMISSIONS.AuditRead,
     PERMISSIONS.PolicyRead,
     PERMISSIONS.ComplianceRead,
+    PERMISSIONS.DeploymentRead,
   ],
 };
 

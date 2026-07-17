@@ -28,4 +28,10 @@ public enum GpuType
 
     /// <summary>Custom or unmapped GPU type.</summary>
     Custom = 7,
+
+    /// <summary>NVIDIA H200.</summary>
+    H200 = 8,
+
+    /// <summary>NVIDIA B200 (future-ready).</summary>
+    B200 = 9,
 }

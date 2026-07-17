@@ -279,6 +279,33 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     /// <inheritdoc />
     public DbSet<PlatformRelease> PlatformReleases => Set<PlatformRelease>();
 
+    /// <inheritdoc />
+    public DbSet<AiDeployment> AiDeployments => Set<AiDeployment>();
+
+    /// <inheritdoc />
+    public DbSet<DeploymentTemplate> DeploymentTemplates => Set<DeploymentTemplate>();
+
+    /// <inheritdoc />
+    public DbSet<DeploymentModel> DeploymentModels => Set<DeploymentModel>();
+
+    /// <inheritdoc />
+    public DbSet<DeploymentLog> DeploymentLogs => Set<DeploymentLog>();
+
+    /// <inheritdoc />
+    public DbSet<RuntimeVersion> RuntimeVersions => Set<RuntimeVersion>();
+
+    /// <inheritdoc />
+    public DbSet<GpuCatalogEntry> GpuCatalogEntries => Set<GpuCatalogEntry>();
+
+    /// <inheritdoc />
+    public DbSet<ModelCatalogEntry> ModelCatalogEntries => Set<ModelCatalogEntry>();
+
+    /// <inheritdoc />
+    public DbSet<DeploymentHealth> DeploymentHealthSnapshots => Set<DeploymentHealth>();
+
+    /// <inheritdoc />
+    public DbSet<DeploymentHistory> DeploymentHistoryEntries => Set<DeploymentHistory>();
+
     IQueryable<RefreshToken> IApplicationDbContext.RefreshTokens => RefreshTokens;
 
     IQueryable<Organization> IApplicationDbContext.Organizations => Organizations;
@@ -450,6 +477,24 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     IQueryable<BackupJob> IApplicationDbContext.BackupJobs => BackupJobs;
 
     IQueryable<PlatformRelease> IApplicationDbContext.PlatformReleases => PlatformReleases;
+
+    IQueryable<AiDeployment> IApplicationDbContext.AiDeployments => AiDeployments;
+
+    IQueryable<DeploymentTemplate> IApplicationDbContext.DeploymentTemplates => DeploymentTemplates;
+
+    IQueryable<DeploymentModel> IApplicationDbContext.DeploymentModels => DeploymentModels;
+
+    IQueryable<DeploymentLog> IApplicationDbContext.DeploymentLogs => DeploymentLogs;
+
+    IQueryable<RuntimeVersion> IApplicationDbContext.RuntimeVersions => RuntimeVersions;
+
+    IQueryable<GpuCatalogEntry> IApplicationDbContext.GpuCatalogEntries => GpuCatalogEntries;
+
+    IQueryable<ModelCatalogEntry> IApplicationDbContext.ModelCatalogEntries => ModelCatalogEntries;
+
+    IQueryable<DeploymentHealth> IApplicationDbContext.DeploymentHealthSnapshots => DeploymentHealthSnapshots;
+
+    IQueryable<DeploymentHistory> IApplicationDbContext.DeploymentHistoryEntries => DeploymentHistoryEntries;
 
     /// <inheritdoc />
     public Task AddAuditLogAsync(AuditLog auditLog, CancellationToken cancellationToken = default) =>
@@ -852,6 +897,42 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     /// <inheritdoc />
     public Task AddPlatformReleaseAsync(PlatformRelease release, CancellationToken cancellationToken = default) =>
         PlatformReleases.AddAsync(release, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public Task AddAiDeploymentAsync(AiDeployment deployment, CancellationToken cancellationToken = default) =>
+        AiDeployments.AddAsync(deployment, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public Task AddDeploymentTemplateAsync(DeploymentTemplate template, CancellationToken cancellationToken = default) =>
+        DeploymentTemplates.AddAsync(template, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public Task AddDeploymentModelAsync(DeploymentModel model, CancellationToken cancellationToken = default) =>
+        DeploymentModels.AddAsync(model, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public Task AddDeploymentLogAsync(DeploymentLog log, CancellationToken cancellationToken = default) =>
+        DeploymentLogs.AddAsync(log, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public Task AddRuntimeVersionAsync(RuntimeVersion version, CancellationToken cancellationToken = default) =>
+        RuntimeVersions.AddAsync(version, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public Task AddGpuCatalogEntryAsync(GpuCatalogEntry entry, CancellationToken cancellationToken = default) =>
+        GpuCatalogEntries.AddAsync(entry, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public Task AddModelCatalogEntryAsync(ModelCatalogEntry entry, CancellationToken cancellationToken = default) =>
+        ModelCatalogEntries.AddAsync(entry, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public Task AddDeploymentHealthAsync(DeploymentHealth health, CancellationToken cancellationToken = default) =>
+        DeploymentHealthSnapshots.AddAsync(health, cancellationToken).AsTask();
+
+    /// <inheritdoc />
+    public Task AddDeploymentHistoryAsync(DeploymentHistory history, CancellationToken cancellationToken = default) =>
+        DeploymentHistoryEntries.AddAsync(history, cancellationToken).AsTask();
 
     /// <inheritdoc />
     public async Task RemoveIdentityProviderAsync(Guid identityProviderId, CancellationToken cancellationToken = default)

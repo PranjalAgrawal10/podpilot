@@ -83,6 +83,13 @@ import { BlogPage } from './pages/marketing/BlogPage';
 import { RoadmapPage } from './pages/marketing/RoadmapPage';
 import { CommunityPage } from './pages/marketing/CommunityPage';
 import { ContactPage } from './pages/marketing/ContactPage';
+import { DeploymentsPage } from './pages/DeploymentsPage';
+import { CreateDeploymentPage } from './pages/CreateDeploymentPage';
+import { DeploymentDetailsPage } from './pages/DeploymentDetailsPage';
+import { DeploymentLogsPage } from './pages/DeploymentLogsPage';
+import { DeploymentTemplatesPage } from './pages/DeploymentTemplatesPage';
+import { DeploymentModelCatalogPage } from './pages/DeploymentModelCatalogPage';
+import { GpuCatalogPage } from './pages/GpuCatalogPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'react-toastify/dist/ReactToastify.css';
@@ -134,6 +141,13 @@ function App() {
                     <Route path="/pods" element={<PodsPage />} />
                     <Route path="/pods/create" element={<CreatePodPage />} />
                     <Route path="/pods/:id" element={<PodDetailsPage />} />
+                    <Route path="/deployments" element={<DeploymentsPage />} />
+                    <Route path="/deployments/create" element={<CreateDeploymentPage />} />
+                    <Route path="/deployments/templates" element={<DeploymentTemplatesPage />} />
+                    <Route path="/deployments/models" element={<DeploymentModelCatalogPage />} />
+                    <Route path="/deployments/gpus" element={<GpuCatalogPage />} />
+                    <Route path="/deployments/:id/logs" element={<DeploymentLogsPage />} />
+                    <Route path="/deployments/:id" element={<DeploymentDetailsPage />} />
                     <Route path="/gateway" element={<GatewayPage />} />
                     <Route path="/scheduler" element={<SchedulerPage />} />
                     <Route path="/scheduler/queue" element={<QueuePage />} />

@@ -72,6 +72,12 @@ public class RolePermissionMatrixTests
     [InlineData(OrganizationRole.Viewer, PermissionNames.BillingRead, true)]
     [InlineData(OrganizationRole.Viewer, PermissionNames.LicenseRead, true)]
     [InlineData(OrganizationRole.Viewer, PermissionNames.BackupManage, false)]
+    [InlineData(OrganizationRole.Admin, PermissionNames.DeploymentRead, true)]
+    [InlineData(OrganizationRole.Admin, PermissionNames.DeploymentManage, true)]
+    [InlineData(OrganizationRole.Developer, PermissionNames.DeploymentRead, true)]
+    [InlineData(OrganizationRole.Developer, PermissionNames.DeploymentManage, true)]
+    [InlineData(OrganizationRole.Viewer, PermissionNames.DeploymentRead, true)]
+    [InlineData(OrganizationRole.Viewer, PermissionNames.DeploymentManage, false)]
     public void HasPermission_ReturnsExpectedResult(
         OrganizationRole role,
         string permission,
