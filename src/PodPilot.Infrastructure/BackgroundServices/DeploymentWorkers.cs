@@ -33,7 +33,7 @@ public sealed class DeploymentWorker : BackgroundService
         {
             try
             {
-                await ProcessBatchAsync(DeploymentService.GetActiveWorkerStatuses(), stoppingToken);
+                await ProcessBatchAsync(stoppingToken);
             }
             catch (Exception ex)
             {
@@ -44,14 +44,22 @@ public sealed class DeploymentWorker : BackgroundService
         }
     }
 
-    private async Task ProcessBatchAsync(DeploymentStatus[] statuses, CancellationToken cancellationToken)
+    private async Task ProcessBatchAsync(CancellationToken cancellationToken)
     {
         IReadOnlyList<Guid> ids;
         using (var scope = scopeFactory.CreateScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<IApplicationDbContext>();
+
+            // Explicit OR — MySQL EF cannot type-map enum[] for Contains/IN.
             ids = await db.AiDeployments
-                .Where(d => statuses.Contains(d.Status))
+                .Where(d =>
+                    d.Status == DeploymentStatus.Pending
+                    || d.Status == DeploymentStatus.Provisioning
+                    || d.Status == DeploymentStatus.Starting
+                    || d.Status == DeploymentStatus.InstallingRuntime
+                    || d.Status == DeploymentStatus.Configuring
+                    || d.Status == DeploymentStatus.HealthCheck)
                 .OrderBy(d => d.UpdatedAt ?? d.CreatedAt)
                 .Select(d => d.Id)
                 .Take(10)
@@ -261,15 +269,6 @@ public sealed class DeploymentCleanupWorker : BackgroundService
 public sealed class DeploymentRetryWorker : BackgroundService
 {
     private static readonly TimeSpan Interval = TimeSpan.FromSeconds(15);
-    private static readonly DeploymentStatus[] Recoverable =
-    [
-        DeploymentStatus.Provisioning,
-        DeploymentStatus.Starting,
-        DeploymentStatus.InstallingRuntime,
-        DeploymentStatus.DownloadingModels,
-        DeploymentStatus.Configuring,
-        DeploymentStatus.HealthCheck,
-    ];
 
     private readonly IServiceScopeFactory scopeFactory;
     private readonly ILogger<DeploymentRetryWorker> logger;
@@ -305,7 +304,14 @@ public sealed class DeploymentRetryWorker : BackgroundService
                     try
                     {
                         var lastRecoverable = await db.DeploymentHistoryEntries
-                            .Where(h => h.DeploymentId == deployment.Id && Recoverable.Contains(h.ToStatus))
+                            .Where(h =>
+                                h.DeploymentId == deployment.Id
+                                && (h.ToStatus == DeploymentStatus.Provisioning
+                                    || h.ToStatus == DeploymentStatus.Starting
+                                    || h.ToStatus == DeploymentStatus.InstallingRuntime
+                                    || h.ToStatus == DeploymentStatus.DownloadingModels
+                                    || h.ToStatus == DeploymentStatus.Configuring
+                                    || h.ToStatus == DeploymentStatus.HealthCheck))
                             .OrderByDescending(h => h.TimestampUtc)
                             .Select(h => (DeploymentStatus?)h.ToStatus)
                             .FirstOrDefaultAsync(stoppingToken);

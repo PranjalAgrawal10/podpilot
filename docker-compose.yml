@@ -1,27 +1,24 @@
 services:
-  # MySQL is optional in Compose — the API defaults to host MySQL via
-  # host.docker.internal (see ConnectionStrings__DefaultConnection).
-  # Uncomment the mysql service below for an all-in-Compose stack.
-  #
-  # mysql:
-  #   image: mysql:8.4
-  #   container_name: podpilot-mysql
-  #   environment:
-  #     MYSQL_DATABASE: podpilot
-  #     MYSQL_USER: podpilot
-  #     MYSQL_PASSWORD: ${MYSQL_PASSWORD:-podpilot_secret}
-  #     MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root_secret}
-  #   ports:
-  #     - "3306:3306"
-  #   volumes:
-  #     - podpilot-mysql:/var/lib/mysql
-  #   networks:
-  #     - podpilot-network
-  #   healthcheck:
-  #     test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-p$$MYSQL_ROOT_PASSWORD"]
-  #     interval: 10s
-  #     timeout: 5s
-  #     retries: 10
+  mysql:
+    image: mysql:8.4
+    container_name: podpilot-mysql
+    environment:
+      MYSQL_DATABASE: podpilot
+      MYSQL_USER: podpilot
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-podpilot_secret}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root_secret}
+    ports:
+      - "3306:3306"
+    volumes:
+      - podpilot-mysql:/var/lib/mysql
+    networks:
+      - podpilot-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-p$$MYSQL_ROOT_PASSWORD"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
 
   redis:
     image: redis:7-alpine
@@ -39,9 +36,7 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Production
       ASPNETCORE_URLS: http://+:8080
-      # Point at host MySQL by default; with the optional mysql service use:
-      # Server=mysql;Port=3306;Database=podpilot;User=podpilot;Password=${MYSQL_PASSWORD:-podpilot_secret};
-      ConnectionStrings__DefaultConnection: "Server=host.docker.internal;Port=3306;Database=podpilot;User=podpilot;Password=${MYSQL_PASSWORD:-podpilot_secret};"
+      ConnectionStrings__DefaultConnection: "Server=mysql;Port=3306;Database=podpilot;User=podpilot;Password=${MYSQL_PASSWORD:-podpilot_secret};"
       ConnectionStrings__Redis: "redis:6379"
       Jwt__Secret: "${JWT_SECRET:-PodPilot_Docker_Super_Secret_Key_For_JWT_Token_Generation_2026!}"
       Cors__AllowedOrigins__0: "http://localhost:3000"
@@ -51,14 +46,10 @@ services:
     ports:
       - "5000:8080"
     depends_on:
-      - redis
-    # depends_on:
-    #   mysql:
-    #     condition: service_healthy
-    #   redis:
-    #     condition: service_started
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/api/v1/health"]
       interval: 30s
@@ -84,5 +75,5 @@ networks:
   podpilot-network:
     driver: bridge
 
-# volumes:
-#   podpilot-mysql:
+volumes:
+  podpilot-mysql:
