@@ -15,7 +15,9 @@ RUN dotnet restore "src/PodPilot.Api/PodPilot.Api.csproj"
 
 COPY . .
 WORKDIR /src/src/PodPilot.Api
-RUN dotnet publish "PodPilot.Api.csproj" -c Release -o /app/publish /p:UseAppHost=false
+# Skip post-build migrate: MySQL is not available during image build.
+# Migrations run at container start via docker-entrypoint.sh.
+RUN dotnet publish "PodPilot.Api.csproj" -c Release -o /app/publish /p:UseAppHost=false /p:SkipDatabaseMigrations=true
 
 # Runtime stage
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
